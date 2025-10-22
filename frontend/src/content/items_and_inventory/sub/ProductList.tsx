@@ -20,50 +20,50 @@ const LoadingSpinnerTbody: React.FC<{ rowsCount: number }> = ({ rowsCount }) => 
         <tbody>
             {Array.from({ length: rowsCount }).map((_, idx) => (
                 <tr key={idx} className="bg-transparent-900 border-b border-gray-700">
-                    <td className="text-center py-3 px-4">
+                    <td className="text-center py-2 px-2">
                         <div className="h-6 bg-gray-700 rounded w-5 mx-auto"></div>
                     </td>
-                    <td className="py-3 px-4 flex items-center space-x-3 min-w-[300px]">
+                    <td className="py-2 px-2 flex items-center space-x-3 min-w-[300px]">
                         <div className="w-10 h-10 rounded-lg bg-gray-700" />
                         <div className="flex flex-col space-y-2 py-1 flex-1">
                             <div className="h-4 bg-gray-700 rounded w-3/4"></div>
                             <div className="h-3 bg-gray-600 rounded w-1/2"></div>
                         </div>
                     </td>
-                    <td className="text-center items-center py-3 px-4">
+                    <td className="text-center items-center py-2 px-2">
                         <div className="flex flex-col space-y-2 py-1 flex-1">
                             <div className="h-4 bg-gray-700 rounded w-16 mx-auto"></div>
                             <div className="h-4 bg-gray-700 rounded w-16 mx-auto"></div>
                         </div>
                     </td>
-                    <td className="text-center py-3 px-4">
+                    <td className="text-center py-2 px-2">
                         <div className="flex flex-col space-y-2 py-1 flex-1">
                             <div className="h-4 bg-gray-700 rounded w-16 mx-auto"></div>
                             <div className="h-4 bg-gray-700 rounded w-16 mx-auto"></div>
                         </div>
                     </td>
-                    <td className="text-center py-3 px-4">
+                    <td className="text-center py-2 px-2">
                         <div className="flex flex-col space-y-2 py-1 flex-1">
                             <div className="h-4 bg-gray-700 rounded w-16 mx-auto"></div>
                             <div className="h-4 bg-gray-700 rounded w-16 mx-auto"></div>
                         </div>
                     </td>
-                    <td className="text-center py-3 px-4">
+                    <td className="text-center py-2 px-2">
                         <div className="flex flex-col space-y-2 py-1 flex-1">
                             <div className="h-4 bg-gray-700 rounded w-16 mx-auto"></div>
                             <div className="h-4 bg-gray-700 rounded w-16 mx-auto"></div>
                         </div>
                     </td>
-                    <td className="text-center py-3 px-4">
+                    <td className="text-center py-2 px-2">
                         <div className="h-6 bg-gray-700 rounded w-20 mx-auto"></div>
                     </td>
-                    <td className="text-center py-3 px-4">
+                    <td className="text-center py-2 px-2">
                         <div className="h-4 bg-gray-700 rounded w-8 mx-auto"></div>
                     </td>
-                    <td className="text-center py-3 px-4">
+                    <td className="text-center py-2 px-2">
                         <div className="h-6 bg-gray-700 rounded w-10 mx-auto"></div>
                     </td>
-                    <td className="text-center py-3 px-4">
+                    <td className="text-center py-2 px-2">
                         <div className="h-6 bg-gray-700 rounded w-10 mx-auto"></div>
                     </td>
                 </tr>
@@ -319,7 +319,6 @@ const ProductList: React.FC<ProductListProps> = ({ tabId, onProductSelect, onCha
         "no order": { en: "No Order", cn: "无订单", color: "bg-cyan-600 bg-opacity-20 text-cyan-300" },
         scheduled: { en: "Scheduled", cn: "准备中", color: "bg-cyan-600 bg-opacity-20 text-cyan-300" },
     };
-
     const onClear = () => {
         setSearchTerm("");
     };
@@ -930,11 +929,11 @@ const ProductList: React.FC<ProductListProps> = ({ tabId, onProductSelect, onCha
                         </fieldset>
                     </div>
                     {/* Footer */}
-                    <div className="p-3 border-t border-[#ffffff1a] flex justify-end space-x-4">
-                        <button onClick={() => setShowCopyProduct(false)} className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-white transition">
+                    <div className="p-3 border-t border-[#ffffff1a] flex justify-end space-x-1">
+                        <button onClick={() => setShowCopyProduct(false)} className="px-2 py-2 bg-gray-700 hover:bg-gray-600 rounded text-white transition">
                             {translations["Close"]}
                         </button>
-                        <button onClick={() => handleCopyProduct()} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded text-white transition">
+                        <button onClick={() => handleCopyProduct()} className="px-2 py-2 bg-cyan-600 hover:bg-cyan-500 rounded text-white transition">
                             {translations["Save"]}
                         </button>
                     </div>
@@ -1037,11 +1036,11 @@ const ProductList: React.FC<ProductListProps> = ({ tabId, onProductSelect, onCha
                         </fieldset>
                     </div>
                     {/* Footer */}
-                    <div className="p-2 border-t border-[#ffffff1a] flex justify-end space-x-4">
-                        <button onClick={() => setShowTagging(false)} className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-white transition">
+                    <div className="p-2 border-t border-[#ffffff1a] flex justify-end space-x-1">
+                        <button onClick={() => setShowTagging(false)} className="px-2 py-2 bg-gray-700 hover:bg-gray-600 rounded text-white transition">
                             {translations["Close"]}
                         </button>
-                        <button onClick={() => handleSaveTagging()} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded text-white transition">
+                        <button onClick={() => handleSaveTagging()} className="px-2 py-2 bg-cyan-600 hover:bg-cyan-500 rounded text-white transition">
                             {translations["Save"]}
                         </button>
                     </div>
@@ -1174,21 +1173,23 @@ const ProductList: React.FC<ProductListProps> = ({ tabId, onProductSelect, onCha
                                             }`}
                                             style={{ borderColor: "#40404042" }}
                                         >
-                                            <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
-                                                <CustomCheckbox
-                                                    checked={selectedProducts.includes(product.id as number)}
-                                                    onChange={(checked) => handleSelectProduct(product.id as number, checked)}
-                                                    ariaLabel={`Select product ${product.product_code}`}
-                                                />
+                                            <td className="py-2 px-2 text-center" onClick={(e) => e.stopPropagation()}>
+                                                <div className="flex justify-center items-center">
+                                                    <CustomCheckbox
+                                                        checked={selectedProducts.includes(product.id as number)}
+                                                        onChange={(checked) => handleSelectProduct(product.id as number, checked)}
+                                                        ariaLabel={`Select product ${product.product_code}`}
+                                                    />
+                                                </div>
                                             </td>
-                                            <td className="py-3 px-4">
+                                            <td className="py-2 px-2">
                                                 <div className="flex items-center space-x-3">
                                                     <div
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             handleShowImages(product.id);
                                                         }}
-                                                        className="w-8 h-8 bg-gray-600 rounded-lg flex items-center justify-center"
+                                                        className="w-10 h-10 bg-gray-600 rounded-lg flex items-center justify-center"
                                                     >
                                                         <img
                                                             src={getImageUrl(product.product_thumbnail)}
@@ -1211,32 +1212,32 @@ const ProductList: React.FC<ProductListProps> = ({ tabId, onProductSelect, onCha
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="py-3 px-4 text-gray-400 text-center text-custom-sm">
+                                            <td className="py-2 px-2 text-gray-400 text-center text-custom-sm">
                                                 {product.price_currency}
                                                 <br />
                                                 {formatMoney(product.retail_price)}
                                             </td>
-                                            <td className="py-3 px-4 text-gray-400 text-center text-custom-sm">
+                                            <td className="py-2 px-2 text-gray-400 text-center text-custom-sm">
                                                 {product.price_currency}
                                                 <br />
                                                 {formatMoney(product.retail_price)}
                                             </td>
-                                            <td className="py-3 px-4 text-gray-400 text-center text-custom-sm">
+                                            <td className="py-2 px-2 text-gray-400 text-center text-custom-sm">
                                                 {product.price_currency}
                                                 <br />
                                                 {formatMoney(product.preorder_price)}
                                             </td>
-                                            <td className="py-3 px-4 text-gray-400 text-center text-custom-sm">
+                                            <td className="py-2 px-2 text-gray-400 text-center text-custom-sm">
                                                 {product.item_cost_currency}
                                                 <br />
                                                 {formatMoney(product.item_cost)}
                                             </td>
-                                            <td className="py-3 px-4 text-center">
+                                            <td className="py-2 px-2 text-center">
                                                 <span className={`px-2 py-1 rounded-full text-xs text-custom-sm ${getStatusColor(product.product_status)}`}>
                                                     {productStatusLocalized(product.product_status, safeLang)}
                                                 </span>
                                             </td>
-                                            <td className="py-3 px-4 text-gray-400 text-center text-custom-sm">
+                                            <td className="py-2 px-2 text-gray-400 text-center text-custom-sm">
                                                 {(() => {
                                                     const qty = product.available_qty ?? 0;
                                                     const isPOQty = parseInt(product.is_po_qty);
@@ -1247,7 +1248,7 @@ const ProductList: React.FC<ProductListProps> = ({ tabId, onProductSelect, onCha
                                                     return qty;
                                                 })()}
                                             </td>
-                                            <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                            <td className="py-2 px-2 text-center" onClick={(e) => e.stopPropagation()}>
                                                 <label className="relative inline-flex items-center cursor-pointer">
                                                     <input
                                                         type="checkbox"
@@ -1259,7 +1260,7 @@ const ProductList: React.FC<ProductListProps> = ({ tabId, onProductSelect, onCha
                                                     <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 transform peer-checked:translate-x-full"></div>
                                                 </label>
                                             </td>
-                                            <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                            <td className="py-2 px-2 text-center" onClick={(e) => e.stopPropagation()}>
                                                 <label className="relative inline-flex items-center cursor-pointer">
                                                     <input
                                                         type="checkbox"

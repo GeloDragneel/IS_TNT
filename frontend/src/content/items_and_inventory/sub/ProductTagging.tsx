@@ -914,7 +914,7 @@ const ProductTagging: React.FC<ProductTaggingProps> = ({ tabId, onChangeView, se
     const renderEditInformation = () => {
         if (!showEditInfo) return null;
         return (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-70">
                 <div className="bg-[#19191c] rounded-sm border border-[#ffffff1a] w-full h-full min-h-screen flex flex-col">
                     {/* Header */}
                     <div className="flex items-center justify-between p-3 border-b border-[#ffffff1a]">
@@ -1254,11 +1254,11 @@ const ProductTagging: React.FC<ProductTaggingProps> = ({ tabId, onChangeView, se
                         </div>
                     </div>
                     {/* Footer */}
-                    <div className="p-6 border-t border-[#ffffff1a] flex justify-end space-x-4">
-                        <button onClick={() => setShowEditInfo(false)} className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-white transition">
+                    <div className="p-2 border-t border-[#ffffff1a] flex justify-end space-x-2">
+                        <button onClick={() => setShowEditInfo(false)} className="px-2 py-2 bg-gray-700 hover:bg-gray-600 rounded text-white transition">
                             {translations["Close"]}
                         </button>
-                        <button onClick={() => handleSave()} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded text-white transition">
+                        <button onClick={() => handleSave()} className="px-2 py-2 bg-cyan-600 hover:bg-cyan-500 rounded text-white transition">
                             {translations["Save"]}
                         </button>
                     </div>
@@ -1272,7 +1272,7 @@ const ProductTagging: React.FC<ProductTaggingProps> = ({ tabId, onChangeView, se
         if (!showAddInfo) return null;
         return (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-[#19191c] rounded-xl border border-[#ffffff1a] w-[60vw] h-[90vh] flex flex-col">
+                <div className="bg-[#19191c] rounded-xl border border-[#ffffff1a] w-[60vw] flex flex-col">
                     {/* Header */}
                     <div className="flex items-center justify-between p-3 border-b border-[#ffffff1a]">
                         <div className="flex items-center space-x-4">
@@ -1304,8 +1304,8 @@ const ProductTagging: React.FC<ProductTaggingProps> = ({ tabId, onChangeView, se
                         </div>
                     </div>
                     {/* Content */}
-                    <div className="overflow-x-auto flex-grow">
-                        <div className="overflow-y-auto">
+                    <div className="p-2 flex-1 overflow-auto">
+                        <div className="max-h-[calc(100vh-380px)] overflow-y-auto">
                             <table className="w-full">
                                 <thead className="sticky top-0 z-[1]" style={{ backgroundColor: "#1f2132" }}>
                                     <tr className="border-b" style={{ borderColor: "#2d2d30" }}>
@@ -1371,8 +1371,8 @@ const ProductTagging: React.FC<ProductTaggingProps> = ({ tabId, onChangeView, se
                         </div>
                     </div>
                     {/* Footer with Pagination */}
-                    <div className="p-4 border-t flex items-center justify-between" style={{ borderColor: "#404040" }}>
-                        <div className="flex items-center space-x-4">
+                    <div className="p-2 border-t flex items-center justify-between" style={{ borderColor: "#404040" }}>
+                        <div className="flex items-center space-x-1">
                             <MemoizedPagination currentPage={currentPagePopup} totalPages={totalPagesPopup} onPageChange={(page) => setCurrentPagePopup(page)} />
                             <MemoizedItemsPerPageSelector
                                 value={itemsPerPagePopup}
@@ -1383,16 +1383,16 @@ const ProductTagging: React.FC<ProductTaggingProps> = ({ tabId, onChangeView, se
                                 options={pageSizeOptionsPopup}
                             />
                         </div>
+                        <div className="p-2 border-[#ffffff1a] flex justify-end space-x-2">
+                            <button onClick={() => setShowAddInfo(false)} className="px-2 py-2 bg-gray-700 hover:bg-gray-600 rounded text-white transition">
+                                {translations["Close"]}
+                            </button>
+                            <button onClick={() => handleAdd()} className="px-2 py-2 bg-cyan-600 hover:bg-cyan-500 rounded text-white transition">
+                                {translations["Add"]}
+                            </button>
+                        </div>
                     </div>
                     {/* Footer */}
-                    <div className="p-2 border-t border-[#ffffff1a] flex justify-end space-x-4">
-                        <button onClick={() => setShowAddInfo(false)} className="px-2 py-2 bg-gray-700 hover:bg-gray-600 rounded text-white transition">
-                            {translations["Close"]}
-                        </button>
-                        <button onClick={() => handleAdd()} className="px-2 py-2 bg-cyan-600 hover:bg-cyan-500 rounded text-white transition">
-                            {translations["Add"]}
-                        </button>
-                    </div>
                 </div>
             </div>
         );

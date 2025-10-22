@@ -96,7 +96,7 @@ const ProductArchive: React.FC<ProductArchiveProps> = ({ tabId, onProductSelect,
     const pageSizeOptions = useMemo(() => [15, 20, 50, -1], []);
 
     const [loading, setLoading] = useState(() => {
-        const savedLoading = localStorage.getItem(`${tabId}-loading-products`);
+        const savedLoading = localStorage.getItem(`${tabId}-loading-archive`);
         return savedLoading !== null ? JSON.parse(savedLoading) : true;
     });
 
@@ -154,74 +154,19 @@ const ProductArchive: React.FC<ProductArchiveProps> = ({ tabId, onProductSelect,
     }, [currentPage, itemsPerPage, searchTerm, tabId]);
 
     useEffect(() => {
-        const productKey = `${tabId}-cached-products`;
-        const metaKey = `${tabId}-cached-meta`;
-        const mountKey = `${tabId}-mount-status`;
-
-        const isFirstMount = sessionStorage.getItem(mountKey) !== "mounted";
-
-        if (isFirstMount) {
-            sessionStorage.setItem(mountKey, "mounted");
-            fetchProducts(currentPage, itemsPerPage, searchTerm);
-            return;
-        }
-
-        const cachedProductsRaw = localStorage.getItem(productKey);
-        const cachedMetaRaw = localStorage.getItem(metaKey);
-
-        if (!cachedProductsRaw || !cachedMetaRaw) {
-            fetchProducts(currentPage, itemsPerPage, searchTerm);
-            return;
-        }
-
-        try {
-            const cachedMeta = JSON.parse(cachedMetaRaw);
-            const cachedProducts = JSON.parse(cachedProductsRaw);
-
-            const isCacheValid = cachedMeta.page === currentPage && cachedMeta.perPage === itemsPerPage && cachedMeta.search === searchTerm;
-
-            if (isCacheValid) {
-                setProducts(cachedProducts);
-                setTotalPages(cachedMeta.totalPages);
-                setLoading(false);
-                localStorage.setItem(`${tabId}-loading-products`, JSON.stringify(false));
-                return;
-            }
-        } catch (err) {
-            console.warn("Failed to parse cached meta:", err);
-        }
-
         fetchProducts(currentPage, itemsPerPage, searchTerm);
     }, [currentPage, itemsPerPage, searchTerm, tabId]);
 
     const fetchProducts = async (page = currentPage, perPage = itemsPerPage, search = "") => {
         try {
             // setLoading(true);
-            localStorage.setItem(`${tabId}-loading-products`, JSON.stringify(true));
-
             const paginatedData = await productService.getArchiveProducts(page, perPage, search);
-
-            console.log(paginatedData.data);
-
             setProducts(paginatedData.data);
             setTotalPages(paginatedData.last_page);
-
-            localStorage.setItem(`${tabId}-cached-products`, JSON.stringify(paginatedData.data));
-            localStorage.setItem(
-                `${tabId}-cached-meta`,
-                JSON.stringify({
-                    page,
-                    perPage,
-                    search,
-                    totalPages: paginatedData.last_page,
-                    totalItems: paginatedData.total,
-                })
-            );
         } catch (err) {
             console.error("Error fetching products:", err);
         } finally {
             setLoading(false);
-            localStorage.setItem(`${tabId}-loading-products`, JSON.stringify(false));
         }
     };
 
@@ -302,7 +247,28 @@ const ProductArchive: React.FC<ProductArchiveProps> = ({ tabId, onProductSelect,
             console.error("Deletion failed:", err);
         }
     };
+    const handleRestore = async () => {
+        if (selectedProducts.length === 0) {
+            showErrorToast(translations["Please click checkbox to select row"]);
+            return;
+        }
+        const confirmed = await showConfirm(translations["System Message"], translations["Are you sure you want to delete selected items?"], translations["Delete"], translations["Cancel"]);
 
+        if (!confirmed) return;
+        try {
+            await productService.deleteProducts(selectedProducts, "restore");
+            setProducts((prev) => prev.filter((p) => !selectedProducts.includes(p.id!)));
+            onSelectedProductsChange([]);
+            fetchProducts(currentPage, itemsPerPage, searchTerm);
+            const tabProductList = tabId.split("-").slice(0, 2).join("-");
+            if (tabProductList) {
+                localStorage.removeItem(tabProductList + "-product-list");
+            }
+            showAlert(translations["System Message"], translations["Record has been restored"] || "Record has been restored", "success");
+        } catch (err) {
+            showAlert(translations["System Message"], translations["alert_message_18"], "error");
+        }
+    };
     const handleRowClick = (e: React.MouseEvent, productId: number) => {
         // Prevent navigation if clicking on checkboxes or toggle switches
         const target = e.target as HTMLElement;
@@ -355,7 +321,18 @@ const ProductArchive: React.FC<ProductArchiveProps> = ({ tabId, onProductSelect,
                         </div>
                         <div className="flex items-center space-x-4">
                             <div className="flex items-center space-x-2">
-                                <button onClick={handleDeleteSelected} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center space-x-2 text-sm">
+                                <button
+                                    disabled={selectedProducts.length === 0}
+                                    onClick={handleRestore}
+                                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
+                                >
+                                    <span>{translations["Restore"]}</span>
+                                </button>
+                                <button
+                                    disabled={selectedProducts.length === 0}
+                                    onClick={handleDeleteSelected}
+                                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center space-x-2 text-sm"
+                                >
                                     <span>{translations["Delete"]}</span>
                                 </button>
                             </div>

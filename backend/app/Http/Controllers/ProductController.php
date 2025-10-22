@@ -494,7 +494,19 @@ class ProductController extends Controller{
                 );
 
                 $product->delete();
-            } else {
+            } elseif ($type === 'restore') {
+
+                $globalController = new GlobalController();
+                $globalController->logAction(
+                    'Products Archive', 'm_products',
+                    'delete',
+                    'Product Code : ' . $product->product_code
+                );
+                $product->is_deleted = 0;
+                $product->save();
+            } 
+            
+            else {
                 return response()->json(['message' => 'Invalid delete type'], 400);
             }
         }

@@ -4180,11 +4180,11 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                         </fieldset>
                     </div>
                     {/* Footer */}
-                    <div className="p-6 border-t border-[#ffffff1a] flex justify-end space-x-4">
-                        <button onClick={() => setShowCopyProduct(false)} className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-white transition">
+                    <div className="p-2 border-t border-[#ffffff1a] flex justify-end space-x-1">
+                        <button onClick={() => setShowCopyProduct(false)} className="px-2 py-2 bg-gray-700 hover:bg-gray-600 rounded text-white transition">
                             {translations["Close"]}
                         </button>
-                        <button onClick={handleCopyProduct} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded text-white transition">
+                        <button onClick={handleCopyProduct} className="px-2 py-2 bg-cyan-600 hover:bg-cyan-500 rounded text-white transition">
                             {translations["Save"]}
                         </button>
                     </div>
@@ -4526,8 +4526,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                         )}
                     </div>
                     {/* Footer */}
-                    <div className="p-4 border-t border-[#ffffff1a] flex justify-end space-x-1">
-                        <button onClick={() => setShowPopupDropdown(false)} className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-white transition">
+                    <div className="p-2 border-t border-[#ffffff1a] flex justify-end space-x-1">
+                        <button onClick={() => setShowPopupDropdown(false)} className="px-2 py-2 bg-gray-700 hover:bg-gray-600 rounded text-white transition">
                             {translations["Close"]}
                         </button>
                         <button
@@ -4539,7 +4539,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                 setFormData_Dropdown((prev) => ({ ...prev, cn: "" }));
                                 setShowPopupDropdown(true);
                             }}
-                            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded text-white transition"
+                            className="px-2 py-2 bg-cyan-600 hover:bg-cyan-500 rounded text-white transition"
                         >
                             {translations["New"]}
                         </button>
@@ -4547,7 +4547,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                             onClick={() => {
                                 handleSaveDropdown();
                             }}
-                            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded text-white transition"
+                            className="px-2 py-2 bg-cyan-600 hover:bg-cyan-500 rounded text-white transition"
                         >
                             {translations["Save"]}
                         </button>
