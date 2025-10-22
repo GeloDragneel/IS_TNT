@@ -44,6 +44,7 @@ use App\Models\Grn_master;
 use App\Models\Shipping_stat;
 use App\Models\Courier;
 use App\Models\Receive_voucher_master_invoices;
+use App\Models\Product_images;
 
 class PrintingController extends Controller{
 
@@ -206,6 +207,9 @@ class PrintingController extends Controller{
             break;
             case 'RVoucher_Report':
                 $this->RVoucher_Report($request);
+            break;
+            case 'UnsoldOrderList':
+                return $this->UnsoldOrderList($request);
             break;
         }
     }
@@ -5487,6 +5491,110 @@ class PrintingController extends Controller{
         $TBS->MergeBlock('b', $data);
         $TBS->MergeBlock('c', $bottomdata);
         $TBS->MergeBlock('d', $expanderdata);
+        // ✅ Output file name
+        $outputFileName = $filename . '.' . $format;
+        // ✅ Download the generated file
+        $TBS->Show(OPENTBS_DOWNLOAD, $outputFileName);
+        exit; // Required to stop Laravel from continuing the response
+    }
+    public function UnsoldOrderList($request){
+        // ✅ Create a new instance of TinyButStrong
+        $TBS = new \clsTinyButStrong();
+        $TBS->Plugin(TBS_INSTALL, OPENTBS_PLUGIN);
+
+        $format = $request->input('format', 'odt');
+        $filename = $request->input('name');
+        $language = $request->input('language');
+        $ids = $request->input('ids', []); 
+
+        $companyName = ISSettings::where('tag','companyName')->value('en');
+        $storeLocation = Store_location::where('set_as_default',1)->first();
+        $Address = ($language === 'en' ? $storeLocation->address_en : $storeLocation->address_cn);
+
+        // ✅ Path to your .odt template
+        $templatePath = base_path('templates/ReportTemplate/'.$filename.'.'.$format);
+
+        if (!file_exists($templatePath)) {
+            return response()->json(['error' => $templatePath . ' - Template not found'], 404);
+        }
+
+        $TBS->VarRef['companyName'] = $companyName;
+        $TBS->VarRef['Address'] = $Address;
+        if (is_string($ids)) {
+            $ids = array_filter(explode(',', $ids));
+        }
+        $baseCurrency = ISSettings::where('tag', 'basecurrency')->value('en');
+        $data = POrder_detail::with(['product', 'poMaster'])
+            ->whereColumn('qty', '<>', 'receive_qty')
+            ->get()
+            ->map(function ($detail) use ($language,$baseCurrency) {
+
+                if (!$detail->product) {
+                    return null;
+                }
+
+                $order_qty = Orders::where('product_id', $detail['product_id'])
+                    ->where('show_category', 'orders')
+                    ->sum('qty');
+
+                if ((int) $detail->qty - ((int) $order_qty + (int) $detail->allocated_qty) > 0) {
+                    $unsold_qty = (int) $detail->qty - ((int) $order_qty + (int) $detail->allocated_qty);
+                    
+                    $product_thumbnail = Product_images::where('product_id',$detail->product->id)
+                        ->where('type','thumbnail')->value('path');
+
+                    $product_title_en = $detail->product->product_title_en ?? '';
+                    $product_title_cn = $detail->product->product_title_cn ?? '';
+                    $ProductName = ($language === 'en' ? $product_title_en : $product_title_cn);
+
+                    return [
+                        'BaseCurrency' => $baseCurrency,
+                        'Currency' => $detail->poMaster->currency,
+                        'ItemCode' => $detail->product->product_code ?? '',
+                        'ProductName' => $ProductName,
+                        'PODate' => $this->ConvertDateLanguage($detail->poMaster->po_date,$language),
+                        'PONumber' => $detail->poMaster->po_number,
+                        'POQty' => $detail->qty,
+                        'OrderQty' => $order_qty,
+                        'UnsoldQty' => $unsold_qty,
+                        'Cost' => $detail->price,
+                        'TotalCost' => number_format($unsold_qty * $detail->price, 2, '.', ''),
+                        'BaseTotal' => number_format($unsold_qty * $detail->price * $detail->poMaster->ex_rate, 2, '.', ''),
+                    ];
+                }
+
+                return null;
+            })
+            ->filter()
+            ->sortBy([
+                ['hold_qty', 'desc'],
+                ['po_number', 'desc'],
+            ])->values();
+
+        $GrandBaseTotal = $data->sum('BaseTotal');
+
+        $caption = array();
+        $caption[] = array(
+            'cap1'=>$this->ISGlobal('Product2',$language),
+            'cap2'=>$this->ISGlobal('PODate2',$language),
+            'cap3'=>$this->ISGlobal('PONo2',$language),
+            'cap4'=>$this->ISGlobal('POQty2',$language),
+            'cap5'=>$this->ISGlobal('POSoldQty2',$language),
+            'cap6'=>$this->ISGlobal('UnsoldQty2',$language),
+            'cap7'=>$this->ISGlobal('Cost2',$language),
+            'cap8'=>$this->ISGlobal('TotalCost2',$language),
+            'cap9'=>$this->ISGlobal('BaseTotal2',$language),
+            'cap10'=>$this->ISGlobal('Product Code',$language),
+            'cap11'=>$this->ISGlobal('Product Name',$language),
+            'cap12'=>$this->ISGlobal('Total',$language),
+        );
+
+        $TBS->VarRef['BaseCurrency'] = $baseCurrency;
+        $TBS->VarRef['GrandBaseTotal'] = number_format($GrandBaseTotal,2);
+
+        $TBS->LoadTemplate($templatePath, OPENTBS_ALREADY_UTF8);
+		$TBS->MergeBlock('a', $caption);
+		$TBS->MergeBlock('b', $data);
         // ✅ Output file name
         $outputFileName = $filename . '.' . $format;
         // ✅ Download the generated file

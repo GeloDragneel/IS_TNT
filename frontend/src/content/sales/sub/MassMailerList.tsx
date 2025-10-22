@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { massMailerService, ApiMassMailer, DetailsRow } from "@/services/massMailerService";
 import { useLanguage } from "@/context/LanguageContext";
 import CustomCheckbox from "@/components/CustomCheckbox";
@@ -7,7 +7,6 @@ import { showSuccessToast, showErrorToast } from "@/utils/toast";
 import { highlightMatch } from "@/utils/highlightMatch";
 import Pagination from "@/components/Pagination";
 import ItemsPerPageSelector from "@/components/ItemsPerPageSelector";
-import CopyToClipboard from "@/components/CopyToClipboard";
 import PusherEcho from "@/utils/echo";
 import { Minus, Plus } from "lucide-react";
 import { formatDate } from "@/utils/globalFunction";
@@ -62,7 +61,7 @@ interface PreorderListProps {
     selectedPreorder: number[];
     onSelectedMassMailerChange: (selected: number[]) => void;
 }
-const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, onChangeView, selectedPreorder, onSelectedMassMailerChange }) => {
+const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, selectedPreorder, onSelectedMassMailerChange }) => {
     const { translations, lang } = useLanguage();
     const [products, setProducts] = useState<ApiMassMailer[]>([]);
     const [soDetailMap, setMasterDetailMap] = useState<Record<number, DetailsRow[] | null>>({});
@@ -276,7 +275,7 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
             {/* Main Content Card */}
             <div className="rounded-lg border shadow-sm" style={{ backgroundColor: "#19191c", borderColor: "#404040" }}>
                 {/* Toolbar */}
-                <div className="p-4 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
+                <div className="p-2 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
                     <div className="flex justify-between items-center">
                         <div className="flex items-center space-x-4">
                             <div className="relative">
@@ -314,7 +313,7 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
                 </div>
                 {/* Table */}
                 <div className="overflow-x-auto flex-grow">
-                    <div className="h-[calc(100vh-215px)] overflow-y-auto">
+                    <div className="h-[calc(100vh-180px)] overflow-y-auto">
                         <table className="w-full">
                             <thead className="sticky top-0 z-[1]" style={{ backgroundColor: "#1f2132" }}>
                                 <tr className="border-b" style={{ borderColor: "#2d2d30" }}>
@@ -352,7 +351,7 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
                                                     }`}
                                                     style={{ borderColor: "#40404042" }}
                                                 >
-                                                    <td className="py-2 px-2 text-gray-400 text-left text-custom-sm" onClick={(e) => e.stopPropagation()}>
+                                                    <td className="py-2 px-2 text-gray-400 text-center text-custom-sm" onClick={(e) => e.stopPropagation()}>
                                                         <button
                                                             onClick={() => handleToggleRow(list.id)}
                                                             className={`px-1 py-1 ${
@@ -434,7 +433,7 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
                     </div>
                 </div>
                 {/* Footer with Pagination */}
-                <div className="p-4 border-t flex items-center justify-between" style={{ borderColor: "#404040" }}>
+                <div className="p-2 border-t flex items-center justify-between" style={{ borderColor: "#404040" }}>
                     <div className="flex items-center space-x-2">
                         <MemoizedPagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />
                         <MemoizedItemsPerPageSelector

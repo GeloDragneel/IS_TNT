@@ -134,10 +134,7 @@ const ProductTagging: React.FC<ProductTaggingProps> = ({ tabId, onChangeView, se
     const [productsPopup, setProductsPopup] = useState<ApiProduct[]>([]);
     const [totalPages, setTotalPages] = useState(1);
     const [totalPagesPopup, setTotalPagesPopup] = useState(1);
-    const [totalItems, setTotalItems] = useState(0);
-    const [totalItemsPopup, setTotalItemsPopup] = useState(0);
     const [productTagId, setProdTagId] = useState(0);
-    const [error, setError] = useState<string | null>(null);
     const safeLang = lang === "cn" ? "cn" : "en";
     const pageSizeOptions = useMemo(() => [15, 20, 50, -1], []);
     const pageSizeOptionsPopup = useMemo(() => [10, 20, 50, -1], []);
@@ -146,19 +143,15 @@ const ProductTagging: React.FC<ProductTaggingProps> = ({ tabId, onChangeView, se
     const [showEditInfo, setShowEditInfo] = React.useState(false);
     const [showAddInfo, setShowAddInfo] = React.useState(false);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-
     const [thumbnailImage, setThumbnailImage] = useState<ImageItem | null>(null);
     const [displayImage, setDisplayImage] = useState<ImageItem | null>(null);
     const [bannerImage, setBannerImage] = useState<ImageItem | null>(null);
     const [slideImages, setSlideImages] = useState<ImageItem[]>([]);
-
     const [selectedProductsPopup, setSelectedProductsPopup] = useState<number[]>([]);
-
     const [loading, setLoading] = useState(() => {
         const savedLoading = localStorage.getItem(`${tabId}-loading-products-tagging`);
         return savedLoading !== null ? JSON.parse(savedLoading) : true;
     });
-
     // Form state - Updated to handle single vs multi-select properly
     const [formData, setFormData] = useState({
         product_code: "",
@@ -384,7 +377,6 @@ const ProductTagging: React.FC<ProductTaggingProps> = ({ tabId, onChangeView, se
             if (isCacheValid) {
                 setProducts(cachedProducts);
                 setTotalPages(cachedMeta.totalPages);
-                setTotalItems(cachedMeta.totalItems);
                 setLoading(false);
                 localStorage.setItem(`${tabId}-loading-products-tagging`, JSON.stringify(false));
                 return;
@@ -426,7 +418,6 @@ const ProductTagging: React.FC<ProductTaggingProps> = ({ tabId, onChangeView, se
             if (isCacheValid) {
                 setProductsPopup(cachedProducts);
                 setTotalPagesPopup(cachedMeta.totalPages);
-                setTotalItemsPopup(cachedMeta.totalItems);
                 setLoading(false);
                 localStorage.setItem(`${tabId}-loading-products-tagging-popup`, JSON.stringify(false));
                 return;
@@ -471,15 +462,12 @@ const ProductTagging: React.FC<ProductTaggingProps> = ({ tabId, onChangeView, se
 
     const fetchProducts = async (page = currentPage, perPage = itemsPerPage, search = "") => {
         try {
-            // setLoading(true);
-            setError(null);
             localStorage.setItem(`${tabId}-loading-products-tagging`, JSON.stringify(true));
 
             const paginatedData = await productService.getProductTagList(page, perPage, search);
 
             setProducts(paginatedData.data);
             setTotalPages(paginatedData.last_page);
-            setTotalItems(paginatedData.total);
 
             localStorage.setItem(`${tabId}-cached-products-tagging`, JSON.stringify(paginatedData.data));
             localStorage.setItem(
@@ -493,7 +481,6 @@ const ProductTagging: React.FC<ProductTaggingProps> = ({ tabId, onChangeView, se
                 })
             );
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to fetch products");
             console.error("Error fetching products:", err);
         } finally {
             setLoading(false);
@@ -508,7 +495,6 @@ const ProductTagging: React.FC<ProductTaggingProps> = ({ tabId, onChangeView, se
 
             setProductsPopup(paginatedData.data);
             setTotalPagesPopup(paginatedData.last_page);
-            setTotalItemsPopup(paginatedData.total);
 
             localStorage.setItem(`${tabId}-cached-products-tagging-popup`, JSON.stringify(paginatedData.data));
             localStorage.setItem(
@@ -522,7 +508,6 @@ const ProductTagging: React.FC<ProductTaggingProps> = ({ tabId, onChangeView, se
                 })
             );
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to fetch products popup");
             console.error("Error fetching products:", err);
         } finally {
             localStorage.setItem(`${tabId}-loading-products-tagging-popup`, JSON.stringify(false));
@@ -1418,7 +1403,7 @@ const ProductTagging: React.FC<ProductTaggingProps> = ({ tabId, onChangeView, se
             {/* Main Content Card */}
             <div className="rounded-lg border shadow-sm" style={{ backgroundColor: "#19191c", borderColor: "#404040" }}>
                 {/* Toolbar */}
-                <div className="p-4 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
+                <div className="p-2 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
                     <div className="flex justify-between items-center">
                         <div className="flex items-center space-x-4">
                             <div className="relative">
@@ -1464,10 +1449,9 @@ const ProductTagging: React.FC<ProductTaggingProps> = ({ tabId, onChangeView, se
                         </div>
                     </div>
                 </div>
-
                 {/* Table */}
                 <div className="overflow-x-auto flex-grow">
-                    <div className="max-h-[700px] h-[700px] overflow-y-auto">
+                    <div className="h-[calc(100vh-180px)] overflow-y-auto">
                         <table className="w-full">
                             <thead className="sticky top-0 z-[1]" style={{ backgroundColor: "#1f2132" }}>
                                 <tr className="border-b" style={{ borderColor: "#2d2d30" }}>
@@ -1659,8 +1643,8 @@ const ProductTagging: React.FC<ProductTaggingProps> = ({ tabId, onChangeView, se
                 </div>
 
                 {/* Footer with Pagination */}
-                <div className="p-4 border-t flex items-center justify-between" style={{ borderColor: "#404040" }}>
-                    <div className="flex items-center space-x-4">
+                <div className="p-2 border-t flex items-center justify-between" style={{ borderColor: "#404040" }}>
+                    <div className="flex items-center space-x-1">
                         <MemoizedPagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />
                         <MemoizedItemsPerPageSelector
                             value={itemsPerPage}

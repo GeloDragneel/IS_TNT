@@ -88,7 +88,7 @@ interface ProductArchiveProps {
     onExpandedRowsChange: (expanded: number[]) => void;
 }
 
-const ProductArchive: React.FC<ProductArchiveProps> = ({ tabId, onProductSelect, onChangeView, selectedProducts, onSelectedProductsChange, expandedRows }) => {
+const ProductArchive: React.FC<ProductArchiveProps> = ({ tabId, onProductSelect, onChangeView, selectedProducts, onSelectedProductsChange }) => {
     const { translations, lang } = useLanguage();
     const [products, setProducts] = useState<ApiProduct[]>([]);
     const [totalPages, setTotalPages] = useState(1);
@@ -316,7 +316,7 @@ const ProductArchive: React.FC<ProductArchiveProps> = ({ tabId, onProductSelect,
             {/* Main Content Card */}
             <div className="rounded-lg border shadow-sm" style={{ backgroundColor: "#19191c", borderColor: "#404040" }}>
                 {/* Toolbar */}
-                <div className="p-4 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
+                <div className="p-2 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
                     <div className="flex justify-between items-center">
                         <div className="flex items-center space-x-4">
                             <div className="relative">
@@ -362,10 +362,9 @@ const ProductArchive: React.FC<ProductArchiveProps> = ({ tabId, onProductSelect,
                         </div>
                     </div>
                 </div>
-
                 {/* Table */}
                 <div className="overflow-x-auto flex-grow">
-                    <div className="max-h-[700px] h-[700px] overflow-y-auto">
+                    <div className="h-[calc(100vh-180px)] overflow-y-auto">
                         <table className="w-full">
                             <thead className="sticky top-0 z-[1]" style={{ backgroundColor: "#1f2132" }}>
                                 <tr className="border-b" style={{ borderColor: "#2d2d30" }}>
@@ -391,112 +390,95 @@ const ProductArchive: React.FC<ProductArchiveProps> = ({ tabId, onProductSelect,
                                 <LoadingSpinnerTbody rowsCount={itemsPerPage} />
                             ) : (
                                 <tbody>
-                                    {filteredProducts.map((product, index) => (
-                                        <React.Fragment key={product.id || index}>
-                                            <tr
-                                                onClick={(e) => handleRowClick(e, product.id)}
-                                                className={`clickable border-b hover:bg-gray-700 hover:bg-opacity-30 transition-colors cursor-pointer ${
-                                                    selectedProducts.includes(product.id as number) ? "bg-gray-700 bg-opacity-30" : ""
-                                                }`}
-                                                style={{ borderColor: "#40404042" }}
-                                            >
-                                                <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
-                                                    <div className="flex items-center">
-                                                        <CustomCheckbox
-                                                            checked={selectedProducts.includes(product.id as number)}
-                                                            onChange={(checked) => handleSelectProduct(product.id as number, checked)}
-                                                            ariaLabel={`Select product ${product.product_code}`}
-                                                        />
-                                                    </div>
-                                                </td>
-                                                <td className="py-3 px-4">
-                                                    <div className="flex items-center space-x-3">
-                                                        <div className="w-8 h-8 bg-gray-600 rounded-lg flex items-center justify-center">
-                                                            <img
-                                                                src={getImageUrl(product.product_thumbnail)}
-                                                                alt="Thumbnail"
-                                                                className="w-full h-full object-cover"
-                                                                onError={(e) => {
-                                                                    (e.target as HTMLImageElement).src = "https://tnt2.simplify.cool/images/no-image-min.jpg";
-                                                                }}
+                                    {filteredProducts.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={11} className="py-3 px-4 text-center text-gray-500">
+                                                {translations["No Record Found"]}
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        filteredProducts.map((product, index) => (
+                                            <React.Fragment key={product.id || index}>
+                                                <tr
+                                                    onClick={(e) => handleRowClick(e, product.id)}
+                                                    className={`clickable border-b hover:bg-gray-700 hover:bg-opacity-30 transition-colors cursor-pointer ${
+                                                        selectedProducts.includes(product.id as number) ? "bg-gray-700 bg-opacity-30" : ""
+                                                    }`}
+                                                    style={{ borderColor: "#40404042" }}
+                                                >
+                                                    <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
+                                                        <div className="flex items-center">
+                                                            <CustomCheckbox
+                                                                checked={selectedProducts.includes(product.id as number)}
+                                                                onChange={(checked) => handleSelectProduct(product.id as number, checked)}
+                                                                ariaLabel={`Select product ${product.product_code}`}
                                                             />
                                                         </div>
-                                                        <div>
-                                                            <div className="group flex items-center">
-                                                                <p className="text-gray-300 text-custom-sm select-text">{product.product_code}</p>
-                                                                <CopyToClipboard text={product.product_code} />
+                                                    </td>
+                                                    <td className="py-3 px-4">
+                                                        <div className="flex items-center space-x-3">
+                                                            <div className="w-8 h-8 bg-gray-600 rounded-lg flex items-center justify-center">
+                                                                <img
+                                                                    src={getImageUrl(product.product_thumbnail)}
+                                                                    alt="Thumbnail"
+                                                                    className="w-full h-full object-cover"
+                                                                    onError={(e) => {
+                                                                        (e.target as HTMLImageElement).src = "https://tnt2.simplify.cool/images/no-image-min.jpg";
+                                                                    }}
+                                                                />
                                                             </div>
-                                                            <div className="group flex items-center">
-                                                                <p className="text-gray-400 text-custom-sm">{lang == "en" ? product.product_title_en : product.product_title_cn}</p>
-                                                                <CopyToClipboard text={lang == "en" ? product.product_title_en : product.product_title_cn} />
+                                                            <div>
+                                                                <div className="group flex items-center">
+                                                                    <p className="text-gray-300 text-custom-sm select-text">{product.product_code}</p>
+                                                                    <CopyToClipboard text={product.product_code} />
+                                                                </div>
+                                                                <div className="group flex items-center">
+                                                                    <p className="text-gray-400 text-custom-sm">{lang == "en" ? product.product_title_en : product.product_title_cn}</p>
+                                                                    <CopyToClipboard text={lang == "en" ? product.product_title_en : product.product_title_cn} />
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                </td>
-                                                <td className="py-3 px-4 text-gray-400 text-center text-custom-sm">
-                                                    {product.price_currency}
-                                                    <br />
-                                                    {formatCurrency(product.retail_price)}
-                                                </td>
-                                                <td className="py-3 px-4 text-gray-400 text-center text-custom-sm">
-                                                    {product.price_currency}
-                                                    <br />
-                                                    {formatCurrency(product.retail_price)}
-                                                </td>
-                                                <td className="py-3 px-4 text-gray-400 text-center text-custom-sm">
-                                                    {product.price_currency}
-                                                    <br />
-                                                    {formatCurrency(product.preorder_price)}
-                                                </td>
-                                                <td className="py-3 px-4 text-gray-400 text-center text-custom-sm">
-                                                    {product.item_cost_currency}
-                                                    <br />
-                                                    {formatCurrency(product.item_cost)}
-                                                </td>
-                                                <td className="py-3 px-4 text-center">
-                                                    <span className={`px-2 py-1 rounded-full text-xs text-custom-sm ${getStatusColor(product.product_status)}`}>
-                                                        {productStatusLocalized(product.product_status, safeLang)}
-                                                    </span>
-                                                </td>
-                                                <td className="py-3 px-4 text-gray-400 text-center text-custom-sm">{product.inventry_qty || 0}</td>
-                                                <td className="py-3 px-4 text-gray-400 text-center text-custom-sm">{Number(product.is_tnt) === 1 ? "YES" : "NO"}</td>
-                                                <td className="py-3 px-4 text-gray-400 text-center text-custom-sm">{Number(product.is_wholesale) === 1 ? "YES" : "NO"}</td>
-                                            </tr>
-                                            {expandedRows.includes(product.id) && (
-                                                <tr className="bg-gray-800">
-                                                    <td colSpan={11} className="p-4">
-                                                        <table className="w-full text-sm text-left text-gray-400">
-                                                            <thead className="text-xs text-gray-400 uppercase bg-gray-700">
-                                                                <tr>
-                                                                    <th scope="col" className="px-6 py-3">
-                                                                        Header 1
-                                                                    </th>
-                                                                    <th scope="col" className="px-6 py-3">
-                                                                        Header 2
-                                                                    </th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                <tr className="bg-gray-800 border-b border-gray-700">
-                                                                    <td className="px-6 py-4">Data 1</td>
-                                                                    <td className="px-6 py-4">Data 2</td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
                                                     </td>
+                                                    <td className="py-3 px-4 text-gray-400 text-center text-custom-sm">
+                                                        {product.price_currency}
+                                                        <br />
+                                                        {formatCurrency(product.retail_price)}
+                                                    </td>
+                                                    <td className="py-3 px-4 text-gray-400 text-center text-custom-sm">
+                                                        {product.price_currency}
+                                                        <br />
+                                                        {formatCurrency(product.retail_price)}
+                                                    </td>
+                                                    <td className="py-3 px-4 text-gray-400 text-center text-custom-sm">
+                                                        {product.price_currency}
+                                                        <br />
+                                                        {formatCurrency(product.preorder_price)}
+                                                    </td>
+                                                    <td className="py-3 px-4 text-gray-400 text-center text-custom-sm">
+                                                        {product.item_cost_currency}
+                                                        <br />
+                                                        {formatCurrency(product.item_cost)}
+                                                    </td>
+                                                    <td className="py-3 px-4 text-center">
+                                                        <span className={`px-2 py-1 rounded-full text-xs text-custom-sm ${getStatusColor(product.product_status)}`}>
+                                                            {productStatusLocalized(product.product_status, safeLang)}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-3 px-4 text-gray-400 text-center text-custom-sm">{product.inventry_qty || 0}</td>
+                                                    <td className="py-3 px-4 text-gray-400 text-center text-custom-sm">{Number(product.is_tnt) === 1 ? "YES" : "NO"}</td>
+                                                    <td className="py-3 px-4 text-gray-400 text-center text-custom-sm">{Number(product.is_wholesale) === 1 ? "YES" : "NO"}</td>
                                                 </tr>
-                                            )}
-                                        </React.Fragment>
-                                    ))}
+                                            </React.Fragment>
+                                        ))
+                                    )}
                                 </tbody>
                             )}
                         </table>
                     </div>
                 </div>
-
                 {/* Footer with Pagination */}
-                <div className="p-4 border-t flex items-center justify-between" style={{ borderColor: "#404040" }}>
-                    <div className="flex items-center space-x-4">
+                <div className="p-2 border-t flex items-center justify-between" style={{ borderColor: "#404040" }}>
+                    <div className="flex items-center space-x-1">
                         <MemoizedPagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />
                         <MemoizedItemsPerPageSelector
                             value={itemsPerPage}

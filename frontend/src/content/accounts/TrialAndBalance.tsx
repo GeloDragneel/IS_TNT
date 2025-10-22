@@ -67,7 +67,7 @@ const UnpaidItemReceived: React.FC<UnpaidItemReceivedProps> = ({ tabId }) => {
             {/* Main Content Card */}
             <div className="rounded-lg border shadow-sm" style={{ backgroundColor: "#19191c", borderColor: "#404040" }}>
                 {/* Toolbar */}
-                <div className="p-4 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
+                <div className="p-2 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
                     <div className="flex justify-between items-center">
                         <div className="flex items-center space-x-2">
                             <div className="relative">
@@ -104,7 +104,7 @@ const UnpaidItemReceived: React.FC<UnpaidItemReceivedProps> = ({ tabId }) => {
                 </div>
                 {/* Table */}
                 <div className="flex-grow">
-                    <div className="h-[calc(100vh-155px)] overflow-y-auto">
+                    <div className="h-[calc(100vh-125px)] overflow-y-auto">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-2 mt-2">
                             <div>
                                 <table className="table-auto w-full border border-gray-600 border-collapse">

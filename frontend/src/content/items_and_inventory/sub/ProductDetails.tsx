@@ -2256,7 +2256,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
     }
     const renderProductInformation = () => (
         <div className="p-6 bg-[#19191c] rounded-xl">
-            <div className="h-[calc(100vh-200px)] overflow-y-auto pr-2">
+            <div className="h-[calc(100vh-170px)] overflow-y-auto pr-2">
                 <div className="grid gap-4">
                     {/* Product Code Section */}
                     <fieldset className="border-[1px] border-[#ffffff1a] rounded-lg p-4 space-y-4">
@@ -2683,7 +2683,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
     );
     const renderProductMedia = () => (
         <div className="p-6">
-            <div className="h-[calc(100vh-200px)] overflow-y-auto pr-2">
+            <div className="h-[calc(100vh-170px)] overflow-y-auto pr-2">
                 {/* Product Thumbnail and Display */}
                 <fieldset className="border-[1px] border-[#ffffff1a] rounded-lg p-4 space-y-4 mb-2">
                     <div className="grid grid-cols-12 gap-6 mb-8 items-start">
@@ -2948,7 +2948,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
     );
     const renderProductPrice = () => (
         <div className="p-6">
-            <div className="h-[calc(100vh-200px)] overflow-y-auto pr-2">
+            <div className="h-[calc(100vh-170px)] overflow-y-auto pr-2">
                 <fieldset className="border-[1px] border-[#ffffff1a] rounded-lg p-4 space-y-4">
                     <div className="grid gap-4">
                         <div className="grid grid-cols-2 gap-6">
@@ -3826,7 +3826,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
     );
     const renderProfitability = () => (
         <div className="p-6">
-            <div className="h-[calc(100vh-200px)] overflow-y-auto pr-2">
+            <div className="h-[calc(100vh-170px)] overflow-y-auto pr-2">
                 <fieldset className="border-[1px] border-[#ffffff1a] rounded-lg p-4 space-y-4 mb-2">
                     <div className="overflow-x-auto mt-5">
                         <table className="w-full border-[1px] border-[#ffffff1a] rounded-lg">
@@ -4569,7 +4569,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
         <div className="h-screen flex flex-col" style={{ backgroundColor: "#1a1a1a" }}>
             {/* Fixed Header */}
             <div className="border-b flex-shrink-0" style={{ backgroundColor: "#19191c", borderColor: "#ffffff1a" }}>
-                <div className="flex items-center justify-between px-6 py-3">
+                <div className="flex items-center justify-between px-2 py-3">
                     <div className="flex items-center space-x-4">
                         {/* Tabs */}
                         <div className="flex space-x-1">
@@ -4640,9 +4640,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                     </div>
                 </div>
             </div>
-
             {/* Main Content - Scrollable */}
-            <div className="flex flex-1 p-2 mb-[80px]" style={{ backgroundColor: "#19191c" }}>
+            <div className="flex flex-1 p-2 mb-[10px]" style={{ backgroundColor: "#19191c" }}>
                 {/* Left Sidebar */}
                 <fieldset className="border-[1px] border-[#ffffff1a] rounded-lg p-4 space-y-4">
                     <div className="w-80 border-r flex-shrink-0" style={{ borderColor: "transparent" }}>

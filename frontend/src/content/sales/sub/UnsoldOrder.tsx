@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { preorderService, ApiPreorder } from "@/services/preorderService";
 import { useLanguage } from "@/context/LanguageContext";
-import CustomCheckbox from "@/components/CustomCheckbox";
 import { showSuccessToast, showErrorToast } from "@/utils/toast";
 import { highlightMatch } from "@/utils/highlightMatch";
 import Pagination from "@/components/Pagination";
 import ItemsPerPageSelector from "@/components/ItemsPerPageSelector";
 import CopyToClipboard from "@/components/CopyToClipboard";
 import PusherEcho from "@/utils/echo";
-import { baseCurrency, formatDate, formatMoney, getImageUrl } from "@/utils/globalFunction";
+import { ExportReportSelector } from "@/utils/ExportReportSelector";
+import { baseCurrency, formatDate, formatMoney } from "@/utils/globalFunction";
 // Handle the Smooth skeleton loading
 // localStorage.clear();
 interface LoadingSpinnerTbodyProps {
@@ -99,23 +99,18 @@ interface UnsoldOrderProps {
 interface ApiUnsoldOrderFooter {
     base_total_cost: number;
 }
-const UnsoldOrder: React.FC<UnsoldOrderProps> = ({ tabId, onPreordertSelect, onChangeView, selectedPreorder, onselectedPreorderChange }) => {
+const UnsoldOrder: React.FC<UnsoldOrderProps> = ({ tabId, onChangeView }) => {
     const { translations, lang } = useLanguage();
     const [products, setUnsoldOrder] = useState<ApiPreorder[]>([]);
     const [totalPages, setTotalPages] = useState(1);
-    const [totalItems, setTotalItems] = useState(0);
-    const [selectedData, setSelectedData] = useState<any>([]);
-
-    const safeLang = lang === "cn" ? "cn" : "en";
     const pageSizeOptions = useMemo(() => [15, 20, 50, -1], []);
-    const [unsoldOrderFooter, setUnsoldOrderFooter] = useState<ApiUnsoldOrderFooter | null>(null);
     const [unsoldOrderFooter2, setUnsoldOrderFooter2] = useState<ApiUnsoldOrderFooter | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const [loading, setLoading] = useState(() => {
         const savedLoading = localStorage.getItem(`${tabId}-loading-unsoldOrder`);
         return savedLoading !== null ? JSON.parse(savedLoading) : true;
     });
-
+    const [altLang, setAltLanguage] = useState(lang);
     const [currentPage, setCurrentPage] = useState(() => {
         const metaKey = `${tabId}-cached-meta-unsoldOrder`;
         const cachedMeta = localStorage.getItem(metaKey);
@@ -178,6 +173,30 @@ const UnsoldOrder: React.FC<UnsoldOrderProps> = ({ tabId, onPreordertSelect, onC
         };
     }, [currentPage, itemsPerPage, searchTerm, tabId]);
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Alt") {
+                e.preventDefault(); // Prevent browser alt behavior (optional)
+                setAltLanguage("cn");
+            }
+        };
+
+        const handleKeyUp = (e: KeyboardEvent) => {
+            if (e.key === "Alt") {
+                e.preventDefault(); // Prevent browser alt behavior (optional)
+                setAltLanguage("en");
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        window.addEventListener("keyup", handleKeyUp);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+            window.removeEventListener("keyup", handleKeyUp);
+        };
+    }, []);
+
     // ON LOAD LIST
     useEffect(() => {
         const productKey = `${tabId}-cached-usoldOrder`;
@@ -209,7 +228,6 @@ const UnsoldOrder: React.FC<UnsoldOrderProps> = ({ tabId, onPreordertSelect, onC
             if (isCacheValid) {
                 setUnsoldOrder(cachedProducts);
                 setTotalPages(cachedMeta.totalPages);
-                setTotalItems(cachedMeta.totalItems);
                 setLoading(false);
                 localStorage.setItem(`${tabId}-loading-unsoldOrder`, JSON.stringify(false));
                 return;
@@ -230,8 +248,6 @@ const UnsoldOrder: React.FC<UnsoldOrderProps> = ({ tabId, onPreordertSelect, onC
             const paginatedData = await preorderService.getAllUnsoldOrder(page, perPage, search);
             setUnsoldOrder(paginatedData.data);
             setTotalPages(paginatedData.last_page);
-            setTotalItems(paginatedData.total);
-            setUnsoldOrderFooter(paginatedData.footer);
             setUnsoldOrderFooter2(paginatedData.footer2);
 
             localStorage.setItem(`${tabId}-cached-usoldOrder`, JSON.stringify(paginatedData.data));
@@ -263,14 +279,6 @@ const UnsoldOrder: React.FC<UnsoldOrderProps> = ({ tabId, onPreordertSelect, onC
             product.po_number?.toLowerCase().includes(searchLower)
         );
     });
-    // Handle select all
-    const handleSelectAll = (checked: boolean) => {
-        if (checked) {
-            onselectedPreorderChange(products.map((p) => p.id).filter(Boolean) as number[]);
-        } else {
-            onselectedPreorderChange([]);
-        }
-    };
     // Handle individual select
     const handleHoldOnHold = async (type: string, index: number) => {
         const thirdItem = filteredProducts[index];
@@ -302,7 +310,7 @@ const UnsoldOrder: React.FC<UnsoldOrderProps> = ({ tabId, onPreordertSelect, onC
             {/* Main Content Card */}
             <div className="rounded-lg border shadow-sm" style={{ backgroundColor: "#19191c", borderColor: "#404040" }}>
                 {/* Toolbar */}
-                <div className="p-4 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
+                <div className="p-2 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
                     <div className="flex justify-between items-center">
                         <div className="flex items-center space-x-4">
                             <div className="relative">
@@ -343,7 +351,7 @@ const UnsoldOrder: React.FC<UnsoldOrderProps> = ({ tabId, onPreordertSelect, onC
                 </div>
                 {/* Table */}
                 <div className="overflow-x-auto flex-grow">
-                    <div className="h-[calc(100vh-215px)] overflow-y-auto">
+                    <div className="h-[calc(100vh-180px)] overflow-y-auto">
                         <table className="w-full">
                             <thead className="sticky top-0 z-[1]" style={{ backgroundColor: "#1f2132" }}>
                                 <tr className="border-b" style={{ borderColor: "#2d2d30" }}>
@@ -481,8 +489,8 @@ const UnsoldOrder: React.FC<UnsoldOrderProps> = ({ tabId, onPreordertSelect, onC
                     </div>
                 </div>
                 {/* Footer with Pagination */}
-                <div className="p-4 border-t flex items-center justify-between" style={{ borderColor: "#404040" }}>
-                    <div className="flex items-center space-x-4">
+                <div className="p-2 border-t flex items-center justify-between" style={{ borderColor: "#404040" }}>
+                    <div className="flex items-center space-x-1">
                         <MemoizedPagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />
                         <MemoizedItemsPerPageSelector
                             value={itemsPerPage}
@@ -492,20 +500,7 @@ const UnsoldOrder: React.FC<UnsoldOrderProps> = ({ tabId, onPreordertSelect, onC
                             }}
                             options={pageSizeOptions}
                         />
-                        <select
-                            className="px-3 py-2 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm my-important-dropdown"
-                            style={{ backgroundColor: "#2d2d30", borderColor: "#2d2d30" }}
-                        >
-                            <option value="UnsoldOrder.odt">{translations["OpenOffice Writer Document (.odt)"]}</option>
-                            <option value="UnsoldOrder.ods">{translations["OpenOffice Calc Spreadsheet (.ods)"]}</option>
-                            <option value="UnsoldOrder.xlsx">{translations["Ms Excel SpreadSheet (.xlsx)"]}</option>
-                        </select>
-                        <button className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm">
-                            <span>{translations["MCGenerate"]}</span>
-                        </button>
-                        <button className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm">
-                            <span>{translations["buttontextcustomize"]}</span>
-                        </button>
+                        <ExportReportSelector formats={["odt", "ods", "xlsx"]} baseName="UnsoldOrderList" ids={filteredProducts.map((p) => p.id)} language={altLang} />
                     </div>
                     <div className="flex items-center space-x-1">{/* Optional right side content */}</div>
                 </div>

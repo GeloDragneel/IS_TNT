@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { massMailerService, ApiMassMailer } from "@/services/massMailerService";
 import { useLanguage } from "@/context/LanguageContext";
 import { showConfirm } from "@/utils/alert";
@@ -6,7 +6,7 @@ import { showSuccessToast, showErrorToast } from "@/utils/toast";
 import Select from "react-select";
 import Pagination from "@/components/Pagination";
 import ItemsPerPageSelector from "@/components/ItemsPerPageSelector";
-import { ArrowLeft, User, Users, Mail, X, Reply, Tag, MailCheck, Contact, Folder, Megaphone, Star, MoreHorizontal } from "lucide-react";
+import { ArrowLeft, User, Users, Mail, X, Reply, Tag, MailCheck, Folder, Megaphone } from "lucide-react";
 import { OptionType, DropdownData, selectStyles } from "@/utils/globalFunction";
 import CustomCheckbox from "@/components/CustomCheckbox";
 import { customerService, ApiCustomer } from "@/services/customerService";
@@ -42,13 +42,11 @@ import { fetchCustomerGroups, convertToSingleOption } from "@/utils/fetchDropdow
 const MemoizedPagination = React.memo(Pagination);
 const MemoizedItemsPerPageSelector = React.memo(ItemsPerPageSelector);
 // localStorage.clear();
-const PreorderDetails: React.FC<PreorderDetailsProps> = ({ preorderId, saveType, onBack, tabId, onChangeView }) => {
+const PreorderDetails: React.FC<PreorderDetailsProps> = ({ preorderId, onBack, tabId }) => {
     const { translations, lang } = useLanguage();
     const [activeTab, setActiveTab] = useState("information");
     const [iframeLayout, setIframeLayout] = useState("");
     const [iframeLayout2, setIframeLayout2] = useState("");
-    const [isDirty, setIsDirty] = useState(false);
-    const isDirtyRef = useRef(isDirty);
     const [loadingSave, setLoadingSave] = useState(false);
     const [loadingCampaign, setLoadingCampaign] = useState(false);
     const [tagList, setTagList] = useState<ApiMassMailer[]>([]);
@@ -560,9 +558,6 @@ const PreorderDetails: React.FC<PreorderDetailsProps> = ({ preorderId, saveType,
             })),
         [templatesData2, lang]
     );
-    useEffect(() => {
-        isDirtyRef.current = isDirty;
-    }, [isDirty]);
 
     useEffect(() => {
         const channel = PusherEcho.channel("mass-mailer-channel");
@@ -2372,7 +2367,7 @@ const PreorderDetails: React.FC<PreorderDetailsProps> = ({ preorderId, saveType,
         <div className="h-screen flex flex-col" style={{ backgroundColor: "#1a1a1a" }}>
             {/* Fixed Header */}
             <div className="border-b flex-shrink-0" style={{ backgroundColor: "#19191c", borderColor: "#ffffff1a" }}>
-                <div className="flex items-center justify-between px-6 py-3">
+                <div className="flex items-center justify-between px-2 py-3">
                     <div className="flex items-center space-x-4">
                         {/* Tabs */}
                         <div className="flex space-x-1">
@@ -2449,7 +2444,7 @@ const PreorderDetails: React.FC<PreorderDetailsProps> = ({ preorderId, saveType,
                             {activeMenu === "Sender" && (
                                 <div className="flex items-center space-x-1">
                                     <button
-                                        onClick={(e) => handlePopup_Senders(0)}
+                                        onClick={() => handlePopup_Senders(0)}
                                         className="px-2 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
                                     >
                                         <span>{translations["Add New"]}</span>
@@ -2490,7 +2485,7 @@ const PreorderDetails: React.FC<PreorderDetailsProps> = ({ preorderId, saveType,
                             {activeMenu === "Tags" && (
                                 <div className="flex items-center space-x-1">
                                     <button
-                                        onClick={(e) => handlePopup_Tags(0)}
+                                        onClick={() => handlePopup_Tags(0)}
                                         className="px-2 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
                                     >
                                         <span>{translations["Add New"]}</span>

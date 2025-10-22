@@ -17,7 +17,6 @@ import Flatpickr from "react-flatpickr";
 import { ExportReportSelector } from "@/utils/ExportReportSelector";
 import { getFlatpickrLocale, formatDateToCustom } from "@/utils/flatpickrLocale";
 import { DropdownData, formatDate, formatMoney, selectStyles, baseCurrency, fetchExchangeRate, fetchOperator, ImageItem } from "@/utils/globalFunction";
-
 import { fetchBank, fetchAllCustomer, fetchAllProduct, fetchCustomerGroups, OptionType } from "@/utils/fetchDropdownData";
 type FilterParams = {
     search?: string;
@@ -207,6 +206,7 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
     const [totalPagesCustomer, setTotalPages_Customer] = useState(1);
     const [loadingSaveVoucher, setLoadingSaveVoucher] = useState(false);
     const exportRef = useRef<{ triggerExport: () => void }>(null);
+    const [altLang, setAltLanguage] = useState(lang);
     const [showInputs, setShowInputs] = useState({
         isCurrentCredit: false,
         isCreditNote: false,
@@ -460,6 +460,29 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
             window.removeEventListener("keydown", handleEsc);
         };
     }, [creditsPopup, confirmPopup, cancelOrder, showAdvanceSearch, showDateRange, showVoucher, showPreorderClosing]);
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Alt") {
+                e.preventDefault(); // Prevent browser alt behavior (optional)
+                setAltLanguage("cn");
+            }
+        };
+
+        const handleKeyUp = (e: KeyboardEvent) => {
+            if (e.key === "Alt") {
+                e.preventDefault(); // Prevent browser alt behavior (optional)
+                setAltLanguage("en");
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        window.addEventListener("keyup", handleKeyUp);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+            window.removeEventListener("keyup", handleKeyUp);
+        };
+    }, []);
 
     // ON LOAD LIST
     useEffect(() => {
@@ -2358,7 +2381,7 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
                         </fieldset>
                         <fieldset className="border border-[#ffffff1a] rounded-lg p-4 mb-2">
                             <legend className="text-white text-left px-3 py-1 border border-[#ffffff1a] rounded-md bg-[#19191c]">{translations["Order Information"] || "Order Information"} :</legend>
-                            <div className="max-h-[calc(100vh-500px)] overflow-y-auto">
+                            <div className="max-h-[calc(100vh-600px)] overflow-y-auto">
                                 <table className="w-full">
                                     <thead className="sticky top-0 z-[1]" style={{ backgroundColor: "#1f2132" }}>
                                         <tr className="border-b" style={{ borderColor: "#2d2d30" }}>
@@ -2817,7 +2840,7 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
             {/* Main Content Card */}
             <div className="rounded-lg border shadow-sm" style={{ backgroundColor: "#19191c", borderColor: "#404040" }}>
                 {/* Toolbar */}
-                <div className="p-4 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
+                <div className="p-2 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
                     <div className="flex justify-between items-center">
                         <div className="flex items-center space-x-4">
                             <div className="relative">
@@ -2984,7 +3007,7 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
                 </div>
                 {/* Table */}
                 <div className="overflow-x-auto flex-grow">
-                    <div className="flex flex-col h-[calc(100vh-215px)]">
+                    <div className="flex flex-col h-[calc(100vh-180px)]">
                         <table className="w-full">
                             <thead className="sticky top-0 z-[2]" style={{ backgroundColor: "#1f2132" }}>
                                 <tr className="border-b" style={{ borderColor: "#2d2d30" }}>
@@ -3163,7 +3186,7 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
                     </div>
                 </div>
                 {/* Footer with Pagination */}
-                <div className="p-4 border-t flex items-center justify-between" style={{ borderColor: "#404040" }}>
+                <div className="p-2 border-t flex items-center justify-between" style={{ borderColor: "#404040" }}>
                     <div className="flex items-center space-x-1">
                         <MemoizedPagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />
                         <MemoizedItemsPerPageSelector
@@ -3178,10 +3201,10 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
                             formats={["odt", "ods", "xlsx"]}
                             baseName="OrdersList_Report"
                             ids={selectedPreorder.length > 0 ? selectedPreorder : products.map((p) => p.id)}
-                            language={lang}
+                            language={altLang}
                         />
                         <div className="hidden">
-                            <ExportReportSelector ref={exportRef} formats={["odt"]} baseName="DepositInvoice" ids={selectedPreorder} language={lang} />
+                            <ExportReportSelector ref={exportRef} formats={["odt"]} baseName="DepositInvoice" ids={selectedPreorder} language={altLang} />
                         </div>
                     </div>
                     <div className="flex items-center space-x-1">{/* Optional right side content */}</div>

@@ -129,6 +129,7 @@ interface ApiCustomerFooter {
 // localStorage.clear();
 const SalesOrderList: React.FC<SalesOrderListProps> = ({ tabId, onSalesOrderSelect, selectedSO, onSelectedSOChange }) => {
     const { translations, lang } = useLanguage();
+    const [altLang, setAltLanguage] = useState(lang);
     const [salesOrderList, setSalesOrder] = useState<ApiSalesOrder[]>([]);
     const [SOOrderIds, setSOOrderIds] = useState<ApiSalesOrder[]>([]);
     const [totalPages, setTotalPages] = useState(1);
@@ -250,7 +251,29 @@ const SalesOrderList: React.FC<SalesOrderListProps> = ({ tabId, onSalesOrderSele
             setExpandedRows(checkedIds);
         }
     }, [tabId, salesOrderList]);
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Alt") {
+                e.preventDefault(); // Prevent browser alt behavior (optional)
+                setAltLanguage("cn");
+            }
+        };
 
+        const handleKeyUp = (e: KeyboardEvent) => {
+            if (e.key === "Alt") {
+                e.preventDefault(); // Prevent browser alt behavior (optional)
+                setAltLanguage("en");
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        window.addEventListener("keyup", handleKeyUp);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+            window.removeEventListener("keyup", handleKeyUp);
+        };
+    }, []);
     useEffect(() => {
         const channel = PusherEcho.channel("so-channel");
         channel.listen(".so-event", () => {
@@ -939,7 +962,7 @@ const SalesOrderList: React.FC<SalesOrderListProps> = ({ tabId, onSalesOrderSele
             {/* Main Content Card */}
             <div className="rounded-lg border shadow-sm" style={{ backgroundColor: "#19191c", borderColor: "#404040" }}>
                 {/* Toolbar */}
-                <div className="p-4 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
+                <div className="p-2 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
                     <div className="flex justify-between items-center">
                         <div className="flex items-center space-x-4">
                             <div className="relative">
@@ -1044,7 +1067,7 @@ const SalesOrderList: React.FC<SalesOrderListProps> = ({ tabId, onSalesOrderSele
                 </div>
                 {/* Table */}
                 <div className="overflow-x-auto flex-grow">
-                    <div className="h-[calc(100vh-215px)] overflow-y-auto">
+                    <div className="h-[calc(100vh-180px)] overflow-y-auto">
                         <table className="w-full">
                             <thead className="sticky top-0 z-[1]" style={{ backgroundColor: "#1f2132" }}>
                                 <tr className="border-b" style={{ borderColor: "#2d2d30" }}>
@@ -1296,7 +1319,7 @@ const SalesOrderList: React.FC<SalesOrderListProps> = ({ tabId, onSalesOrderSele
                 </div>
                 {/* Footer with Pagination */}
                 <div className="border-t flex items-center justify-between" style={{ borderColor: "#404040" }}>
-                    <div className="p-4 flex items-center space-x-2">
+                    <div className="p-2 flex items-center space-x-1">
                         <MemoizedPagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />
                         <MemoizedItemsPerPageSelector
                             value={itemsPerPage}
@@ -1306,9 +1329,9 @@ const SalesOrderList: React.FC<SalesOrderListProps> = ({ tabId, onSalesOrderSele
                             }}
                             options={pageSizeOptions}
                         />
-                        <ExportReportSelector formats={["odt", "ods", "xlsx"]} baseName="CustomerSO" ids={selectedSO.length > 0 ? selectedSO : salesOrderList.map((p) => p.id)} language={lang} />
+                        <ExportReportSelector formats={["odt", "ods", "xlsx"]} baseName="CustomerSO" ids={selectedSO.length > 0 ? selectedSO : salesOrderList.map((p) => p.id)} language={altLang} />
                         <div className="hidden">
-                            <ExportReportSelector ref={exportRef} formats={["odt"]} baseName="DownloadSelectedSingleSO" ids={selectedSO} language={lang} />
+                            <ExportReportSelector ref={exportRef} formats={["odt"]} baseName="DownloadSelectedSingleSO" ids={selectedSO} language={altLang} />
                         </div>
                     </div>
                     <div className="p-1 flex items-center space-x-1">

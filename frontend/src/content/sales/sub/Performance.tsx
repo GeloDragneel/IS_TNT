@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { preorderService, ApiPreorder } from "@/services/preorderService";
 import { useLanguage } from "@/context/LanguageContext";
 import { highlightMatch } from "@/utils/highlightMatch";
@@ -7,61 +7,10 @@ import ItemsPerPageSelector from "@/components/ItemsPerPageSelector";
 import CopyToClipboard from "@/components/CopyToClipboard";
 import PusherEcho from "@/utils/echo";
 import { ChevronDown, Plus, Minus } from "lucide-react";
-import { baseCurrency, formatDate, formatMoney } from "@/utils/globalFunction";
+import { baseCurrency, formatMoney } from "@/utils/globalFunction";
 // Handle the Smooth skeleton loading
-// localStorage.clear();
-interface LoadingSpinnerTbodyProps {
-    rowsCount: number;
-}
 const MemoizedPagination = React.memo(Pagination);
 const MemoizedItemsPerPageSelector = React.memo(ItemsPerPageSelector);
-const LoadingSpinnerTbody: React.FC<LoadingSpinnerTbodyProps> = ({ rowsCount }) => {
-    return (
-        <tbody>
-            {Array.from({ length: rowsCount }).map((_, idx) => (
-                <tr key={idx} className="bg-transparent-900 border-b border-gray-800">
-                    <td className="text-center py-1 px-4">
-                        <div className="h-6 bg-gray-800 rounded w-5 mx-auto"></div>
-                    </td>
-                    <td className="text-center py-1 px-4">
-                        <div className="h-6 bg-gray-800 rounded w-5 mx-auto"></div>
-                    </td>
-                    <td className="py-1 px-4 text-gray-400 text-left text-custom-sm">
-                        <div className="flex flex-col space-y-2 py-1 flex-1">
-                            <div className="h-4 bg-gray-800 rounded w-16"></div>
-                            <div className="h-4 bg-gray-800 rounded w-32"></div>
-                        </div>
-                    </td>
-                    <td className="text-center py-1 px-4">
-                        <div className="flex flex-col space-y-2 py-1 flex-1">
-                            <div className="h-4 bg-gray-800 rounded w-16 mx-auto"></div>
-                        </div>
-                    </td>
-                    <td className="text-center py-1 px-4">
-                        <div className="flex flex-col space-y-2 py-1 flex-1">
-                            <div className="h-4 bg-gray-800 rounded w-16 mx-auto"></div>
-                        </div>
-                    </td>
-                    <td className="text-center py-1 px-4">
-                        <div className="flex flex-col space-y-2 py-1 flex-1">
-                            <div className="h-4 bg-gray-800 rounded w-16 mx-auto"></div>
-                        </div>
-                    </td>
-                    <td className="text-center py-1 px-4">
-                        <div className="flex flex-col space-y-2 py-1 flex-1">
-                            <div className="h-4 bg-gray-800 rounded w-16 mx-auto"></div>
-                        </div>
-                    </td>
-                    <td className="text-center py-1 px-4">
-                        <div className="flex flex-col space-y-2 py-1 flex-1">
-                            <div className="h-4 bg-gray-800 rounded w-16 mx-auto"></div>
-                        </div>
-                    </td>
-                </tr>
-            ))}
-        </tbody>
-    );
-};
 // localStorage.clear();
 interface PerformanceProps {
     tabId: string;
@@ -72,9 +21,6 @@ interface PerformanceProps {
     onselectedPreorderChange: (selected: number[]) => void;
     expandedRows: number[];
     onExpandedRowsChange: (expanded: number[]) => void;
-}
-interface ApiperformanceFooter {
-    base_total_cost: number;
 }
 interface DetailsExpanded {
     id: number;
@@ -94,19 +40,9 @@ const Performance: React.FC<PerformanceProps> = ({ tabId, onChangeView }) => {
     const { translations, lang } = useLanguage();
     const [products, setPerformance] = useState<ApiPreorder[]>([]);
     const [totalPages, setTotalPages] = useState(1);
-    const [totalItems, setTotalItems] = useState(0);
-
     const pageSizeOptions = useMemo(() => [15, 20, 50, -1], []);
-    const [performanceFooter, setPerformanceFooter] = useState<ApiperformanceFooter | null>(null);
-    const [performanceFooter2, setPerformanceFooter2] = useState<ApiperformanceFooter | null>(null);
     const [expanded_Performance, setExpanededRows] = useState<number[]>([]);
     const [performanceMap, setPerformanceMap] = useState<Record<number, DetailsExpanded[] | null>>({});
-
-    const [loading, setLoading] = useState(() => {
-        const savedLoading = localStorage.getItem(`${tabId}-loading-performance`);
-        return savedLoading !== null ? JSON.parse(savedLoading) : true;
-    });
-
     const initialDropdowns = [
         { value: "Orders1", label: "Preorder (Retail Customer)", active: true },
         { value: "Orders2", label: "Preorder (Wholesale Customer)", active: false },
@@ -117,10 +53,8 @@ const Performance: React.FC<PerformanceProps> = ({ tabId, onChangeView }) => {
         { value: "Invoice3", label: "Sales Invoice (Retail Customer)", active: false },
         { value: "Invoice4", label: "Sales Invoice (Wholesale Customer)", active: false },
     ];
-
     const [dropdownsState, setDropdownsState] = useState(initialDropdowns);
     const [showDropdown, setShowDropdown] = useState(false);
-
     const activeItem = dropdownsState.find((item) => item.active);
     const [activeDropdown, setActiveDropdown] = useState(activeItem?.value);
     const handleItemClick = (item: any) => {
@@ -211,8 +145,6 @@ const Performance: React.FC<PerformanceProps> = ({ tabId, onChangeView }) => {
             if (isCacheValid) {
                 setPerformance(cachedProducts);
                 setTotalPages(cachedMeta.totalPages);
-                setTotalItems(cachedMeta.totalItems);
-                setLoading(false);
                 localStorage.setItem(`${tabId}-loading-performance`, JSON.stringify(false));
                 return;
             }
@@ -224,14 +156,10 @@ const Performance: React.FC<PerformanceProps> = ({ tabId, onChangeView }) => {
 
     const fetchPerformance = async (page = currentPage, perPage = itemsPerPage, search: "", type = activeDropdown) => {
         try {
-            setLoading(true);
             localStorage.setItem(`${tabId}-loading-performance`, JSON.stringify(true));
             const paginatedData = await preorderService.getAllPerformance(page, perPage, search, type);
             setPerformance(paginatedData.data);
             setTotalPages(paginatedData.last_page);
-            setTotalItems(paginatedData.total);
-            setPerformanceFooter(paginatedData.footer);
-            setPerformanceFooter2(paginatedData.footer2);
             localStorage.setItem(`${tabId}-cached-performance`, JSON.stringify(paginatedData.data));
             localStorage.setItem(
                 `${tabId}-cached-meta-performance`,
@@ -246,7 +174,6 @@ const Performance: React.FC<PerformanceProps> = ({ tabId, onChangeView }) => {
         } catch (err) {
             console.error("Error fetching preorder:", err);
         } finally {
-            setLoading(false);
             localStorage.setItem(`${tabId}-loading-performance`, JSON.stringify(false));
         }
     };
@@ -299,7 +226,7 @@ const Performance: React.FC<PerformanceProps> = ({ tabId, onChangeView }) => {
             {/* Main Content Card */}
             <div className="rounded-lg border shadow-sm" style={{ backgroundColor: "#19191c", borderColor: "#404040" }}>
                 {/* Toolbar */}
-                <div className="p-4 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
+                <div className="p-2 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
                     <div className="flex justify-between items-center">
                         <div className="flex items-center space-x-4">
                             <div className="relative">
@@ -376,7 +303,7 @@ const Performance: React.FC<PerformanceProps> = ({ tabId, onChangeView }) => {
                 </div>
                 {/* Table */}
                 <div className="overflow-x-auto flex-grow">
-                    <div className="h-[calc(100vh-215px)] overflow-y-auto">
+                    <div className="h-[calc(100vh-180px)] overflow-y-auto">
                         <table className="w-full">
                             <thead className="sticky top-0 z-[1]" style={{ backgroundColor: "#1f2132" }}>
                                 <tr className="border-b" style={{ borderColor: "#2d2d30" }}>
@@ -434,7 +361,7 @@ const Performance: React.FC<PerformanceProps> = ({ tabId, onChangeView }) => {
                                         <tr key={product.id || index} className="border-b hover:bg-gray-700 hover:bg-opacity-30 transition-colors cursor-pointer" style={{ borderColor: "#40404042" }}>
                                             {(activeItem?.value === "Orders1" || activeItem?.value === "Orders2") && (
                                                 <>
-                                                    <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">{index + 1}</td>
+                                                    <td className="py-2 px-2 text-gray-400 text-center text-custom-sm">{index + 1}</td>
                                                     <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
                                                         <button
                                                             onClick={() => handleToggleRow(product.id, product.customer_id)}
@@ -482,7 +409,7 @@ const Performance: React.FC<PerformanceProps> = ({ tabId, onChangeView }) => {
                                             )}
                                             {(activeItem?.value === "Orders3" || activeItem?.value === "Orders4" || activeItem?.value === "Invoice1" || activeItem?.value === "Invoice2") && (
                                                 <>
-                                                    <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">{index + 1}</td>
+                                                    <td className="py-2 px-2 text-gray-400 text-center text-custom-sm">{index + 1}</td>
                                                     <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">{product.sales_person_name}</td>
                                                     <td className="py-2 px-2 text-gray-400 text-center text-custom-sm">
                                                         {baseCurrency()}
@@ -499,7 +426,7 @@ const Performance: React.FC<PerformanceProps> = ({ tabId, onChangeView }) => {
                                             )}
                                             {(activeItem?.value === "Invoice3" || activeItem?.value === "Invoice4") && (
                                                 <>
-                                                    <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">{index + 1}</td>
+                                                    <td className="py-2 px-2 text-gray-400 text-center text-custom-sm">{index + 1}</td>
                                                     <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
                                                         <button
                                                             onClick={() => handleToggleRow(product.id, product.customer_id)}
@@ -602,8 +529,8 @@ const Performance: React.FC<PerformanceProps> = ({ tabId, onChangeView }) => {
                     </div>
                 </div>
                 {/* Footer with Pagination */}
-                <div className="p-4 border-t flex items-center justify-between" style={{ borderColor: "#404040" }}>
-                    <div className="flex items-center space-x-4">
+                <div className="p-2 border-t flex items-center justify-between" style={{ borderColor: "#404040" }}>
+                    <div className="flex items-center space-x-1">
                         <MemoizedPagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />
                         <MemoizedItemsPerPageSelector
                             value={itemsPerPage}
@@ -613,20 +540,6 @@ const Performance: React.FC<PerformanceProps> = ({ tabId, onChangeView }) => {
                             }}
                             options={pageSizeOptions}
                         />
-                        <select
-                            className="px-3 py-2 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm my-important-dropdown"
-                            style={{ backgroundColor: "#2d2d30", borderColor: "#2d2d30" }}
-                        >
-                            <option value="Performance.odt">{translations["OpenOffice Writer Document (.odt)"]}</option>
-                            <option value="Performance.ods">{translations["OpenOffice Calc Spreadsheet (.ods)"]}</option>
-                            <option value="Performance.xlsx">{translations["Ms Excel SpreadSheet (.xlsx)"]}</option>
-                        </select>
-                        <button className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm">
-                            <span>{translations["MCGenerate"]}</span>
-                        </button>
-                        <button className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm">
-                            <span>{translations["buttontextcustomize"]}</span>
-                        </button>
                     </div>
                 </div>
             </div>

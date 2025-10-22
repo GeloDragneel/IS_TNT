@@ -1508,7 +1508,7 @@ const SupplierInvoiceDetails: React.FC<SupplierInvoiceDetailsProps> = ({ supplie
     }
     const renderSupplierInvoiceInfo = () => (
         <div className="p-1 bg-[#19191c] rounded-xl">
-            <div className="h-[calc(100vh-200px)] overflow-y-auto pr-2">
+            <div className="h-[calc(100vh-150px)] overflow-y-auto pr-2">
                 <div className="grid gap-4">
                     <div className="grid grid-cols-12 gap-4">
                         {/* Right side: 12 columns */}
@@ -2793,7 +2793,7 @@ const SupplierInvoiceDetails: React.FC<SupplierInvoiceDetailsProps> = ({ supplie
         <div className="h-screen flex flex-col" style={{ backgroundColor: "#1a1a1a" }}>
             {/* Fixed Header */}
             <div className="border-b flex-shrink-0" style={{ backgroundColor: "#19191c", borderColor: "#ffffff1a" }}>
-                <div className="flex items-center justify-between px-6 py-3">
+                <div className="flex items-center justify-between px-2 py-3">
                     <div className="flex items-center space-x-4">
                         {/* Tabs */}
                         <div className="flex space-x-1">
@@ -2884,7 +2884,7 @@ const SupplierInvoiceDetails: React.FC<SupplierInvoiceDetailsProps> = ({ supplie
                 </div>
             </div>
             {/* Main Content - Scrollable */}
-            <div className="flex flex-1 p-2 mb-[80px]" style={{ backgroundColor: "#19191c" }}>
+            <div className="flex flex-1 p-2 mb-[10px]" style={{ backgroundColor: "#19191c" }}>
                 {/* Main Content Area - Scrollable */}
                 <div className="flex-1">{renderSupplierInvoiceInfo()}</div>
             </div>

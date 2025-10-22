@@ -3834,7 +3834,7 @@ const SupplierDetails: React.FC<SupplierDetailsProps> = ({ supplierId, saveType,
         <div className="h-screen flex flex-col" style={{ backgroundColor: "#1a1a1a" }}>
             {/* Fixed Header */}
             <div className="border-b flex-shrink-0" style={{ backgroundColor: "#19191c", borderColor: "#ffffff1a" }}>
-                <div className="flex items-center justify-between px-6 py-3">
+                <div className="flex items-center justify-between px-2 py-3">
                     <div className="flex items-center space-x-4">
                         {/* Tabs */}
                         <div className="flex space-x-1">

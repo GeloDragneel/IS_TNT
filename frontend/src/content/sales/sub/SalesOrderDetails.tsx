@@ -129,6 +129,7 @@ const SalesOrderDetails: React.FC<SalesOrderDetailsProps> = ({ salesOrderId, tab
     const [loadCancelOrder_ORDER, setLoadCancelOrder_ORDER] = useState(false);
     const [cancelType, setCancelType] = useState("");
     const exportRef = useRef<{ triggerExport: () => void }>(null);
+    const [altLang, setAltLanguage] = useState(lang);
     const [searchTermProduct, setSearchTermProduct] = useState(() => {
         const cached = localStorage.getItem(`cached-grn-product`);
         if (!cached) return "";
@@ -388,6 +389,30 @@ const SalesOrderDetails: React.FC<SalesOrderDetailsProps> = ({ salesOrderId, tab
             window.removeEventListener("keydown", handleEsc);
         };
     }, [creditsPopup, showCustomers, showCreatePV, showProducts, showAllocation]);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Alt") {
+                e.preventDefault(); // Prevent browser alt behavior (optional)
+                setAltLanguage("cn");
+            }
+        };
+
+        const handleKeyUp = (e: KeyboardEvent) => {
+            if (e.key === "Alt") {
+                e.preventDefault(); // Prevent browser alt behavior (optional)
+                setAltLanguage("en");
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        window.addEventListener("keyup", handleKeyUp);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+            window.removeEventListener("keyup", handleKeyUp);
+        };
+    }, []);
 
     useEffect(() => {
         fetchProducts(currentPageProduct, itemsPerPageProduct, searchTermProduct, selectedChkProducts, activeDropdownProd);
@@ -1563,7 +1588,7 @@ const SalesOrderDetails: React.FC<SalesOrderDetailsProps> = ({ salesOrderId, tab
     }
     const rendersupplierInformation = () => (
         <div className="p-1 bg-[#19191c] rounded-xl">
-            <div className="h-[calc(100vh-200px)] overflow-y-auto pr-2">
+            <div className="h-[calc(100vh-150px)] overflow-y-auto pr-2">
                 <div className="grid gap-4">
                     <div className="grid grid-cols-12 gap-4">
                         {/* Right side: 12 columns */}
@@ -3058,7 +3083,7 @@ const SalesOrderDetails: React.FC<SalesOrderDetailsProps> = ({ salesOrderId, tab
         <div className="h-screen flex flex-col" style={{ backgroundColor: "#1a1a1a" }}>
             {/* Fixed Header */}
             <div className="border-b flex-shrink-0" style={{ backgroundColor: "#19191c", borderColor: "#ffffff1a" }}>
-                <div className="flex items-center justify-between px-6 py-3">
+                <div className="flex items-center justify-between px-2 py-3">
                     <div className="flex items-center space-x-1">
                         {/* Tabs */}
                         <div className="flex space-x-1">
@@ -3146,12 +3171,12 @@ const SalesOrderDetails: React.FC<SalesOrderDetailsProps> = ({ salesOrderId, tab
                 </div>
             </div>
             {/* Main Content - Scrollable */}
-            <div className="flex flex-1 p-2 mb-[80px]" style={{ backgroundColor: "#19191c" }}>
+            <div className="flex flex-1 p-2 mb-[10px]" style={{ backgroundColor: "#19191c" }}>
                 {/* Main Content Area - Scrollable */}
                 <div className="flex-1">{rendersupplierInformation()}</div>
             </div>
             <div className="hidden">
-                <ExportReportSelector ref={exportRef} formats={["odt"]} baseName="DownloadSelectedSingleSO" ids={[salesOrderId]} language={lang} />
+                <ExportReportSelector ref={exportRef} formats={["odt"]} baseName="DownloadSelectedSingleSO" ids={[salesOrderId]} language={altLang} />
             </div>
             {renderProductList()}
             {renderCustomerList()}

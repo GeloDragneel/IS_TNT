@@ -148,6 +148,7 @@ const SalesOrderList: React.FC<SalesOrderListProps> = ({ tabId, onCustomerInvoic
     const [multipleRV, showMultipleRV] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
     const exportRef = useRef<{ triggerExport: () => void }>(null);
+    const [altLang, setAltLanguage] = useState(lang);
     const [loading, setLoading] = useState(() => {
         const savedLoading = localStorage.getItem(`${tabId}-loading-custinv-list`);
         return savedLoading !== null ? JSON.parse(savedLoading) : true;
@@ -230,6 +231,31 @@ const SalesOrderList: React.FC<SalesOrderListProps> = ({ tabId, onCustomerInvoic
             window.removeEventListener("keydown", handleEscKey);
         };
     }, []);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Alt") {
+                e.preventDefault(); // Prevent browser alt behavior (optional)
+                setAltLanguage("cn");
+            }
+        };
+
+        const handleKeyUp = (e: KeyboardEvent) => {
+            if (e.key === "Alt") {
+                e.preventDefault(); // Prevent browser alt behavior (optional)
+                setAltLanguage("en");
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        window.addEventListener("keyup", handleKeyUp);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+            window.removeEventListener("keyup", handleKeyUp);
+        };
+    }, []);
+
     useEffect(() => {
         const expandedKey = tabId + "_expandedKey";
         const cachedExpandedKey = localStorage.getItem(expandedKey);
@@ -1749,7 +1775,7 @@ const SalesOrderList: React.FC<SalesOrderListProps> = ({ tabId, onCustomerInvoic
             {/* Main Content Card */}
             <div className="rounded-lg border shadow-sm" style={{ backgroundColor: "#19191c", borderColor: "#404040" }}>
                 {/* Toolbar */}
-                <div className="p-4 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
+                <div className="p-2 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
                     <div className="flex justify-between items-center">
                         <div className="flex items-center space-x-4">
                             <div className="relative">
@@ -1854,7 +1880,7 @@ const SalesOrderList: React.FC<SalesOrderListProps> = ({ tabId, onCustomerInvoic
                 </div>
                 {/* Table */}
                 <div className="overflow-x-auto flex-grow">
-                    <div className="h-[calc(100vh-215px)] overflow-y-auto">
+                    <div className="h-[calc(100vh-180px)] overflow-y-auto">
                         <table className="w-full">
                             <thead className="sticky top-0 z-[1]" style={{ backgroundColor: "#1f2132" }}>
                                 <tr className="border-b" style={{ borderColor: "#2d2d30" }}>
@@ -2165,7 +2191,7 @@ const SalesOrderList: React.FC<SalesOrderListProps> = ({ tabId, onCustomerInvoic
                 </div>
                 {/* Footer with Pagination */}
                 <div className="border-t flex items-center justify-between" style={{ borderColor: "#404040" }}>
-                    <div className="p-4 flex items-center space-x-2">
+                    <div className="p-2 flex items-center space-x-2">
                         <MemoizedPagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />
                         <MemoizedItemsPerPageSelector
                             value={itemsPerPage}
@@ -2179,10 +2205,10 @@ const SalesOrderList: React.FC<SalesOrderListProps> = ({ tabId, onCustomerInvoic
                             formats={["odt", "ods", "xlsx"]}
                             baseName="CustomerInv"
                             ids={selectedInv.length > 0 ? selectedInv : customerInvoiceList.map((p) => p.id)}
-                            language={lang}
+                            language={altLang}
                         />
                         <div className="hidden">
-                            <ExportReportSelector ref={exportRef} formats={["odt"]} baseName="DownloadSelectedSingleInv" ids={selectedInv} language={lang} />
+                            <ExportReportSelector ref={exportRef} formats={["odt"]} baseName="DownloadSelectedSingleInv" ids={selectedInv} language={altLang} />
                         </div>
                     </div>
                     <div className="p-1 flex items-center space-x-1">

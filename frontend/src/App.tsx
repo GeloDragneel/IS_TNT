@@ -781,11 +781,11 @@ function App() {
         };
     });
 
-    const handleMenuClick = (item: SubMenuItem, sectionLabel: string) => {
+    const handleMenuClick = (item: SubMenuItem) => {
         const newTabId = `${item.id}-${tabCounter.current++}`;
         const newTab: Tab = {
             id: newTabId,
-            label: item.label,
+            label: translations[item.label] || item.label,
             labelKey: item.label,
             componentName: item.componentName,
             closable: true,
@@ -795,7 +795,6 @@ function App() {
         setTabs((prev) => [...prev, newTab]);
         setActiveTab(newTabId);
         setSidebarOpen(false);
-        console.log(sectionLabel);
     };
 
     const closeTab = (tabId: string) => {
@@ -885,7 +884,7 @@ function App() {
                                         {section.items.map((item) => (
                                             <button
                                                 key={item.id}
-                                                onClick={() => handleMenuClick(item, section.label)}
+                                                onClick={() => handleMenuClick(item)}
                                                 className="w-full flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-600 transition-colors text-left group"
                                             >
                                                 <item.icon className="h-4 w-4 text-gray-400 group-hover:text-cyan-400 transition-colors" />
