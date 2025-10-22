@@ -1,0 +1,2 @@
+[a.TrackingNo],[a.Courier],[a.InvoiceNo],[a.CustomerCode],[a.CustomerName],[a.Qty],[a.ItemCode],[a.ProductName],[a.Remarks]
+[b.Tracking;block=tbs:row],[b.Courier],[b.InvoiceNo],[b.CustomerCode],[b.CustomerName],[b.Qty],[b.ItemCode],[b.ProductName],[b.Remarks]

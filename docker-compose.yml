@@ -1,0 +1,54 @@
+services:
+    laravel:
+        build:
+            context: .
+            dockerfile: Dockerfile-php
+        container_name: laravel-app
+        restart: unless-stopped
+        volumes:
+            - ./backend:/var/www
+            - ./dbBackup:/var/www/dbBackup
+        working_dir: /var/www
+        command: >
+            sh -c "
+              mkdir -p storage/app/public public &&
+              rm -rf public/storage &&
+              ln -s ../storage/app/public public/storage &&
+              apache2-foreground"
+        ports:
+            - "8000:80"
+        depends_on:
+            - mysql
+        environment:
+            APACHE_DOCUMENT_ROOT: /var/www/public
+
+    mysql:
+        image: mysql:8.0
+        container_name: mysql-db
+        restart: unless-stopped
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: is2025_v4
+        ports:
+            - "3307:3306"
+        volumes:
+            - mysql_data:/var/lib/mysql
+            - ./mysql/my.cnf:/etc/mysql/my.cnf
+
+    react:
+        build:
+            context: ./frontend
+            dockerfile: Dockerfile-node
+        container_name: react-app
+        restart: unless-stopped
+        volumes:
+            - ./frontend:/app
+            - /app/node_modules
+        ports:
+            - "8081:5173"
+        stdin_open: true
+        tty: true
+        command: sh -c "npm install --legacy-peer-deps && npm run dev -- --host 0.0.0.0"
+
+volumes:
+    mysql_data:

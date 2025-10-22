@@ -1,0 +1,6 @@
+* {
+  user-select: none;
+}
+tr.clickable{
+    cursor: pointer;
+}
