@@ -123,7 +123,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
 
     const [selectedDropdownId, setSelectedDropdownId] = useState<number | string | null>(null);
     const [selectedDropdownManuId, setSelectDropdownManuId] = useState<number | string | null>(null);
-
+    const flatpickrRef = useRef<any>(null);
     const [paginationInvoice, setPaginationInvoice] = useState({
         current_page: 1,
         per_page: 10,
@@ -1540,12 +1540,12 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
             currency_id: null,
             warehouse_id: null,
             genres: [],
-            preorder_start_date: null as Date | null,
-            preorder_end_date: null as Date | null,
-            po_dateline: null as Date | null,
-            preorder_dateline: null as Date | null,
-            release_date: null as Date | null,
-            created_date: null as Date | null,
+            preorder_start_date: null,
+            preorder_end_date: null,
+            po_dateline: null,
+            preorder_dateline: null,
+            release_date: null,
+            created_date: new Date(),
             deposit: 0,
             price_a: 0,
             unit_a: "",
@@ -1570,6 +1570,9 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
             retail_profit_prcnt_a: 0,
             is_import: 0,
         };
+        if (flatpickrRef.current?.flatpickr) {
+            flatpickrRef.current.flatpickr.clear();
+        }
         setFormData(initialFormData);
     };
     const handleCopy = () => {
@@ -2255,11 +2258,11 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
         );
     }
     const renderProductInformation = () => (
-        <div className="p-6 bg-[#19191c] rounded-xl">
+        <div className="p-1 bg-[#19191c] rounded-xl">
             <div className="h-[calc(100vh-170px)] overflow-y-auto pr-2">
-                <div className="grid gap-4">
+                <div className="grid gap-2">
                     {/* Product Code Section */}
-                    <fieldset className="border-[1px] border-[#ffffff1a] rounded-lg p-4 space-y-4">
+                    <fieldset className="border-[1px] border-[#ffffff1a] rounded-lg p-4 space-y-2">
                         <div className="grid grid-cols-2 gap-6">
                             <div className="flex items-center space-x-4">
                                 <label className="w-32 text-gray-400 text-sm">{translations["Product Code"]}</label>
@@ -2371,7 +2374,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                 <label className="w-32 text-gray-400 text-sm">{translations["Inventory Qty"]}</label>
                                 <input
                                     type="number"
-                                    disabled
+                                    readOnly
                                     value={formData.inventry_qty}
                                     onChange={(e) => {
                                         const value = e.target.value;
@@ -2389,7 +2392,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
 
                     {/* Product Type Section */}
                     <fieldset className="border-[1px] border-[#ffffff1a] rounded-lg p-4 space-y-4">
-                        <div className="grid gap-4">
+                        <div className="grid gap-2">
                             <div className="grid grid-cols-2 gap-6">
                                 <div className="flex items-center space-x-4">
                                     <label className="w-32 text-gray-400 text-sm flex">
@@ -2547,15 +2550,15 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
 
                     {/* Product Order Section */}
                     <fieldset className="border-[1px] border-[#ffffff1a] rounded-lg p-4 space-y-4">
-                        <div className="grid gap-4">
+                        <div className="grid gap-2">
                             <div className="grid grid-cols-2 gap-6">
                                 <div className="flex items-center space-x-4">
                                     <label className="w-32 text-gray-400 text-sm">{translations["Preorder Start Date"]}</label>
                                     <Flatpickr
+                                        value={formData.preorder_start_date as any}
                                         onChange={handlePreorderStartDateChange}
                                         options={{
                                             dateFormat: "M d Y",
-                                            defaultDate: formData.preorder_start_date || undefined,
                                             allowInput: true,
                                             locale: locale,
                                         }}
@@ -2565,10 +2568,10 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                 <div className="flex items-center space-x-4">
                                     <label className="w-32 text-gray-400 text-sm">{translations["Preorder End Date"]}</label>
                                     <Flatpickr
+                                        value={formData.preorder_end_date as any}
                                         onChange={handlePreorderEndDateChange}
                                         options={{
                                             dateFormat: "M d Y",
-                                            defaultDate: formData.preorder_end_date || undefined,
                                             allowInput: true,
                                             locale: locale,
                                         }}
@@ -2580,10 +2583,10 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                 <div className="flex items-center space-x-4">
                                     <label className="w-32 text-gray-400 text-sm">{translations["Release Date"]}</label>
                                     <Flatpickr
+                                        value={formData.release_date as any}
                                         onChange={handleReleaseDateChange}
                                         options={{
                                             dateFormat: "M d Y",
-                                            defaultDate: formData.release_date || undefined,
                                             allowInput: true,
                                             locale: locale,
                                         }}
@@ -2593,11 +2596,11 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                 <div className="flex items-center space-x-4">
                                     <label className="w-32 text-gray-400 text-sm">{translations["Date Created"]}</label>
                                     <Flatpickr
+                                        value={formData.created_date as any}
                                         onChange={handleCreatedDateChange}
-                                        disabled
+                                        readOnly
                                         options={{
                                             dateFormat: "M d Y",
-                                            defaultDate: formData.created_date || undefined,
                                             allowInput: true,
                                             locale: locale,
                                         }}
@@ -2610,7 +2613,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
 
                     {/* Description Editor Section */}
                     <fieldset className="border-[1px] border-[#ffffff1a] rounded-lg p-4 space-y-4">
-                        <div className="grid gap-4">
+                        <div className="grid gap-2">
                             <div className="flex space-x-1 mb-4">
                                 {["description", "specs"].map((tab) => (
                                     <button
@@ -2682,7 +2685,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
         </div>
     );
     const renderProductMedia = () => (
-        <div className="p-6">
+        <div className="p-1">
             <div className="h-[calc(100vh-170px)] overflow-y-auto pr-2">
                 {/* Product Thumbnail and Display */}
                 <fieldset className="border-[1px] border-[#ffffff1a] rounded-lg p-4 space-y-4 mb-2">
@@ -2947,10 +2950,10 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
         </div>
     );
     const renderProductPrice = () => (
-        <div className="p-6">
+        <div className="p-1">
             <div className="h-[calc(100vh-170px)] overflow-y-auto pr-2">
                 <fieldset className="border-[1px] border-[#ffffff1a] rounded-lg p-4 space-y-4">
-                    <div className="grid gap-4">
+                    <div className="grid gap-2">
                         <div className="grid grid-cols-2 gap-6">
                             <div className="flex items-center space-x-4">
                                 <label className="w-1/3 text-sm text-gray-400">{translations["Supplier Name"]}</label>
@@ -2992,7 +2995,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                             setIsDirty(true); // ✅ only if user is editing
                                         }
                                     }}
-                                    disabled
+                                    readOnly
                                     className="w-2/3 px-3 py-2 border-[1px] border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm rounded-lg focus:outline-none focus:border-cyan-500"
                                 />
                             </div>
@@ -3017,7 +3020,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                             menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                                         }}
                                         className="w-1/3"
-                                        isClearable
                                         placeholder={translations["Select"]}
                                         menuPlacement="auto"
                                         menuPosition="fixed"
@@ -3055,7 +3057,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                             menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                                         }}
                                         className="w-1/3"
-                                        isClearable
                                         placeholder={translations["Select"]}
                                         menuPlacement="auto"
                                         menuPosition="fixed"
@@ -3079,10 +3080,10 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                             <div className="flex items-center space-x-4">
                                 <label className="w-1/3 text-sm text-gray-400">{translations["PO Submission Dateline"]}</label>
                                 <Flatpickr
+                                    value={formData.po_dateline as any}
                                     onChange={handlePoDatelineChange}
                                     options={{
                                         dateFormat: "M d Y",
-                                        defaultDate: formData.po_dateline || undefined,
                                         allowInput: true,
                                         locale: locale,
                                     }}
@@ -3092,10 +3093,10 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                             <div className="flex items-center space-x-4">
                                 <label className="w-1/3 text-sm text-gray-400">{translations["Pre-Order Dateline"]}</label>
                                 <Flatpickr
+                                    value={formData.preorder_dateline as any}
                                     onChange={handlePreorderDatelineChange}
                                     options={{
                                         dateFormat: "M d Y",
-                                        defaultDate: formData.preorder_dateline || undefined,
                                         allowInput: true,
                                         locale: locale,
                                     }}
@@ -3122,7 +3123,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                             menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                                         }}
                                         className="w-1/3"
-                                        isClearable
                                         placeholder={translations["Select"]}
                                         menuPlacement="auto"
                                         menuPosition="fixed"
@@ -3206,7 +3206,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                         {activePricingTab === "wholesale" && (
                             <div>
                                 {/* Pricing Form - Exact Layout from Image */}
-                                <div className="grid gap-4">
+                                <div className="grid gap-2">
                                     {/* Row 1: Customer Group + Deposit */}
                                     <div className="grid grid-cols-3 gap-6">
                                         <div className="flex items-center space-x-4">
@@ -3229,7 +3229,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                                     menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                                                 }}
                                                 className="w-2/3"
-                                                isClearable
                                                 placeholder={translations["Select"]}
                                                 menuPlacement="auto"
                                                 menuPosition="fixed"
@@ -3430,7 +3429,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                                         menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                                                     }}
                                                     className="w-1/2"
-                                                    isClearable
                                                     placeholder={translations["Select"]}
                                                     menuPlacement="auto"
                                                     menuPosition="fixed"
@@ -3506,7 +3504,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                                         menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                                                     }}
                                                     className="w-1/2"
-                                                    isClearable
                                                     placeholder={translations["Select"]}
                                                     menuPlacement="auto"
                                                     menuPosition="fixed"
@@ -3543,7 +3540,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                                         menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                                                     }}
                                                     className="w-1/2"
-                                                    isClearable
                                                     placeholder={translations["Select"]}
                                                     menuPlacement="auto"
                                                     menuPosition="fixed"
@@ -3642,7 +3638,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                         {activePricingTab === "retail" && (
                             <div>
                                 {/* Pricing Form - Exact Layout from Image */}
-                                <div className="grid gap-4">
+                                <div className="grid gap-2">
                                     {/* Row 1: Customer Group + Deposit */}
                                     <div className="grid grid-cols-3 gap-6">
                                         <div className="flex items-center space-x-4">
@@ -3665,7 +3661,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                                     menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                                                 }}
                                                 className="w-[70%]"
-                                                isClearable
                                                 placeholder={translations["Select"]}
                                                 menuPlacement="auto"
                                                 menuPosition="fixed"
@@ -3677,7 +3672,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                             <div className="flex w-[70%]">
                                                 <input
                                                     type="text"
-                                                    disabled
+                                                    readOnly
                                                     value={formData.retail_currency}
                                                     onChange={(e) => {
                                                         setFormData({ ...formData, retail_currency: e.target.value });
@@ -3708,7 +3703,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                             <label className="w-[30%] text-sm text-gray-400">{translations["Retail Price"]}</label>
                                             <div className="flex w-[70%]">
                                                 <input
-                                                    disabled
+                                                    readOnly
                                                     type="text"
                                                     value={formData.retail_currency}
                                                     onChange={(e) => {
@@ -3738,7 +3733,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                             <div className="flex w-[70%]">
                                                 <input
                                                     type="text"
-                                                    disabled
+                                                    readOnly
                                                     value={formData.retail_currency}
                                                     onChange={(e) => {
                                                         setFormData((prev) => ({ ...prev, retail_currency: e.target.value }));
@@ -3766,9 +3761,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                             <label className="w-[20%] text-sm text-gray-400">{translations["Profit"]} %</label>
                                             <input
                                                 type="text"
-                                                disabled
-                                                value={`${formData.retail_profit_prcnt_a}%`}
                                                 readOnly
+                                                value={`${formData.retail_profit_prcnt_a}%`}
                                                 style={{ color: getProfitColor(formData.retail_profit_prcnt_a) }}
                                                 className="w-[80%] px-3 py-2 border-[1px] border-[#ffffff1a] rounded-lg text-[#ffffffcc] text-custom-sm focus:outline-none focus:border-cyan-500"
                                             />
@@ -3825,7 +3819,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
         </div>
     );
     const renderProfitability = () => (
-        <div className="p-6">
+        <div className="p-1">
             <div className="h-[calc(100vh-170px)] overflow-y-auto pr-2">
                 <fieldset className="border-[1px] border-[#ffffff1a] rounded-lg p-4 space-y-4 mb-2">
                     <div className="overflow-x-auto mt-5">
@@ -4256,7 +4250,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                             menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                                         }}
                                         className="flex-1"
-                                        isClearable
                                         placeholder={translations["Select"]}
                                         value={productTypeOptions.find((option) => option.value === selectedDropdownId) || null}
                                         onChange={(selected) => {
@@ -4645,7 +4638,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                 {/* Left Sidebar */}
                 <fieldset className="border-[1px] border-[#ffffff1a] rounded-lg p-4 space-y-4">
                     <div className="w-80 border-r flex-shrink-0" style={{ borderColor: "transparent" }}>
-                        <div className="p-6">
+                        <div className="p-2">
                             {/* Product Image */}
                             <div className="mb-6">
                                 <div className="aspect-square bg-gray-800 rounded-lg flex items-center justify-center mb-4">

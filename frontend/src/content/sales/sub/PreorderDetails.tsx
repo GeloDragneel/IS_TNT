@@ -213,6 +213,8 @@ const PreorderDetails: React.FC<PreorderDetailsProps> = ({ preorderId, saveType,
         price_setup_deposit: 0,
         item_cost: 0,
         deposit_currency: "",
+        retail_price_currency: "",
+        preorder_price_currency: "",
         po_dateline: "",
         offered_cost_currency: "",
         e_total_sales_currency: "",
@@ -473,6 +475,8 @@ const PreorderDetails: React.FC<PreorderDetailsProps> = ({ preorderId, saveType,
                     release_date: foundProduct.release_date || "",
                     closing_date: foundProduct.closing_date || "",
                     deposit_currency: foundProduct.deposit_currency || "",
+                    retail_price_currency: foundProduct.retail_price_currency || "",
+                    preorder_price_currency: foundProduct.preorder_price_currency || "",
                     item_cost_currency: foundProduct.item_cost_currency || "",
                     po_dateline: foundProduct.po_dateline || "",
                     offered_cost_currency: foundProduct.offered_cost_currency || "",
@@ -481,7 +485,6 @@ const PreorderDetails: React.FC<PreorderDetailsProps> = ({ preorderId, saveType,
                     e_profit_currency: foundProduct.e_profit_currency || "",
                     e_cost_total_currency: foundProduct.e_cost_total_currency || "",
                     price_setup_deposit_currency: foundProduct.price_setup_deposit_currency || "",
-
                     pod: foundProduct.pod || "",
                     rwarehouse: foundProduct.rwarehouse || "",
                     voucher_code: foundProduct.voucher_code || 0,
@@ -737,6 +740,8 @@ const PreorderDetails: React.FC<PreorderDetailsProps> = ({ preorderId, saveType,
             price_setup_deposit: 0,
             item_cost: 0,
             deposit_currency: "",
+            retail_price_currency: "",
+            preorder_price_currency: "",
             po_dateline: "",
             offered_cost_currency: "",
             e_total_sales_currency: "",
@@ -774,6 +779,8 @@ const PreorderDetails: React.FC<PreorderDetailsProps> = ({ preorderId, saveType,
             preorder_price: 0,
             retail_price: 0,
             deposit_currency: "",
+            retail_price_currency: "",
+            preorder_price_currency: "",
             price_deposit: 0,
             price_setup_deposit: 0,
             price_setup_deposit_currency: "",
@@ -944,6 +951,8 @@ const PreorderDetails: React.FC<PreorderDetailsProps> = ({ preorderId, saveType,
                     preorder_price: matchedRCPrice?.preorder_price?.toString() ? matchedRCPrice?.preorder_price?.toString() : "0.00",
                     retail_price: matchedRCPrice?.retail_price?.toString() ? matchedRCPrice?.retail_price?.toString() : "0.00",
                     deposit_currency: matchedRCPrice?.currency?.toString() ? matchedRCPrice?.currency?.toString() : "",
+                    retail_price_currency: matchedRCPrice?.currency?.toString() ? matchedRCPrice?.currency?.toString() : "",
+                    preorder_price_currency: matchedRCPrice?.currency?.toString() ? matchedRCPrice?.currency?.toString() : "",
                     price_deposit: matchedRCPrice?.deposit?.toString() ? matchedRCPrice?.deposit?.toString() : "0.00",
                     price_setup_deposit: matchedWHPrice?.deposit?.toString() ? matchedWHPrice?.deposit?.toString() : "0.00",
                     price_setup_deposit_currency: matchedWHPrice?.currency?.toString() ? matchedWHPrice?.currency?.toString() : "0.00",
@@ -978,6 +987,8 @@ const PreorderDetails: React.FC<PreorderDetailsProps> = ({ preorderId, saveType,
                     preorder_price: matchedWHPrice?.preorder_price?.toString() ? matchedWHPrice?.preorder_price?.toString() : "0.00",
                     retail_price: matchedWHPrice?.retail_price?.toString() ? matchedWHPrice?.retail_price?.toString() : "0.00",
                     deposit_currency: matchedWHPrice?.currency?.toString() ? matchedWHPrice?.currency?.toString() : "",
+                    retail_price_currency: matchedWHPrice?.currency?.toString() ? matchedWHPrice?.currency?.toString() : "",
+                    preorder_price_currency: matchedWHPrice?.currency?.toString() ? matchedWHPrice?.currency?.toString() : "",
                     price_deposit: matchedRCPrice?.deposit?.toString() ? matchedRCPrice?.deposit?.toString() : "0.00",
                     price_setup_deposit: Number("0.00"),
                     item_cost_currency: baseCurrency(),
@@ -1151,6 +1162,8 @@ const PreorderDetails: React.FC<PreorderDetailsProps> = ({ preorderId, saveType,
                         preorder_price: matchedRCPrice?.preorder_price?.toString() ? matchedRCPrice?.preorder_price?.toString() : "0.00",
                         retail_price: matchedRCPrice?.retail_price?.toString() ? matchedRCPrice?.retail_price?.toString() : "0.00",
                         deposit_currency: matchedRCPrice?.currency?.toString() ? matchedRCPrice?.currency?.toString() : "",
+                        retail_price_currency: matchedRCPrice?.currency?.toString() ? matchedRCPrice?.currency?.toString() : "",
+                        preorder_price_currency: matchedRCPrice?.currency?.toString() ? matchedRCPrice?.currency?.toString() : "",
                         price_deposit: matchedRCPrice?.deposit?.toString() ? matchedRCPrice?.deposit?.toString() : "0.00",
                         price_setup_deposit: matchedWHPrice?.deposit?.toString() ? matchedWHPrice?.deposit?.toString() : "0.00",
                         price_setup_deposit_currency: matchedWHPrice?.currency?.toString() ? matchedWHPrice?.currency?.toString() : "0.00",
@@ -1185,6 +1198,8 @@ const PreorderDetails: React.FC<PreorderDetailsProps> = ({ preorderId, saveType,
                         preorder_price: matchedWHPrice?.preorder_price?.toString() ? matchedWHPrice?.preorder_price?.toString() : "0.00",
                         retail_price: matchedWHPrice?.retail_price?.toString() ? matchedWHPrice?.retail_price?.toString() : "0.00",
                         deposit_currency: matchedWHPrice?.currency?.toString() ? matchedWHPrice?.currency?.toString() : "",
+                        retail_price_currency: matchedWHPrice?.currency?.toString() ? matchedWHPrice?.currency?.toString() : "",
+                        preorder_price_currency: matchedWHPrice?.currency?.toString() ? matchedWHPrice?.currency?.toString() : "",
                         price_deposit: matchedRCPrice?.deposit?.toString() ? matchedRCPrice?.deposit?.toString() : "0.00",
                         price_setup_deposit: Number("0.00"),
                         item_cost_currency: baseCurrency(),
@@ -1351,13 +1366,12 @@ const PreorderDetails: React.FC<PreorderDetailsProps> = ({ preorderId, saveType,
                         <div className="col-span-12 md:col-span-6">
                             <fieldset className="border border-[#ffffff1a] rounded-lg p-4 mb-2">
                                 <legend className="text-white text-left px-3 py-1 border border-[#ffffff1a] rounded-md bg-[#19191c]">{translations["Customer Order"]} :</legend>
-
                                 <div className="grid grid-cols-12 gap-4">
                                     {/* Left Column */}
                                     <div className="col-span-12 md:col-span-6">
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Customer Code"]}</label>
-                                            <div className="flex flex-1">
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Customer Code"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
                                                 <input
                                                     type="text"
                                                     value={formData.customer_code}
@@ -1395,9 +1409,9 @@ const PreorderDetails: React.FC<PreorderDetailsProps> = ({ preorderId, saveType,
                                                 </button>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Product Code"]}</label>
-                                            <div className="flex flex-1">
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Product Code"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
                                                 <input
                                                     type="text"
                                                     value={formData.product_code}
@@ -1432,180 +1446,196 @@ const PreorderDetails: React.FC<PreorderDetailsProps> = ({ preorderId, saveType,
                                     </div>
                                     {/* Right Column */}
                                     <div className="col-span-12 md:col-span-6">
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Order Date"]}</label>
-                                            <input
-                                                type="text"
-                                                readOnly
-                                                value={formatDate(formData.order_date, lang)}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setFormData((prev) => ({ ...prev, order_date: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Order Date"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
+                                                <input
+                                                    type="text"
+                                                    readOnly
+                                                    value={formatDate(formData.order_date, lang)}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        setFormData((prev) => ({ ...prev, order_date: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Contact Name"]}</label>
-                                            <input
-                                                type="text"
-                                                readOnly
-                                                value={formData.account_name_en}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setFormData((prev) => ({ ...prev, account_name_en: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Contact Name"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
+                                                <input
+                                                    type="text"
+                                                    readOnly
+                                                    value={formData.account_name_en}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        setFormData((prev) => ({ ...prev, account_name_en: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                     {/* Full Width Row */}
                                     <div className="col-span-12 md:col-span-12">
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Product Name"]}</label>
-                                            <input
-                                                type="text"
-                                                readOnly
-                                                hidden={lang == "cn"}
-                                                value={formData.product_title_en}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setFormData((prev) => ({ ...prev, product_title_en: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
-                                            <input
-                                                type="text"
-                                                readOnly
-                                                hidden={lang == "en"}
-                                                value={formData.product_title_cn}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setFormData((prev) => ({ ...prev, product_title_cn: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-2 text-gray-400 text-sm">{translations["Product Name"]}</label>
+                                            <div className="flex col-span-12 md:col-span-10">
+                                                <input
+                                                    type="text"
+                                                    readOnly
+                                                    hidden={lang == "cn"}
+                                                    value={formData.product_title_en}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        setFormData((prev) => ({ ...prev, product_title_en: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                                <input
+                                                    type="text"
+                                                    readOnly
+                                                    hidden={lang == "en"}
+                                                    value={formData.product_title_cn}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        setFormData((prev) => ({ ...prev, product_title_cn: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                     {/* Left Column */}
                                     <div className="col-span-12 md:col-span-6">
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Qty"]}</label>
-                                            <input
-                                                type="number"
-                                                value={formData.qty === 0 ? "" : formData.qty}
-                                                onChange={(e) => {
-                                                    const value = Number(e.target.value);
-                                                    setFormData((prev) => ({ ...prev, qty: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                    handleRowCalculate_QtyPrice(value, formData.price, "qty");
-                                                }}
-                                                onBlur={(e) => {
-                                                    const value = Number(e.target.value);
-                                                    handleRowCalculate_QtyPrice(value, formData.price, "qty");
-                                                }}
-                                                placeholder="0"
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Qty"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
+                                                <input
+                                                    type="number"
+                                                    value={formData.qty === 0 ? "" : formData.qty}
+                                                    onChange={(e) => {
+                                                        const value = Number(e.target.value);
+                                                        setFormData((prev) => ({ ...prev, qty: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                        handleRowCalculate_QtyPrice(value, formData.price, "qty");
+                                                    }}
+                                                    onBlur={(e) => {
+                                                        const value = Number(e.target.value);
+                                                        handleRowCalculate_QtyPrice(value, formData.price, "qty");
+                                                    }}
+                                                    placeholder="0"
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Price"]}</label>
-                                            <input
-                                                type="number"
-                                                value={formData.price}
-                                                onChange={(e) => {
-                                                    const value = Number(e.target.value);
-                                                    setFormData((prev) => ({ ...prev, price: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                onBlur={(e) => {
-                                                    const value = Number(e.target.value);
-                                                    handleRowCalculate_QtyPrice(formData.qty, value, "price");
-                                                }}
-                                                placeholder="0.00"
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Price"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
+                                                <input
+                                                    type="number"
+                                                    value={formData.price}
+                                                    onChange={(e) => {
+                                                        const value = Number(e.target.value);
+                                                        setFormData((prev) => ({ ...prev, price: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    onBlur={(e) => {
+                                                        const value = Number(e.target.value);
+                                                        handleRowCalculate_QtyPrice(formData.qty, value, "price");
+                                                    }}
+                                                    placeholder="0.00"
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Deposit"]}</label>
-                                            <input
-                                                type="number"
-                                                value={formData.item_deposit}
-                                                onChange={(e) => {
-                                                    const value = Number(e.target.value);
-                                                    setFormData((prev) => ({ ...prev, item_deposit: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                onBlur={(e) => {
-                                                    const value = Number(e.target.value);
-                                                    handleRowCalculate_Deposit(value);
-                                                }}
-                                                placeholder="0.00"
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
-                                            <input
-                                                type="hidden"
-                                                value={formData.base_item_deposit}
-                                                onChange={(e) => {
-                                                    const value = Number(e.target.value);
-                                                    setFormData((prev) => ({ ...prev, base_item_deposit: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
-                                            <input
-                                                type="hidden"
-                                                value={formData.base_total}
-                                                onChange={(e) => {
-                                                    const value = Number(e.target.value);
-                                                    setFormData((prev) => ({ ...prev, base_total: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Deposit"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
+                                                <input
+                                                    type="number"
+                                                    value={formData.item_deposit}
+                                                    onChange={(e) => {
+                                                        const value = Number(e.target.value);
+                                                        setFormData((prev) => ({ ...prev, item_deposit: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    onBlur={(e) => {
+                                                        const value = Number(e.target.value);
+                                                        handleRowCalculate_Deposit(value);
+                                                    }}
+                                                    placeholder="0.00"
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                                <input
+                                                    type="hidden"
+                                                    value={formData.base_item_deposit}
+                                                    onChange={(e) => {
+                                                        const value = Number(e.target.value);
+                                                        setFormData((prev) => ({ ...prev, base_item_deposit: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                                <input
+                                                    type="hidden"
+                                                    value={formData.base_total}
+                                                    onChange={(e) => {
+                                                        const value = Number(e.target.value);
+                                                        setFormData((prev) => ({ ...prev, base_total: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Customer Group"]}</label>
-                                            <input
-                                                type="text"
-                                                value={formData.customer_group_en}
-                                                readOnly
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setFormData((prev) => ({ ...prev, customer_group_en: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
-                                            <input
-                                                type="hidden"
-                                                value={formData.customer_group_id}
-                                                readOnly
-                                                onChange={(e) => {
-                                                    const value = Number(e.target.value);
-                                                    setFormData((prev) => ({ ...prev, customer_group_id: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Customer Group"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
+                                                <input
+                                                    type="text"
+                                                    value={formData.customer_group_en}
+                                                    readOnly
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        setFormData((prev) => ({ ...prev, customer_group_en: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                                <input
+                                                    type="hidden"
+                                                    value={formData.customer_group_id}
+                                                    readOnly
+                                                    onChange={(e) => {
+                                                        const value = Number(e.target.value);
+                                                        setFormData((prev) => ({ ...prev, customer_group_id: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["View Payment"]}</label>
-                                            <input
-                                                type="text"
-                                                placeholder={translations["Click to view"]}
-                                                readOnly
-                                                onClick={() => {}}
-                                                className="cursor-pointer flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["View Payment"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
+                                                <input
+                                                    type="text"
+                                                    placeholder={translations["Click to view"]}
+                                                    readOnly
+                                                    onClick={() => {}}
+                                                    className="cursor-pointer flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Voucher"]}</label>
-                                            <div className="flex flex-1">
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Voucher"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
                                                 <input
                                                     type="text"
                                                     readOnly
@@ -1644,161 +1674,173 @@ const PreorderDetails: React.FC<PreorderDetailsProps> = ({ preorderId, saveType,
                                     </div>
                                     {/* Right Column */}
                                     <div className="col-span-12 md:col-span-6">
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Ex Rate"]}</label>
-                                            <input
-                                                type="text"
-                                                readOnly
-                                                value={formData.ex_rate}
-                                                onChange={(e) => {
-                                                    const value = Number(e.target.value);
-                                                    setFormData((prev) => ({ ...prev, ex_rate: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Ex Rate"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
+                                                <input
+                                                    type="text"
+                                                    readOnly
+                                                    value={formData.ex_rate}
+                                                    onChange={(e) => {
+                                                        const value = Number(e.target.value);
+                                                        setFormData((prev) => ({ ...prev, ex_rate: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Currency"]}</label>
-                                            <input
-                                                type="text"
-                                                readOnly
-                                                value={formData.currency}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setFormData((prev) => ({ ...prev, currency: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Currency"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
+                                                <input
+                                                    type="text"
+                                                    readOnly
+                                                    value={formData.currency}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        setFormData((prev) => ({ ...prev, currency: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["POD"]}</label>
-                                            <input
-                                                type="text"
-                                                hidden={lang === "cn"}
-                                                readOnly
-                                                value={formData.pod_en}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setFormData((prev) => ({ ...prev, pod_en: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
-                                            <input
-                                                type="text"
-                                                hidden={lang === "en"}
-                                                readOnly
-                                                value={formData.pod_cn}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setFormData((prev) => ({ ...prev, pod_cn: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
-                                            <input
-                                                type="hidden"
-                                                readOnly
-                                                value={formData.pod}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setFormData((prev) => ({ ...prev, pod: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["POD"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
+                                                <input
+                                                    type="text"
+                                                    hidden={lang === "cn"}
+                                                    readOnly
+                                                    value={formData.pod_en}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        setFormData((prev) => ({ ...prev, pod_en: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                                <input
+                                                    type="text"
+                                                    hidden={lang === "en"}
+                                                    readOnly
+                                                    value={formData.pod_cn}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        setFormData((prev) => ({ ...prev, pod_cn: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                                <input
+                                                    type="hidden"
+                                                    readOnly
+                                                    value={formData.pod}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        setFormData((prev) => ({ ...prev, pod: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Sales Person"]}</label>
-                                            <input
-                                                type="text"
-                                                readOnly
-                                                value={formData.sales_person_name}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setFormData((prev) => ({ ...prev, sales_person_name: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
-                                            <input
-                                                type="hidden"
-                                                readOnly
-                                                value={formData.sales_person_id}
-                                                onChange={(e) => {
-                                                    const value = Number(e.target.value);
-                                                    setFormData((prev) => ({ ...prev, sales_person_id: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Sales Person"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
+                                                <input
+                                                    type="text"
+                                                    readOnly
+                                                    value={formData.sales_person_name}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        setFormData((prev) => ({ ...prev, sales_person_name: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                                <input
+                                                    type="hidden"
+                                                    readOnly
+                                                    value={formData.sales_person_id}
+                                                    onChange={(e) => {
+                                                        const value = Number(e.target.value);
+                                                        setFormData((prev) => ({ ...prev, sales_person_id: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Series"]}</label>
-                                            <input
-                                                type="text"
-                                                hidden={lang === "cn"}
-                                                readOnly
-                                                value={formData.series_en}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setFormData((prev) => ({ ...prev, series_en: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
-                                            <input
-                                                type="text"
-                                                hidden={lang === "en"}
-                                                readOnly
-                                                value={formData.series_cn}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setFormData((prev) => ({ ...prev, series_cn: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Series"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
+                                                <input
+                                                    type="text"
+                                                    hidden={lang === "cn"}
+                                                    readOnly
+                                                    value={formData.series_en}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        setFormData((prev) => ({ ...prev, series_en: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                                <input
+                                                    type="text"
+                                                    hidden={lang === "en"}
+                                                    readOnly
+                                                    value={formData.series_cn}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        setFormData((prev) => ({ ...prev, series_cn: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Warehouse"]}</label>
-                                            <input
-                                                type="text"
-                                                hidden={lang === "cn"}
-                                                readOnly
-                                                value={formData.rwarehouse_en}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setFormData((prev) => ({ ...prev, rwarehouse_en: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
-                                            <input
-                                                type="text"
-                                                hidden={lang === "en"}
-                                                readOnly
-                                                value={formData.rwarehouse_cn}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setFormData((prev) => ({ ...prev, rwarehouse_cn: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
-                                            <input
-                                                type="hidden"
-                                                readOnly
-                                                value={formData.rwarehouse}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setFormData((prev) => ({ ...prev, rwarehouse: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Warehouse"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
+                                                <input
+                                                    type="text"
+                                                    hidden={lang === "cn"}
+                                                    readOnly
+                                                    value={formData.rwarehouse_en}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        setFormData((prev) => ({ ...prev, rwarehouse_en: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                                <input
+                                                    type="text"
+                                                    hidden={lang === "en"}
+                                                    readOnly
+                                                    value={formData.rwarehouse_cn}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        setFormData((prev) => ({ ...prev, rwarehouse_cn: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                                <input
+                                                    type="hidden"
+                                                    readOnly
+                                                    value={formData.rwarehouse}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        setFormData((prev) => ({ ...prev, rwarehouse: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1810,66 +1852,74 @@ const PreorderDetails: React.FC<PreorderDetailsProps> = ({ preorderId, saveType,
                                 <div className="grid grid-cols-12 gap-4">
                                     {/* Left Column */}
                                     <div className="col-span-12 md:col-span-6">
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Release Date"]}</label>
-                                            <input
-                                                type="text"
-                                                value={formatDate(formData.release_date, lang)}
-                                                readOnly
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setFormData((prev) => ({ ...prev, release_date: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Release Date"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
+                                                <input
+                                                    type="text"
+                                                    value={formatDate(formData.release_date, lang)}
+                                                    readOnly
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        setFormData((prev) => ({ ...prev, release_date: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                            </div>
                                         </div>
 
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Pcs Per Carton"]}</label>
-                                            <input
-                                                type="text"
-                                                value={formData.pcs_per_carton}
-                                                readOnly
-                                                onChange={(e) => {
-                                                    const value = Number(e.target.value);
-                                                    setFormData((prev) => ({ ...prev, pcs_per_carton: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Pcs Per Carton"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
+                                                <input
+                                                    type="text"
+                                                    value={formData.pcs_per_carton}
+                                                    readOnly
+                                                    onChange={(e) => {
+                                                        const value = Number(e.target.value);
+                                                        setFormData((prev) => ({ ...prev, pcs_per_carton: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                     {/* Right Column */}
                                     <div className="col-span-12 md:col-span-6">
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Closing Date"]}</label>
-                                            <input
-                                                type="text"
-                                                value={formatDate(formData.closing_date, lang)}
-                                                readOnly
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setFormData((prev) => ({ ...prev, closing_date: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Closing Date"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
+                                                <input
+                                                    type="text"
+                                                    value={formatDate(formData.closing_date, lang)}
+                                                    readOnly
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        setFormData((prev) => ({ ...prev, closing_date: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                            </div>
                                         </div>
 
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Customer Type"]}</label>
-                                            <input
-                                                type="text"
-                                                readOnly
-                                                value={translations[formData.customer_type]}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setFormData((prev) => ({ ...prev, customer_type: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Customer Type"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
+                                                <input
+                                                    type="text"
+                                                    readOnly
+                                                    value={translations[formData.customer_type]}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        setFormData((prev) => ({ ...prev, customer_type: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1879,222 +1929,105 @@ const PreorderDetails: React.FC<PreorderDetailsProps> = ({ preorderId, saveType,
                                 <div className="grid grid-cols-12 gap-4">
                                     {/* Left Column */}
                                     <div className="col-span-12 md:col-span-6">
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Deposit"]}</label>
-                                            <div className="flex flex-1 gap-2">
-                                                <input
-                                                    type="text"
-                                                    value={formData.price_setup_deposit_currency}
-                                                    readOnly
-                                                    onChange={(e) => {
-                                                        const value = e.target.value;
-                                                        setFormData((prev) => ({ ...prev, price_setup_deposit_currency: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="w-20 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                                />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Deposit"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
+                                                {/* <span className="inline-flex items-center px-3 border border-r-0 border-[#ffffff1a] rounded-l-md bg-transparent select-none text-[#ffffffcc] text-custom-sm">
+                                                    {formData.price_setup_deposit_currency}
+                                                </span> */}
                                                 <input
                                                     type="text"
                                                     readOnly
-                                                    value={formData.price_setup_deposit}
-                                                    onChange={(e) => {
-                                                        const value = Number(e.target.value);
-                                                        setFormData((prev) => ({ ...prev, price_setup_deposit: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                    value={formData.price_setup_deposit_currency + " " + formData.price_setup_deposit}
+                                                    onChange={(e) => setFormData((prev) => ({ ...prev, price_setup_deposit: Number(e.target.value) }))}
+                                                    className="flex-1 px-3 py-2 border border-l-0 border-[#ffffff1a] rounded-r-md bg-transparent text-[#ffffffcc] text-custom-sm"
                                                 />
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Price A"]}</label>
-                                            <div className="flex flex-1 gap-2">
-                                                <input
-                                                    type="text"
-                                                    value={formData.currency}
-                                                    readOnly
-                                                    onChange={(e) => {
-                                                        const value = e.target.value;
-                                                        setFormData((prev) => ({ ...prev, currency: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="w-20 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                                />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Price A"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
                                                 <input
                                                     type="text"
                                                     readOnly
-                                                    value={formData.price_a}
-                                                    onChange={(e) => {
-                                                        const value = Number(e.target.value);
-                                                        setFormData((prev) => ({ ...prev, price_a: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                    value={formData.currency + " " + formData.price_a}
+                                                    onChange={(e) => setFormData((prev) => ({ ...prev, price_a: Number(e.target.value) }))}
+                                                    className="flex-1 px-3 py-2 border border-l-0 border-[#ffffff1a] rounded-r-md bg-transparent text-[#ffffffcc] text-custom-sm"
                                                 />
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Price B"]}</label>
-                                            <div className="flex flex-1 gap-2">
-                                                <input
-                                                    type="text"
-                                                    value={formData.currency}
-                                                    readOnly
-                                                    onChange={(e) => {
-                                                        const value = e.target.value;
-                                                        setFormData((prev) => ({ ...prev, currency: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="w-20 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                                />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Price B"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
                                                 <input
                                                     type="text"
                                                     readOnly
-                                                    value={formData.price_b}
-                                                    onChange={(e) => {
-                                                        const value = Number(e.target.value);
-                                                        setFormData((prev) => ({ ...prev, price_b: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                    value={formData.currency + " " + formData.price_b}
+                                                    onChange={(e) => setFormData((prev) => ({ ...prev, price_b: Number(e.target.value) }))}
+                                                    className="flex-1 px-3 py-2 border border-l-0 border-[#ffffff1a] rounded-r-md bg-transparent text-[#ffffffcc] text-custom-sm"
                                                 />
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Price C"]}</label>
-                                            <div className="flex flex-1 gap-2">
-                                                <input
-                                                    type="text"
-                                                    value={formData.currency}
-                                                    readOnly
-                                                    onChange={(e) => {
-                                                        const value = e.target.value;
-                                                        setFormData((prev) => ({ ...prev, currency: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="w-20 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                                />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Price C"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
                                                 <input
                                                     type="text"
                                                     readOnly
-                                                    value={formData.price_c}
-                                                    onChange={(e) => {
-                                                        const value = Number(e.target.value);
-                                                        setFormData((prev) => ({ ...prev, price_c: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                    value={formData.currency + " " + formData.price_c}
+                                                    onChange={(e) => setFormData((prev) => ({ ...prev, price_c: Number(e.target.value) }))}
+                                                    className="flex-1 px-3 py-2 border border-l-0 border-[#ffffff1a] rounded-r-md bg-transparent text-[#ffffffcc] text-custom-sm"
                                                 />
                                             </div>
                                         </div>
                                     </div>
                                     {/* Right Column */}
                                     <div className="col-span-12 md:col-span-6">
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Retail Price"]}</label>
-                                            <div className="flex flex-1 gap-2">
-                                                <input
-                                                    type="text"
-                                                    value={formData.deposit_currency}
-                                                    readOnly
-                                                    onChange={(e) => {
-                                                        const value = e.target.value;
-                                                        setFormData((prev) => ({ ...prev, deposit_currency: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="w-20 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                                />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Retail Price"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
                                                 <input
                                                     type="text"
                                                     readOnly
-                                                    value={formData.retail_price}
-                                                    onChange={(e) => {
-                                                        const value = Number(e.target.value);
-                                                        setFormData((prev) => ({ ...prev, retail_price: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                    value={formData.retail_price_currency + " " + formData.retail_price}
+                                                    onChange={(e) => setFormData((prev) => ({ ...prev, retail_price: Number(e.target.value) }))}
+                                                    className="flex-1 px-3 py-2 border border-l-0 border-[#ffffff1a] rounded-r-md bg-transparent text-[#ffffffcc] text-custom-sm"
                                                 />
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Preorder Price"]}</label>
-                                            <div className="flex flex-1 gap-2">
-                                                <input
-                                                    type="text"
-                                                    value={formData.deposit_currency}
-                                                    readOnly
-                                                    onChange={(e) => {
-                                                        const value = e.target.value;
-                                                        setFormData((prev) => ({ ...prev, deposit_currency: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="w-20 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                                />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Preorder Price"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
                                                 <input
                                                     type="text"
                                                     readOnly
-                                                    value={formData.preorder_price}
-                                                    onChange={(e) => {
-                                                        const value = Number(e.target.value);
-                                                        setFormData((prev) => ({ ...prev, preorder_price: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                    value={formData.preorder_price_currency + " " + formData.preorder_price}
+                                                    onChange={(e) => setFormData((prev) => ({ ...prev, preorder_price: Number(e.target.value) }))}
+                                                    className="flex-1 px-3 py-2 border border-l-0 border-[#ffffff1a] rounded-r-md bg-transparent text-[#ffffffcc] text-custom-sm"
                                                 />
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Retail Deposit"]}</label>
-                                            <div className="flex flex-1 gap-2">
-                                                <input
-                                                    type="text"
-                                                    value={formData.deposit_currency}
-                                                    readOnly
-                                                    onChange={(e) => {
-                                                        const value = e.target.value;
-                                                        setFormData((prev) => ({ ...prev, deposit_currency: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="w-20 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                                />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Retail Deposit"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
                                                 <input
                                                     type="text"
                                                     readOnly
-                                                    value={formData.price_deposit}
-                                                    onChange={(e) => {
-                                                        const value = Number(e.target.value);
-                                                        setFormData((prev) => ({ ...prev, price_deposit: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                    value={formData.deposit_currency + " " + formData.price_deposit}
+                                                    onChange={(e) => setFormData((prev) => ({ ...prev, price_deposit: Number(e.target.value) }))}
+                                                    className="flex-1 px-3 py-2 border border-l-0 border-[#ffffff1a] rounded-r-md bg-transparent text-[#ffffffcc] text-custom-sm"
                                                 />
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Item Cost"]}</label>
-                                            <div className="flex flex-1 gap-2">
-                                                <input
-                                                    type="text"
-                                                    value={formData.item_cost_currency}
-                                                    readOnly
-                                                    onChange={(e) => {
-                                                        const value = e.target.value;
-                                                        setFormData((prev) => ({ ...prev, item_cost_currency: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="w-20 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                                />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Item Cost"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
                                                 <input
                                                     type="text"
                                                     readOnly
-                                                    value={formData.item_cost}
-                                                    onChange={(e) => {
-                                                        const value = Number(e.target.value);
-                                                        setFormData((prev) => ({ ...prev, item_cost: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                    value={formData.item_cost_currency + " " + formData.item_cost}
+                                                    onChange={(e) => setFormData((prev) => ({ ...prev, item_cost: Number(e.target.value) }))}
+                                                    className="flex-1 px-3 py-2 border border-l-0 border-[#ffffff1a] rounded-r-md bg-transparent text-[#ffffffcc] text-custom-sm"
                                                 />
                                             </div>
                                         </div>
@@ -2106,142 +2039,86 @@ const PreorderDetails: React.FC<PreorderDetailsProps> = ({ preorderId, saveType,
                                 <div className="grid grid-cols-12 gap-4">
                                     {/* Left Column */}
                                     <div className="col-span-12 md:col-span-6">
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Supplier"]}</label>
-                                            <input
-                                                type="text"
-                                                value={formData.supplier_code}
-                                                readOnly
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setFormData((prev) => ({ ...prev, supplier_code: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
-                                        </div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Closing Date"]}</label>
-                                            <input
-                                                type="text"
-                                                value={formatDate(formData.po_dateline, lang)}
-                                                readOnly
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setFormData((prev) => ({ ...prev, po_dateline: value }));
-                                                    if (!isDirtyRef.current) setIsDirty(true);
-                                                }}
-                                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                            />
-                                        </div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Offered Cost"]}</label>
-                                            <div className="flex flex-1 gap-2">
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Supplier"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
                                                 <input
                                                     type="text"
-                                                    value={formData.offered_cost_currency}
+                                                    value={formData.supplier_code}
                                                     readOnly
                                                     onChange={(e) => {
                                                         const value = e.target.value;
-                                                        setFormData((prev) => ({ ...prev, offered_cost_currency: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="w-20 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                                />
-                                                <input
-                                                    type="text"
-                                                    readOnly
-                                                    value={formData.offered_cost}
-                                                    onChange={(e) => {
-                                                        const value = Number(e.target.value);
-                                                        setFormData((prev) => ({ ...prev, offered_cost: value }));
+                                                        setFormData((prev) => ({ ...prev, supplier_code: value }));
                                                         if (!isDirtyRef.current) setIsDirty(true);
                                                     }}
                                                     className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Closing Date"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
+                                                <input
+                                                    type="text"
+                                                    value={formatDate(formData.po_dateline, lang)}
+                                                    readOnly
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        setFormData((prev) => ({ ...prev, po_dateline: value }));
+                                                        if (!isDirtyRef.current) setIsDirty(true);
+                                                    }}
+                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Offered Cost"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
+                                                <input
+                                                    type="text"
+                                                    readOnly
+                                                    value={formData.offered_cost_currency + " " + formData.offered_cost}
+                                                    onChange={(e) => setFormData((prev) => ({ ...prev, offered_cost: Number(e.target.value) }))}
+                                                    className="flex-1 px-3 py-2 border border-l-0 border-[#ffffff1a] rounded-r-md bg-transparent text-[#ffffffcc] text-custom-sm"
                                                 />
                                             </div>
                                         </div>
                                     </div>
                                     {/* Right Column */}
                                     <div className="col-span-12 md:col-span-6">
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Total Sales"]}</label>
-                                            <div className="flex flex-1 gap-2">
-                                                <input
-                                                    type="text"
-                                                    value={formData.e_total_sales_currency}
-                                                    readOnly
-                                                    onChange={(e) => {
-                                                        const value = e.target.value;
-                                                        setFormData((prev) => ({ ...prev, e_total_sales_currency: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="w-20 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                                />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Total Sales"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
                                                 <input
                                                     type="text"
                                                     readOnly
-                                                    value={formData.e_total_sales.toFixed(2)}
-                                                    onChange={(e) => {
-                                                        const value = Number(e.target.value);
-                                                        setFormData((prev) => ({ ...prev, e_total_sales: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                    value={formData.e_total_sales_currency + " " + formData.e_total_sales}
+                                                    onChange={(e) => setFormData((prev) => ({ ...prev, e_total_sales: Number(e.target.value) }))}
+                                                    className="flex-1 px-3 py-2 border border-l-0 border-[#ffffff1a] rounded-r-md bg-transparent text-[#ffffffcc] text-custom-sm"
                                                 />
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Total Cost"]}</label>
-                                            <div className="flex flex-1 gap-2">
-                                                <input
-                                                    type="text"
-                                                    value={formData.e_cost_total_currency}
-                                                    readOnly
-                                                    onChange={(e) => {
-                                                        const value = e.target.value;
-                                                        setFormData((prev) => ({ ...prev, e_cost_total_currency: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="w-20 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                                />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Total Cost"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
                                                 <input
                                                     type="text"
                                                     readOnly
-                                                    value={formData.e_cost_total.toFixed(2)}
-                                                    onChange={(e) => {
-                                                        const value = Number(e.target.value);
-                                                        setFormData((prev) => ({ ...prev, e_cost_total: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                    value={formData.e_cost_total_currency + " " + formData.e_cost_total}
+                                                    onChange={(e) => setFormData((prev) => ({ ...prev, e_cost_total: Number(e.target.value) }))}
+                                                    className="flex-1 px-3 py-2 border border-l-0 border-[#ffffff1a] rounded-r-md bg-transparent text-[#ffffffcc] text-custom-sm"
                                                 />
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-4 mb-2">
-                                            <label className="w-32 text-gray-400 text-sm">{translations["Total Profit"]}</label>
-                                            <div className="flex flex-1 gap-2">
-                                                <input
-                                                    type="text"
-                                                    value={formData.e_profit_currency}
-                                                    readOnly
-                                                    onChange={(e) => {
-                                                        const value = e.target.value;
-                                                        setFormData((prev) => ({ ...prev, e_profit_currency: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="w-20 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                                />
+                                        <div className="grid grid-cols-12 items-center gap-4 mb-2">
+                                            <label className="col-span-12 md:col-span-4 text-gray-400 text-sm">{translations["Total Profit"]}</label>
+                                            <div className="flex col-span-12 md:col-span-8">
                                                 <input
                                                     type="text"
                                                     readOnly
-                                                    value={formData.e_profit.toFixed(2)}
-                                                    onChange={(e) => {
-                                                        const value = Number(e.target.value);
-                                                        setFormData((prev) => ({ ...prev, e_profit: value }));
-                                                        if (!isDirtyRef.current) setIsDirty(true);
-                                                    }}
-                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                    value={formData.e_profit_currency + " " + formData.e_profit}
+                                                    onChange={(e) => setFormData((prev) => ({ ...prev, e_profit: Number(e.target.value) }))}
+                                                    className="flex-1 px-3 py-2 border border-l-0 border-[#ffffff1a] rounded-r-md bg-transparent text-[#ffffffcc] text-custom-sm"
                                                 />
                                             </div>
                                         </div>

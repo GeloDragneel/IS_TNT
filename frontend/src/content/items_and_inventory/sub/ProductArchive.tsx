@@ -346,11 +346,7 @@ const ProductArchive: React.FC<ProductArchiveProps> = ({ tabId, onProductSelect,
                             <thead className="sticky top-0 z-[1]" style={{ backgroundColor: "#1f2132" }}>
                                 <tr className="border-b" style={{ borderColor: "#2d2d30" }}>
                                     <th className="w-[2%] text-left py-1 px-4 text-gray-400 text-sm w-12">
-                                        <CustomCheckbox
-                                            checked={selectedProducts.length === products.length && products.length > 0}
-                                            onChange={(checked) => handleSelectAll(checked)}
-                                            ariaLabel="Select all products"
-                                        />
+                                        <CustomCheckbox checked={selectedProducts.length === products.length && products.length > 0} onChange={(checked) => handleSelectAll(checked)} />
                                     </th>
                                     <th className="w-[28%] text-left py-2 px-4 text-gray-400 text-sm">{translations["Product"]}</th>
                                     <th className="w-[10%] text-left py-2 px-4 text-gray-400 text-sm text-center">{translations["Retail Price"]}</th>
@@ -388,7 +384,6 @@ const ProductArchive: React.FC<ProductArchiveProps> = ({ tabId, onProductSelect,
                                                             <CustomCheckbox
                                                                 checked={selectedProducts.includes(product.id as number)}
                                                                 onChange={(checked) => handleSelectProduct(product.id as number, checked)}
-                                                                ariaLabel={`Select product ${product.product_code}`}
                                                             />
                                                         </div>
                                                     </td>

@@ -296,71 +296,114 @@ class PreorderController extends Controller{
         return response()->json(['message' => 'Voucher deleted']);
     }
     public function getPreorderInfo($id){
-        $order = Orders::with(['customer.source', 'product', 'salesPerson',
-            'podList','rwarehouseList','customerGroup'])
+        $order = Orders::with(['customer.source', 'product', 'salesPerson', 'podList', 'rwarehouseList', 'customerGroup'])
             ->where('id', $id)
             ->first();
 
-        // Stop early if no order found
         if (!$order) {
             return response()->json([
                 'success' => true,
                 'message' => 'Order is empty',
             ]);
         }
+
         $voucher_value = 0;
         if ($order && $order->voucher_code) {
             $voucher_value = Order_Voucher::where('voucher_no', $order->voucher_code)->value('value');
         }
-        // Transform the order
-        $order->sales_person_name = optional($order->salesPerson)->full_name ?? '';
-        $order->customer_code = optional($order->customer)->customer_code;
-        $order->account_name_en = optional($order->customer)->account_name_en;
-        $order->account_name_cn = optional($order->customer)->account_name_cn;
-        $order->product_code = optional($order->product)->product_code;
-        $order->release_date = optional($order->product)->release_date;
-        $order->closing_date = optional($order->product)->preorder_dateline;
-        $order->item_cost_currency = optional($order->product)->item_cost_currency;
-        $order->item_cost = optional($order->product)->item_cost;
-        $order->product_title_en = optional($order->product)->product_title_en;
-        $order->product_title_cn = optional($order->product)->product_title_cn;
-        $order->source_en = optional(optional($order->customer)->source)->description_en;
-        $order->source_cn = optional(optional($order->customer)->source)->source_cn;
-        $customer_type = optional($order->customer)->customer_type;
-        $order->customer_type = ($customer_type == 'WC' ? 'Wholesale Customer' : 'Retail Customer');
-        $order->pod_en = optional($order->podList)->warehouse_en;
-        $order->pod_cn = optional($order->podList)->warehouse_cn;
-        $order->rwarehouse_en = optional($order->rwarehouseList)->warehouse_en;
-        $order->rwarehouse_cn = optional($order->rwarehouseList)->warehouse_cn;
-        $order->customer_group_en = optional($order->customerGroup)->customer_group_en;
-        $order->customer_group_cn = optional($order->customerGroup)->customer_group_cn;
-        $order->series_en = optional($order->product->series)->series_en;
-        $order->series_cn = optional($order->product->series)->series_cn;
-        $order->supplier_code = optional($order->product->supplier)->supplier_code;
-        $order->po_dateline = optional($order->product)->po_dateline;
-        $order->offered_cost = optional($order->product)->offered_cost;
-        $order->offered_cost_currency = optional($order->product)->supplier_currency;
-        $order->voucher_value = $voucher_value ?? 0;
 
-        $product_id = $order->product->id;
+        // load price setup used for some returned fields
+        $product_id = optional($order->product)->id;
         $currency = $order->currency;
         $priceSetup = Price_setup::with(['customerGroup'])
             ->where('product_id', $product_id)
             ->where('currency', $currency)
+            ->where('type', 'retail')
             ->first();
 
-        $order->deposit_currency = $priceSetup->currency;
-        $order->preorder_price = $priceSetup->preorder_price;
-        $order->retail_price = $priceSetup->retail_price;
-        $order->price_deposit = $priceSetup->deposit;
-
+        // return the flat list directly (no intermediate $list variable)
         return response()->json([
             'success' => true,
             'message' => 'success',
-            'list' => $order,
+            'list' => [
+                'id'                          => $order->id,
+                'order_id'                    => $order->order_id ?? '',
+                'order_date'                  => $order->order_date ?? '',
+                'customer_id'                 => $order->customer_id ?? null,
+                'product_id'                  => $order->product_id ?? null,
+                'currency'                    => $order->currency ?? '',
+                'ex_rate'                     => $order->ex_rate ?? 0,
+                'qty'                         => $order->qty ?? 0,
+                'allocated_qty'               => $order->allocated_qty ?? 0,
+                'price'                       => $order->price ?? 0,
+                'base_total'                  => $order->base_total ?? 0,
+                'item_deposit'                => $order->item_deposit ?? 0,
+                'base_item_deposit'           => $order->base_item_deposit ?? 0,
+                'e_total_sales'               => $order->e_total_sales ?? 0,
+                'e_total_sales_currency'      => $order->e_total_sales_currency ?? '',
+                'e_profit'                    => $order->e_profit ?? 0,
+                'e_profit_currency'           => $order->e_profit_currency ?? '',
+                'e_cost_total'                => $order->e_cost_total ?? 0,
+                'e_cost_total_currency'       => $order->e_cost_total_currency ?? '',
+                'po_number'                   => $order->po_number ?? '',
+                'price_a'                     => $order->price_a ?? 0,
+                'price_b'                     => $order->price_b ?? 0,
+                'price_c'                     => $order->price_c ?? 0,
+                'price_setup_deposit'         => $order->price_setup_deposit ?? 0,
+                'price_setup_deposit_currency'=> $order->price_setup_deposit_currency ?? '',
+                'pcs_per_carton'              => $order->pcs_per_carton ?? 0,
+                'pod'                         => $order->pod ?? '',
+                'rwarehouse'                  => $order->rwarehouse ?? '',
+                'rvoucher_no'                 => $order->rvoucher_no ?? '',
+                'order_status'                => $order->order_status ?? null,
+                'sales_person_id'             => $order->sales_person_id ?? null,
+                'customer_group_id'           => $order->customer_group_id ?? null,
+                'po_detail_id'                => $order->po_detail_id ?? null,
+                'po_received_qty'             => $order->po_received_qty ?? 0,
+                'voucher_code'                => $order->voucher_code ?? '',
+                'customer_group_currency'     => $order->customer_group_currency ?? '',
+                'on_po'                       => $order->on_po ?? 0,
+                'show_category'               => $order->show_category ?? '',
+                'created_at'                  => $order->created_at ?? '',
+                'updated_at'                  => $order->updated_at ?? '',
+                // Transformed scalar fields (pulling values from relations inline)
+                'sales_person_name'           => optional($order->salesPerson)->full_name ?? '',
+                'customer_code'               => optional($order->customer)->customer_code ?? '',
+                'account_name_en'             => optional($order->customer)->account_name_en ?? '',
+                'account_name_cn'             => optional($order->customer)->account_name_cn ?? '',
+                'product_code'                => optional($order->product)->product_code ?? '',
+                'release_date'                => optional($order->product)->release_date ?? '',
+                'closing_date'                => optional($order->product)->preorder_dateline ?? '',
+                'item_cost_currency'          => optional($order->product)->item_cost_currency ?? '',
+                'item_cost'                   => optional($order->product)->item_cost ?? 0,
+                'product_title_en'            => optional($order->product)->product_title_en ?? '',
+                'product_title_cn'            => optional($order->product)->product_title_cn ?? '',
+                'source_en'                   => optional(optional($order->customer)->source)->description_en ?? '',
+                'source_cn'                   => optional(optional($order->customer)->source)->source_cn ?? '',
+                'customer_type'               => (optional($order->customer)->customer_type == 'WC') ? 'Wholesale Customer' : 'Retail Customer',
+                'pod_en'                      => optional($order->podList)->warehouse_en ?? '',
+                'pod_cn'                      => optional($order->podList)->warehouse_cn ?? '',
+                'rwarehouse_en'               => optional($order->rwarehouseList)->warehouse_en ?? '',
+                'rwarehouse_cn'               => optional($order->rwarehouseList)->warehouse_cn ?? '',
+                'customer_group_en'           => optional($order->customerGroup)->customer_group_en ?? '',
+                'customer_group_cn'           => optional($order->customerGroup)->customer_group_cn ?? '',
+                'series_en'                   => optional(optional($order->product)->series)->series_en ?? '',
+                'series_cn'                   => optional(optional($order->product)->series)->series_cn ?? '',
+                'supplier_code'               => optional(optional($order->product)->supplier)->supplier_code ?? '',
+                'po_dateline'                 => optional($order->product)->po_dateline ?? '',
+                'offered_cost'                => optional($order->product)->offered_cost ?? 0,
+                'offered_cost_currency'       => optional($order->product)->supplier_currency ?? '',
+                'voucher_value'               => $voucher_value ?? 0,
+                // price setup fields (from $priceSetup)
+                'deposit_currency'            => $priceSetup->currency ?? '',
+                'retail_price_currency'       => $priceSetup->currency ?? '',
+                'preorder_price_currency'     => $priceSetup->currency ?? '',
+                'preorder_price'              => $priceSetup->preorder_price ?? 0,
+                'retail_price'                => $priceSetup->retail_price ?? 0,
+                'price_deposit'               => $priceSetup->deposit ?? 0,
+            ],
         ]);
     }
-
     public function getWholesalePricingByProduct($productId, $customerGroupId, $currency, $qty){
         $priceSetup = Price_setup::where('product_id', $productId)
             ->where('customer_group_id', $customerGroupId)

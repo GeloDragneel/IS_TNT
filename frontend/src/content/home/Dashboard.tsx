@@ -624,33 +624,44 @@ const Dashboard: React.FC = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {shipmentList?.map((row: any, index: number) => (
-                                            <tr
-                                                onClick={() => {
-                                                    handlePopup(row.id, "shipments");
-                                                }}
-                                                key={index}
-                                                className="border-b cursor-pointer hover:bg-gray-700 hover:bg-opacity-30 transition-colors"
-                                                style={{ borderColor: "#2d2d30" }}
-                                            >
-                                                <td className="text-gray-400 py-2 px-2 text-custom-sm">{formatDate(row.shipout_date, lang)}</td>
-                                                <td className="text-gray-400 py-2 px-2 text-custom-sm">
-                                                    <div className="flex items-center space-x-3">
-                                                        <div>
-                                                            <div className="group flex items-center">
-                                                                <p className="text-gray-400 text-custom-sm">{row.customer_code}</p>
-                                                            </div>
-                                                            <div className="group flex items-center">
-                                                                <p className="text-gray-400 text-custom-sm">{lang === "en" ? row.account_name_en : row.account_name_cn}</p>
+                                        {shipmentList && shipmentList.length > 0 ? (
+                                            shipmentList.map((row: any, index: number) => (
+                                                <tr
+                                                    onClick={() => {
+                                                        handlePopup(row.id, "shipments");
+                                                    }}
+                                                    key={index}
+                                                    className="border-b cursor-pointer hover:bg-gray-700 hover:bg-opacity-30 transition-colors"
+                                                    style={{ borderColor: "#2d2d30" }}
+                                                >
+                                                    <td className="text-gray-400 py-2 px-2 text-custom-sm">{formatDate(row.shipout_date, lang)}</td>
+
+                                                    <td className="text-gray-400 py-2 px-2 text-custom-sm">
+                                                        <div className="flex items-center space-x-3">
+                                                            <div>
+                                                                <div className="group flex items-center">
+                                                                    <p className="text-gray-400 text-custom-sm">{row.customer_code}</p>
+                                                                </div>
+                                                                <div className="group flex items-center">
+                                                                    <p className="text-gray-400 text-custom-sm">{lang === "en" ? row.account_name_en : row.account_name_cn}</p>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
+                                                    </td>
+
+                                                    <td className="text-gray-400 py-2 px-2 text-custom-sm">{lang === "en" ? row.courier_en : row.courier_cn}</td>
+
+                                                    <td className="text-gray-400 py-2 px-2 text-custom-sm">{row.tracking}</td>
+                                                    <td className="text-gray-400 py-2 px-2 text-custom-sm">{row.invoice_no}</td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan={5} className="text-center text-gray-400 py-4 italic">
+                                                    {translations["No Record Found"]}
                                                 </td>
-                                                <td className="text-gray-400 py-2 px-2 text-custom-sm">{lang === "en" ? row.courier_en : row.courier_cn}</td>
-                                                <td className="text-gray-400 py-2 px-2 text-custom-sm">{row.tracking}</td>
-                                                <td className="text-gray-400 py-2 px-2 text-custom-sm">{row.invoice_no}</td>
                                             </tr>
-                                        ))}
+                                        )}
                                     </tbody>
                                 </table>
                             </div>
@@ -672,45 +683,52 @@ const Dashboard: React.FC = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {preorderClosingList?.map((row: any, index: number) => (
-                                            <tr
-                                                onClick={() => {
-                                                    handlePopup(row.id, "preorderClosing");
-                                                }}
-                                                key={index}
-                                                className="border-b cursor-pointer hover:bg-gray-700 hover:bg-opacity-30 transition-colors"
-                                                style={{ borderColor: "#2d2d30" }}
-                                            >
-                                                <td className="text-gray-400 py-2 px-2 text-custom-sm">
-                                                    <div className="flex items-center space-x-3">
-                                                        <div
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                            }}
-                                                            className="w-8 h-8 bg-gray-600 rounded-lg flex items-center justify-center"
-                                                        >
-                                                            <img
-                                                                src={
-                                                                    row.product_code
-                                                                        ? `${import.meta.env.VITE_BASE_URL}/storage/products/thumbnail/${row.product_code}_thumbnail.webp`
-                                                                        : `${import.meta.env.VITE_BASE_URL}/storage/products/no-image-min.jpg`
-                                                                }
-                                                                alt="Thumbnail"
-                                                                className="w-full h-full object-cover"
-                                                                onError={(e) => {
-                                                                    // Fallback if the image fails to load
-                                                                    (e.target as HTMLImageElement).src = `${import.meta.env.VITE_BASE_URL}/storage/products/no-image-min.jpg`;
+                                        {preorderClosingList && preorderClosingList.length > 0 ? (
+                                            preorderClosingList.map((row: any, index: number) => (
+                                                <tr
+                                                    onClick={() => {
+                                                        handlePopup(row.id, "preorderClosing");
+                                                    }}
+                                                    key={index}
+                                                    className="border-b cursor-pointer hover:bg-gray-700 hover:bg-opacity-30 transition-colors"
+                                                    style={{ borderColor: "#2d2d30" }}
+                                                >
+                                                    <td className="text-gray-400 py-2 px-2 text-custom-sm">
+                                                        <div className="flex items-center space-x-3">
+                                                            <div
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
                                                                 }}
-                                                            />
+                                                                className="w-8 h-8 bg-gray-600 rounded-lg flex items-center justify-center"
+                                                            >
+                                                                <img
+                                                                    src={
+                                                                        row.product_code
+                                                                            ? `${import.meta.env.VITE_BASE_URL}/storage/products/thumbnail/${row.product_code}_thumbnail.webp`
+                                                                            : `${import.meta.env.VITE_BASE_URL}/storage/products/no-image-min.jpg`
+                                                                    }
+                                                                    alt="Thumbnail"
+                                                                    className="w-full h-full object-cover"
+                                                                    onError={(e) => {
+                                                                        (e.target as HTMLImageElement).src = `${import.meta.env.VITE_BASE_URL}/storage/products/no-image-min.jpg`;
+                                                                    }}
+                                                                />
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                </td>
+                                                    </td>
 
-                                                <td className="text-gray-400 py-2 px-2 text-custom-sm">{row.product_code}</td>
-                                                <td className="text-gray-400 py-2 px-2 text-custom-sm">{lang === "en" ? row.product_title_en : row.product_title_cn}</td>
-                                                <td className="text-gray-400 py-2 px-2 text-custom-sm">{formatDate(row.preorder_end_date, lang)}</td>
+                                                    <td className="text-gray-400 py-2 px-2 text-custom-sm">{row.product_code}</td>
+                                                    <td className="text-gray-400 py-2 px-2 text-custom-sm">{lang === "en" ? row.product_title_en : row.product_title_cn}</td>
+                                                    <td className="text-gray-400 py-2 px-2 text-custom-sm">{formatDate(row.preorder_end_date, lang)}</td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan={4} className="text-center text-gray-400 py-4">
+                                                    {translations["No Record Found"]}
+                                                </td>
                                             </tr>
-                                        ))}
+                                        )}
                                     </tbody>
                                 </table>
                             </div>

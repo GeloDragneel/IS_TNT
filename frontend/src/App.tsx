@@ -235,6 +235,7 @@ const iconMap_fetch: Record<string, React.ComponentType<{ className?: string }>>
 function App() {
     const { translations, changeLanguage, lang } = useLanguage();
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [size, setSize] = useState({ width: window.innerWidth });
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeTab, setActiveTab] = useState("dashboard");
@@ -256,6 +257,21 @@ function App() {
     const tabCounter = useRef(1);
     const tabsContainerRef = useRef<HTMLDivElement>(null);
     const sidebarRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setSize({ width: window.innerWidth });
+        };
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
+    useEffect(() => {
+        if (size.width <= 1300) {
+            console.log(size);
+        }
+        console.log(size);
+    }, [size]);
 
     // Update initial tab label when translations are loaded
     useEffect(() => {
@@ -874,7 +890,7 @@ function App() {
                                 >
                                     <div className="flex items-center space-x-3">
                                         <section.icon className="h-5 w-5 text-cyan-400 group-hover:text-cyan-300 transition-colors" />
-                                        <span className="text-gray-200 group-hover:text-white transition-colors font-medium">{translations[section.label]}</span>
+                                        <span className="text-gray-200 group-hover:text-white transition-colors font-medium text-sm">{translations[section.label]}</span>
                                     </div>
                                     {expandedSections.includes(section.id) ? <ChevronUp className="h-4 w-4 text-gray-400" /> : <ChevronDown className="h-4 w-4 text-gray-400" />}
                                 </button>
