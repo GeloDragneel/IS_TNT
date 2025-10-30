@@ -42,7 +42,9 @@ class Grn_details extends Model
         'base_advance_payment',
         'imported',
     ];
-
+    public function supplier(){
+        return $this->belongsTo(Supplier::class, 'supplier_id', 'id');
+    }
     public function product(){
         return $this->belongsTo(Products::class, 'product_id', 'id');
     }

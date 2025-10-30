@@ -74,15 +74,15 @@
 }
 
 .prose blockquote {
-    border-left: 4px solid #06B6D4;
+    border-left: 4px solid #06b6d4;
     padding-left: 1rem;
     margin: 1rem 0;
     font-style: italic;
-    color: #D1D5DB;
+    color: #d1d5db;
 }
 
 .prose pre {
-    background-color: #1F2937;
+    background-color: #1f2937;
     padding: 1rem;
     border-radius: 0.5rem;
     overflow-x: auto;
@@ -99,12 +99,12 @@
 }
 
 .prose a {
-    color: #06B6D4;
+    color: #06b6d4;
     text-decoration: underline;
 }
 
 .prose a:hover {
-    color: #0891B2;
+    color: #0891b2;
 }
 
 .prose img {
@@ -117,7 +117,7 @@
 /* Placeholder styling for contentEditable */
 [contenteditable]:empty:before {
     content: attr(data-placeholder);
-    color: #9CA3AF;
+    color: #9ca3af;
     font-style: italic;
 }
 
@@ -144,7 +144,7 @@
 }
 
 .flatpickr-day.selected {
-    background-color: #06B6D4 !important;
+    background-color: #06b6d4 !important;
 }
 
 .flatpickr-months .flatpickr-month {
@@ -156,7 +156,7 @@
 }
 
 .flatpickr-weekday {
-    color: #9CA3AF !important;
+    color: #9ca3af !important;
 }
 
 /* React Select Overrides */
@@ -379,35 +379,39 @@ input[type="number"] {
 }
 /* Customize the scrollbar width */
 ::-webkit-scrollbar {
-  width: 8px; /* Vertical scrollbar width */
-  height: 8px; /* Horizontal scrollbar height */
+    width: 8px; /* Vertical scrollbar width */
+    height: 8px; /* Horizontal scrollbar height */
 }
 
 /* Customize the thumb (the draggable part of the scrollbar) */
 ::-webkit-scrollbar-thumb {
-  background-color: #999; /* Color of the thumb */
-  border-radius: 5px; /* Rounded corners for the thumb */
-  border: 2px solid #999; /* Border around the thumb */
+    background-color: #999; /* Color of the thumb */
+    border-radius: 5px; /* Rounded corners for the thumb */
+    border: 2px solid #999; /* Border around the thumb */
 }
 
 /* Customize the track (the background part of the scrollbar) */
 ::-webkit-scrollbar-track {
-  background-color: #444; /* Color of the track */
-  border-radius: 5px; /* Rounded corners for the track */
+    background-color: #444; /* Color of the track */
+    border-radius: 5px; /* Rounded corners for the track */
 }
 
 /* Customize the scrollbar corner (when both horizontal and vertical scrollbars are visible) */
 ::-webkit-scrollbar-corner {
-  background-color: transparent; /* Hide corner */
+    background-color: transparent; /* Hide corner */
 }
 
 /* RESIZE SCREEN MEDIA */
 @media (max-width: 1400px) {
+    .py-1 {
+        padding-top: 0.2rem;
+        padding-bottom: 0.2rem;
+    }
     .py-2 {
-        padding-top: 0.4rem;  /* smaller top padding */
+        padding-top: 0.4rem; /* smaller top padding */
         padding-bottom: 0.4rem; /* smaller bottom padding */
     }
-    .px-2{
+    .px-2 {
         padding-left: 0.4rem;
         padding-right: 0.4rem;
     }
@@ -417,7 +421,7 @@ input[type="number"] {
     }
     .px-4 {
         padding-left: 0.8rem;
-        padding-right: 0.8rem;;
+        padding-right: 0.8rem;
     }
     .py-5 {
         padding-top: 1rem;
@@ -430,16 +434,18 @@ input[type="number"] {
     .text-custom-sm {
         font-size: 0.613rem;
     }
-    input, select, textarea{
-        padding-left: 0.65rem !important;
-        padding-right: 0.65rem !important;
+    input,
+    select,
+    textarea {
+        padding-left: 0.45rem !important;
+        padding-right: 0.45rem !important;
         font-size: 0.675rem !important;
     }
     .p-2 {
         padding: 0.4rem;
     }
     .p-3 {
-        padding: 0.60rem;
+        padding: 0.6rem;
     }
     .p-4 {
         padding: 0.8rem;
@@ -460,6 +466,9 @@ input[type="number"] {
     .w-6 {
         width: 1.2rem;
     }
+    .w-10 {
+        width: 2.2rem;
+    }
     .h-4 {
         height: 0.8rem;
     }
@@ -469,7 +478,10 @@ input[type="number"] {
     .h-6 {
         height: 1.2rem;
     }
-    .text-xs{
+    .h-10 {
+        height: 2.2rem;
+    }
+    .text-xs {
         font-size: 0.65rem;
         line-height: 0.8rem;
     }
@@ -486,38 +498,54 @@ input[type="number"] {
     }
     span,
     button,
-    p{
+    p {
         font-size: 11px;
     }
-    legend{
+    legend {
         font-size: 13px;
     }
-    .react-select__control{
+    .react-select__control {
         font-size: 0.713rem !important;
     }
     .mb-4 {
         margin-bottom: 0.8rem;
     }
-    .css-1xc3v61-indicatorContainer{
+    .css-1xc3v61-indicatorContainer {
         padding: 5px;
     }
-    .react-select__control{
+    .react-select__control {
         min-height: 2rem !important;
     }
-    .swal2-custom-buttons .swal2-styled{
+    .swal2-custom-buttons .swal2-styled {
         min-width: 60px;
         padding: 5px 10px;
     }
     .swal2-custom-buttons {
         margin-top: 5px;
     }
-    div:where(.swal2-container) div:where(.swal2-popup){
+    div:where(.swal2-container) div:where(.swal2-popup) {
         font-size: 0.8rem;
     }
-    div:where(.swal2-container) h2:where(.swal2-title){
+    div:where(.swal2-container) h2:where(.swal2-title) {
         font-size: 1.675em;
     }
+    .w-11 {
+        width: 2.25rem;
+    }
+    .top-1 {
+        top: 0.2rem;
+    }
 }
-.swal2-custom-buttons{
+.swal2-custom-buttons {
     gap: 0px;
 }
+.bg-rose-500    { background-color: #f43f5e; }
+.bg-fuchsia-500 { background-color: #d946ef; }
+.bg-lime-500    { background-color: #84cc16; }
+.bg-amber-500   { background-color: #f59e0b; }
+.bg-emerald-500 { background-color: #10b981; }
+.bg-cyan-500    { background-color: #06b6d4; }
+.bg-violet-500  { background-color: #8b5cf6; }
+.bg-orange-500  { background-color: #f97316; }
+.bg-sky-500     { background-color: #0ea5e9; }
+.bg-indigo-500  { background-color: #6366f1; }

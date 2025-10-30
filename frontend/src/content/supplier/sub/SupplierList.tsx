@@ -3,15 +3,17 @@ import { supplierService, ApiSupplier } from "@/services/supplierService";
 import { useLanguage } from "@/context/LanguageContext";
 import CustomCheckbox from "@/components/CustomCheckbox";
 import { showConfirm } from "@/utils/alert";
+import { dashboardService } from "@/services/dashboardService";
 import { showSuccessToast, showErrorToast } from "@/utils/toast";
 import Pagination from "@/components/Pagination";
 import ItemsPerPageSelector from "@/components/ItemsPerPageSelector";
 import CopyToClipboard from "@/components/CopyToClipboard";
-import { X } from "lucide-react";
+import { X, Pause, Users, Building, Archive } from "lucide-react";
 import PusherEcho from "@/utils/echo";
 import { ExportReportSelector } from "@/utils/ExportReportSelector";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, LegendPayload, PieLabelRenderProps, LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
 import { fetchCourier, fetchShippingTerms, fetchPaymentTerms, fetchCountries, fetchStates, OptionType, fetchCurrencies } from "@/utils/fetchDropdownData";
-import { DropdownData } from "@/utils/globalFunction";
+import { DropdownData, formatMoney } from "@/utils/globalFunction";
 // Handle the Smooth skeleton loading
 const LoadingSpinnerTbody: React.FC<{ rowsCount: number }> = ({ rowsCount }) => {
     return (
@@ -83,6 +85,12 @@ interface SupplierListProps {
     expandedRows: number[];
     onExpandedRowsChange: (expanded: number[]) => void;
 }
+interface DashboardFields {
+    month: string;
+    name: string;
+    value: number;
+    color: string;
+}
 // localStorage.clear();
 const SupplierList: React.FC<SupplierListProps> = ({ tabId, onSupplierSelect, onInitiateCopy, selectedSuppliers, onSelectedSuppliersChange }) => {
     const { translations, lang } = useLanguage();
@@ -102,14 +110,20 @@ const SupplierList: React.FC<SupplierListProps> = ({ tabId, onSupplierSelect, on
     const [selectAll, setSelectAll] = useState({
         supplierInfo: false,
     });
-
+    const [salesByManufacturer, setSalesByManufacturer] = useState<DashboardFields[]>([]);
+    const [monthPurchases, setMonthPurchases] = useState<DashboardFields[]>([]);
+    const [totalSuppliers, setTotalSuppliers] = useState(0);
+    const [totalDepositPaid, setTotalDepositPaid] = useState("");
+    const [totalPurchases, setTotalPurchases] = useState("");
+    const [totalDepositOffset, setTotalDepositOffset] = useState(0);
     const throttleTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const [loading, setLoading] = useState(() => {
         const savedLoading = localStorage.getItem(`${tabId}-loading-suppliers`);
         return savedLoading !== null ? JSON.parse(savedLoading) : true;
     });
-
+    const now = new Date();
+    const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     // Form state - Updated to handle single vs multi-select properly
     const [formData, setFormData] = useState({
         supplier_code: "",
@@ -131,6 +145,7 @@ const SupplierList: React.FC<SupplierListProps> = ({ tabId, onSupplierSelect, on
         tax_group: null as OptionType | null,
         pod: null as OptionType | null,
         rwarehouse: null as OptionType | null,
+        date_to: currentYearMonth,
     });
 
     const [currentPage, setCurrentPage] = useState(() => {
@@ -323,6 +338,32 @@ const SupplierList: React.FC<SupplierListProps> = ({ tabId, onSupplierSelect, on
 
         fetchSuppliers(currentPage, itemsPerPage, searchTerm);
     }, [currentPage, itemsPerPage, searchTerm, tabId]);
+
+    useEffect(() => {
+        const fetchDashboard = async () => {
+            const dateStr = formData.date_to;
+            const [year, month] = dateStr.split("-");
+            const data = await dashboardService.getDashboardSupplier(Number(month), Number(year));
+            const topSuppliers = data.topSuppliers;
+            const purchases = data.purchases;
+            const mappedTopSupplier: DashboardFields[] = topSuppliers.map((item: any) => ({
+                name: lang === "en" ? item.supplier_name : item.supplier_name,
+                value: item.sumAmount,
+                color: item.color || "bg-gray-500", // fallback color
+            }));
+            const monthlyPurchases: DashboardFields[] = purchases.map((item: any) => ({
+                month: translations[item.month] || item.month,
+                value: item.value,
+            }));
+            setSalesByManufacturer(mappedTopSupplier);
+            setMonthPurchases(monthlyPurchases);
+            setTotalSuppliers(data.totalSuppliers);
+            setTotalDepositPaid(data.totalDeposit);
+            setTotalDepositOffset(data.totalDepositOffset);
+            setTotalPurchases(data.totalPurchases);
+        };
+        fetchDashboard();
+    }, [lang, tabId, formData.date_to]);
 
     const fetchSuppliers = async (page = currentPage, perPage = itemsPerPage, search = "") => {
         try {
@@ -642,162 +683,354 @@ const SupplierList: React.FC<SupplierListProps> = ({ tabId, onSupplierSelect, on
             </div>
         );
     };
+
+    const tailwindToHex: Record<string, string> = {
+        "red-500": "#ef4444",
+        "blue-500": "#3b82f6",
+        "green-500": "#22c55e",
+        "yellow-500": "#eab308",
+        "purple-500": "#a855f7",
+        "pink-500": "#ec4899",
+        "gray-500": "#6b7280",
+    };
+    const pieData = salesByManufacturer.map((cat) => {
+        const colorKey = cat.color.replace("bg-", "").replace("/50", "");
+        return {
+            name: cat.name,
+            value: cat.value,
+            color: tailwindToHex[colorKey] || "#8884d8",
+        };
+    });
+    const CustomTooltip = (props: any) => {
+        const { active, payload } = props;
+        const totalSumAmount = salesByManufacturer.reduce((total, item) => total + item.value, 0);
+        if (active && payload && payload.length) {
+            const total = totalSumAmount;
+            const percentage = ((payload[0].value / total) * 100).toFixed(1);
+            return (
+                <div className="bg-gray-900 border border-gray-700 rounded-lg shadow-xl p-3">
+                    <p className="text-white font-semibold text-sm">{payload[0].name}</p>
+                    <p className="text-gray-300 text-sm">{formatMoney(payload[0].value)}</p>
+                    <p className="text-gray-400 text-xs">{percentage}%</p>
+                </div>
+            );
+        }
+
+        return null;
+    };
+    const renderCustomLabel = (props: PieLabelRenderProps) => {
+        // cast numeric fields explicitly
+        const cx = props.cx as number;
+        const cy = props.cy as number;
+        const midAngle = props.midAngle as number;
+        const innerRadius = props.innerRadius as number;
+        const outerRadius = props.outerRadius as number;
+        const percent = props.percent as number | undefined;
+
+        const RADIAN = Math.PI / 180;
+        const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+        const x = cx + radius * Math.cos(-midAngle * RADIAN);
+        const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+        if (percent && percent < 0.05) return null;
+
+        return (
+            <text x={x} y={y} fill="white" textAnchor={x > cx ? "start" : "end"} dominantBaseline="central" className="text-xs font-semibold" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.8)" }}>
+                {`${(percent! * 100).toFixed(0)}%`}
+            </text>
+        );
+    };
+    interface CustomLegendProps {
+        payload?: LegendPayload[];
+    }
+    const CustomLegend: React.FC<CustomLegendProps> = ({ payload }) => {
+        if (!payload) return null;
+        return (
+            <div className="flex flex-wrap justify-center gap-2 mt-2 px-2">
+                {payload.map((entry, index) => (
+                    <div key={`legend-${index}`} className="flex items-center gap-1.5 bg-gray-800/50 px-2.5 py-1.5 rounded hover:bg-gray-800 transition-colors">
+                        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
+                        <span className="text-gray-300 text-xs font-medium whitespace-nowrap">{entry.value}</span>
+                    </div>
+                ))}
+            </div>
+        );
+    };
     return (
-        <div className="space-y-6">
-            {/* Main Content Card */}
-            <div className="rounded-lg border shadow-sm" style={{ backgroundColor: "#19191c", borderColor: "#404040" }}>
-                {/* Toolbar */}
-                <div className="p-2 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center space-x-4">
-                            <div className="relative">
-                                <input
-                                    type="search"
-                                    placeholder={translations["Search"]}
-                                    value={searchTerm}
-                                    onChange={(e) => {
-                                        setSearchTerm(e.target.value);
+        <div className="grid grid-cols-12 gap-1">
+            <div className="col-span-3 h-[calc(100vh-70px)] overflow-y-auto pr-2">
+                {/* Sticky Header */}
+                {/* <div className="sticky top-0 z-10 bg-[#19191c] border-b border-gray-700 p-4 rounded-lg shadow-md border">
+                    <div className="flex gap-2 items-center">
+                        <span className="text-[#ffffffcc]">{translations["Filter"]} : </span>
+                        <input
+                            type="month"
+                            value={formData.date_to}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                setFormData((prev) => ({ ...prev, date_to: value }));
+                            }}
+                            className="flex-1 px-3 py-2 border-[1px] border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm rounded"
+                            placeholder="End Month"
+                        />
+                    </div>
+                </div> */}
+                {/* Cards Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2 mt-2">
+                    {[
+                        { title: translations["Total Purchases"] || "Total Purchases", value: totalPurchases, change: "12.5%", icon: Pause, bg: "bg-blue-900/50", iconColor: "text-blue-400" },
+                        { title: translations["Total Suppliers"] || "Total Suppliers", value: totalSuppliers, change: "8.2%", icon: Users, bg: "bg-green-900/50", iconColor: "text-green-400" },
+                        { title: translations["Deposit Offset"] || "Deposit Offset", value: totalDepositOffset, change: "15.3%", icon: Building, bg: "bg-purple-900/50", iconColor: "text-purple-400" },
+                        { title: translations["Deposit Paid"] || "Deposit Paid", value: totalDepositPaid, change: "6.1%", icon: Archive, bg: "bg-orange-900/50", iconColor: "text-orange-400" },
+                    ].map((card, idx) => (
+                        <div key={idx} className="p-4 rounded-lg shadow-md border border-gray-700" style={{ backgroundColor: "#19191c", borderColor: "#404040" }}>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-gray-400 text-sm">{card.title}</p>
+                                    <p className="text-2xl font-bold text-white mt-1">{card.value}</p>
+                                </div>
+                                <div className={`${card.bg} p-3 rounded-lg`}>
+                                    <card.icon className={card.iconColor} size={24} />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                {/* Pie Chart Section */}
+                <div className="p-4 rounded-lg shadow-md border border-gray-700 mb-2" style={{ backgroundColor: "#19191c", borderColor: "#404040", height: "400px" }}>
+                    <h2 className="text-lg font-bold text-white mb-4">{translations["Top 5 Suppliers"] || "Top 5 Suppliers"}</h2>
+                    <div style={{ height: "calc(100% - 130px)" }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <defs>
+                                    {pieData.map((entry, index) => (
+                                        <linearGradient key={`gradient-${index}`} id={`gradient-${index}`} x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor={entry.color} stopOpacity={1} />
+                                            <stop offset="100%" stopColor={entry.color} stopOpacity={0.7} />
+                                        </linearGradient>
+                                    ))}
+                                </defs>
+                                <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} innerRadius={60} paddingAngle={2} label={renderCustomLabel}>
+                                    {pieData.map((entry, index) => (
+                                        <Cell
+                                            key={`cell-${index}`}
+                                            fill={`url(#gradient-${index})`}
+                                            stroke="#1f2937"
+                                            strokeWidth={2}
+                                            className={`hover:opacity-80 transition-opacity cursor-pointer ${entry.name}`}
+                                        />
+                                    ))}
+                                </Pie>
+                                <Tooltip content={<CustomTooltip />} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
+                    <CustomLegend payload={pieData.map((d) => ({ value: d.name, color: d.color }))} />
+                </div>
+                {/* Progress Bars Section */}
+                <div
+                    className="p-4 rounded-lg shadow-md border mb-2"
+                    style={{
+                        backgroundColor: "#19191c",
+                        borderColor: "#404040",
+                    }}
+                >
+                    <h2 className="text-lg font-bold text-white mb-4">{translations["Purchases Over 6 Months"] || "Purchases Over 6 Months"}</h2>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={monthPurchases} margin={{ top: 20, right: 30, left: 10, bottom: 0 }}>
+                            <CartesianGrid stroke="#303030" strokeDasharray="4 4" />
+                            <XAxis dataKey="month" stroke="#aaa" tick={{ fontSize: 12, fontWeight: 500 }} axisLine={{ stroke: "#555" }} tickLine={false} />
+                            <YAxis
+                                stroke="#aaa"
+                                tick={{ fontSize: 12, fontWeight: 500 }}
+                                axisLine={{ stroke: "#555" }}
+                                tickLine={false}
+                                tickFormatter={(value) => {
+                                    if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+                                    if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
+                                    return value;
+                                }}
+                            />
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: "#22222b",
+                                    border: "1px solid #0891B2",
+                                    color: "#eee",
+                                    fontSize: 14,
+                                    borderRadius: 6,
+                                    boxShadow: "0 0 10px #0891B2aa",
+                                }}
+                                itemStyle={{ color: "#0891B2", fontWeight: "bold" }}
+                                formatter={(value) => `${value.toLocaleString()}`}
+                            />
+                            <Line
+                                type="monotone"
+                                dataKey="value"
+                                stroke="#0891b2"
+                                strokeWidth={3}
+                                dot={{ r: 4, fill: "#0891b2", stroke: "white", strokeWidth: 1 }}
+                                activeDot={{ r: 6, fill: "#0891b2", stroke: "white", strokeWidth: 2 }}
+                                style={{ filter: "drop-shadow(0 0 5px #0891B2aa)" }}
+                            />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </div>
+            </div>
+            <div className="col-span-9">
+                <div className="space-y-6">
+                    {/* Main Content Card */}
+                    <div className="rounded-lg border shadow-sm" style={{ backgroundColor: "#19191c", borderColor: "#404040" }}>
+                        {/* Toolbar */}
+                        <div className="p-2 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
+                            <div className="flex justify-between items-center">
+                                <div className="flex items-center space-x-4">
+                                    <div className="relative">
+                                        <input
+                                            type="search"
+                                            placeholder={translations["Search"]}
+                                            value={searchTerm}
+                                            onChange={(e) => {
+                                                setSearchTerm(e.target.value);
+                                                setCurrentPage(1);
+                                            }}
+                                            className="pl-10 pr-4 py-2 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm"
+                                            style={{ backgroundColor: "#2d2d30", borderColor: "#555555" }}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-4">
+                                    <div className="flex items-center space-x-1">
+                                        <button
+                                            onClick={(e) => handleRowClick(e, 0)}
+                                            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
+                                        >
+                                            <span>{translations["Add New"]}</span>
+                                        </button>
+                                        <button
+                                            disabled={selectedSuppliers.length === 0}
+                                            onClick={handleCopy}
+                                            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
+                                        >
+                                            <span>{translations["Copy"]}</span>
+                                        </button>
+                                        <button
+                                            disabled={selectedSuppliers.length === 0}
+                                            onClick={handleDeleteSelected}
+                                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
+                                        >
+                                            <span>{translations["Delete"]}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {/* Table */}
+                        <div className="overflow-x-auto flex-grow">
+                            <div className="h-[calc(100vh-180px)] overflow-y-auto">
+                                <table className="w-full">
+                                    <thead className="sticky top-0 z-[1]" style={{ backgroundColor: "#1f2132" }}>
+                                        <tr className="border-b" style={{ borderColor: "#2d2d30" }}>
+                                            <th className="text-center py-1 px-2 text-gray-400 text-sm">
+                                                <CustomCheckbox checked={selectedSuppliers.length === suppliers.length && suppliers.length > 0} onChange={(checked) => handleSelectAll(checked)} />
+                                            </th>
+
+                                            <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Supplier Code"]}</th>
+                                            <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Supplier Name"]}</th>
+                                            <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Contact Person"]}</th>
+                                            <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Contact Number"]}</th>
+                                            <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Email"]}</th>
+                                        </tr>
+                                    </thead>
+                                    {loading ? (
+                                        <LoadingSpinnerTbody rowsCount={itemsPerPage} />
+                                    ) : (
+                                        <tbody>
+                                            {filteredSuppliers.map((supplier, index) => (
+                                                <tr
+                                                    key={supplier.id || index}
+                                                    onClick={(e) => handleRowClick(e, supplier.id)}
+                                                    className={`clickable border-b hover:bg-gray-700 hover:bg-opacity-30 transition-colors cursor-pointer ${
+                                                        selectedSuppliers.includes(supplier.id as number) ? "bg-gray-700 bg-opacity-30" : ""
+                                                    }`}
+                                                    style={{ borderColor: "#40404042" }}
+                                                >
+                                                    <td className="py-2 px-2 flex justify-center items-center" onClick={(e) => e.stopPropagation()}>
+                                                        <CustomCheckbox
+                                                            checked={selectedSuppliers.includes(supplier.id as number)}
+                                                            onChange={(checked) => handleSelectSupplier(supplier.id as number, checked)}
+                                                        />
+                                                    </td>
+                                                    <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
+                                                        <div className="flex items-center space-x-3">
+                                                            <div className="group flex items-center">
+                                                                <p className="text-gray-400 text-custom-sm">{supplier.supplier_code}</p>
+                                                                <CopyToClipboard text={supplier.supplier_code || ""} />
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
+                                                        <div className="flex items-center space-x-3">
+                                                            <div className="group flex items-center">
+                                                                <p className="text-gray-400 text-custom-sm">{lang == "en" ? supplier.suppliername_en : supplier.suppliername_cn}</p>
+                                                                <CopyToClipboard text={lang == "en" ? supplier.suppliername_en || "" : supplier.suppliername_cn || ""} />
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
+                                                        <div className="flex items-center space-x-3">
+                                                            <div className="group flex items-center">
+                                                                <p className="text-gray-400 text-custom-sm">{supplier.contact_person_en || translations["N.A."]}</p>
+                                                                <CopyToClipboard text={supplier.contact_person_en || translations["N.A."]} />
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
+                                                        <div className="flex items-center space-x-3">
+                                                            <div className="group flex items-center">
+                                                                <p className="text-gray-400 text-custom-sm">{supplier.contact_number || translations["N.A."]}</p>
+                                                                <CopyToClipboard text={supplier.contact_number || translations["N.A."]} />
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
+                                                        <div className="flex items-center space-x-3">
+                                                            <div className="group flex items-center">
+                                                                <p className="text-gray-400 text-custom-sm">{supplier.email || translations["N.A."]}</p>
+                                                                <CopyToClipboard text={supplier.email || ""} />
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    )}
+                                </table>
+                            </div>
+                        </div>
+                        {/* Footer with Pagination */}
+                        <div className="p-2 border-t flex items-center justify-between" style={{ borderColor: "#404040" }}>
+                            <div className="flex items-center space-x-1">
+                                <MemoizedPagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />
+                                <MemoizedItemsPerPageSelector
+                                    value={itemsPerPage}
+                                    onChange={(val: number) => {
+                                        setItemsPerPage(val);
                                         setCurrentPage(1);
                                     }}
-                                    className="pl-10 pr-4 py-2 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm"
-                                    style={{ backgroundColor: "#2d2d30", borderColor: "#555555" }}
+                                    options={pageSizeOptions}
+                                />
+                                <ExportReportSelector
+                                    formats={["odt", "ods", "xlsx"]}
+                                    baseName="SupplierList"
+                                    ids={selectedSuppliers.length > 0 ? selectedSuppliers : filteredSuppliers.map((p) => p.id)}
+                                    language={lang}
                                 />
                             </div>
+                            <div className="flex items-center space-x-1">{/* Optional right side content */}</div>
                         </div>
-                        <div className="flex items-center space-x-4">
-                            <div className="flex items-center space-x-1">
-                                <button
-                                    onClick={(e) => handleRowClick(e, 0)}
-                                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
-                                >
-                                    <span>{translations["Add New"]}</span>
-                                </button>
-                                <button
-                                    disabled={selectedSuppliers.length === 0}
-                                    onClick={handleCopy}
-                                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
-                                >
-                                    <span>{translations["Copy"]}</span>
-                                </button>
-                                <button
-                                    disabled={selectedSuppliers.length === 0}
-                                    onClick={handleDeleteSelected}
-                                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
-                                >
-                                    <span>{translations["Delete"]}</span>
-                                </button>
-                            </div>
-                        </div>
+                        {renderCopyPopup()}
                     </div>
                 </div>
-
-                {/* Table */}
-                <div className="overflow-x-auto flex-grow">
-                    <div className="h-[calc(100vh-180px)] overflow-y-auto">
-                        <table className="w-full">
-                            <thead className="sticky top-0 z-[1]" style={{ backgroundColor: "#1f2132" }}>
-                                <tr className="border-b" style={{ borderColor: "#2d2d30" }}>
-                                    <th className="text-center py-1 px-2 text-gray-400 text-sm">
-                                        <CustomCheckbox checked={selectedSuppliers.length === suppliers.length && suppliers.length > 0} onChange={(checked) => handleSelectAll(checked)} />
-                                    </th>
-
-                                    <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Supplier Code"]}</th>
-                                    <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Supplier Name"]}</th>
-                                    <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Contact Person"]}</th>
-                                    <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Contact Number"]}</th>
-                                    <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Email"]}</th>
-                                </tr>
-                            </thead>
-                            {loading ? (
-                                <LoadingSpinnerTbody rowsCount={itemsPerPage} />
-                            ) : (
-                                <tbody>
-                                    {filteredSuppliers.map((supplier, index) => (
-                                        <tr
-                                            key={supplier.id || index}
-                                            onClick={(e) => handleRowClick(e, supplier.id)}
-                                            className={`clickable border-b hover:bg-gray-700 hover:bg-opacity-30 transition-colors cursor-pointer ${
-                                                selectedSuppliers.includes(supplier.id as number) ? "bg-gray-700 bg-opacity-30" : ""
-                                            }`}
-                                            style={{ borderColor: "#40404042" }}
-                                        >
-                                            <td className="py-2 px-2 flex justify-center items-center" onClick={(e) => e.stopPropagation()}>
-                                                <CustomCheckbox
-                                                    checked={selectedSuppliers.includes(supplier.id as number)}
-                                                    onChange={(checked) => handleSelectSupplier(supplier.id as number, checked)}
-                                                />
-                                            </td>
-                                            <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
-                                                <div className="flex items-center space-x-3">
-                                                    <div className="group flex items-center">
-                                                        <p className="text-gray-400 text-custom-sm">{supplier.supplier_code}</p>
-                                                        <CopyToClipboard text={supplier.supplier_code || ""} />
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
-                                                <div className="flex items-center space-x-3">
-                                                    <div className="group flex items-center">
-                                                        <p className="text-gray-400 text-custom-sm">{lang == "en" ? supplier.suppliername_en : supplier.suppliername_cn}</p>
-                                                        <CopyToClipboard text={lang == "en" ? supplier.suppliername_en || "" : supplier.suppliername_cn || ""} />
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
-                                                <div className="flex items-center space-x-3">
-                                                    <div className="group flex items-center">
-                                                        <p className="text-gray-400 text-custom-sm">{supplier.contact_person_en || translations["N.A."]}</p>
-                                                        <CopyToClipboard text={supplier.contact_person_en || translations["N.A."]} />
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
-                                                <div className="flex items-center space-x-3">
-                                                    <div className="group flex items-center">
-                                                        <p className="text-gray-400 text-custom-sm">{supplier.contact_number || translations["N.A."]}</p>
-                                                        <CopyToClipboard text={supplier.contact_number || translations["N.A."]} />
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
-                                                <div className="flex items-center space-x-3">
-                                                    <div className="group flex items-center">
-                                                        <p className="text-gray-400 text-custom-sm">{supplier.email || translations["N.A."]}</p>
-                                                        <CopyToClipboard text={supplier.email || ""} />
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            )}
-                        </table>
-                    </div>
-                </div>
-
-                {/* Footer with Pagination */}
-                <div className="p-2 border-t flex items-center justify-between" style={{ borderColor: "#404040" }}>
-                    <div className="flex items-center space-x-1">
-                        <MemoizedPagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />
-                        <MemoizedItemsPerPageSelector
-                            value={itemsPerPage}
-                            onChange={(val: number) => {
-                                setItemsPerPage(val);
-                                setCurrentPage(1);
-                            }}
-                            options={pageSizeOptions}
-                        />
-                        <ExportReportSelector
-                            formats={["odt", "ods", "xlsx"]}
-                            baseName="SupplierList"
-                            ids={selectedSuppliers.length > 0 ? selectedSuppliers : filteredSuppliers.map((p) => p.id)}
-                            language={lang}
-                        />
-                    </div>
-                    <div className="flex items-center space-x-1">{/* Optional right side content */}</div>
-                </div>
-
-                {renderCopyPopup()}
             </div>
         </div>
     );

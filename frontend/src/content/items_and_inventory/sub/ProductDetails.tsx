@@ -566,27 +566,42 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
         accept: { "image/*": [".jpeg", ".jpg", ".png", ".gif", ".webp"] },
         multiple: true,
         onDrop: (acceptedFiles) => {
-            const newSlides = acceptedFiles.map((file, index) => ({
-                file,
-                type: "slide" as const,
-                id: `new-slide-${Date.now()}-${index}`,
-                isNew: true,
-                isDeleted: false,
-                rank: 0, // Rank will be updated below
-                index: 0,
-            }));
-
             setSlideImages((prev) => {
+                // Count non-deleted (active) images
                 const visibleImages = prev.filter((img) => !img.isDeleted);
                 const deletedImages = prev.filter((img) => img.isDeleted);
-                const combined = [...visibleImages, ...newSlides].slice(0, 50);
+
+                const totalCount = visibleImages.length + acceptedFiles.length;
+
+                // ✅ Check if total exceeds 20
+                if (totalCount > 20) {
+                    // const allowed = 20 - visibleImages.length;
+                    showErrorToast(translations["Images already exceeded 20"] || "Images already exceeded 20");
+                    // Stop here (don’t add any new files)
+                    return prev;
+                }
+
+                // ✅ Safe: process new images
+                const newSlides = acceptedFiles.map((file, index) => ({
+                    file,
+                    type: "slide" as const,
+                    id: `new-slide-${Date.now()}-${index}`,
+                    isNew: true,
+                    isDeleted: false,
+                    rank: 0, // Rank will be updated below
+                    index: 0,
+                }));
+
+                const combined = [...visibleImages, ...newSlides];
                 const updatedRank = combined.map((img, index) => ({
                     ...img,
                     rank: index + 1,
                     index,
                 }));
+
                 return [...updatedRank, ...deletedImages];
             });
+
             setIsDirty(true);
         },
     });
@@ -4003,8 +4018,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                 <div className="flex items-center justify-center h-full">
                                     <div className="text-center">
                                         <Images className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                                        <p className="text-gray-400 text-lg">No images uploaded</p>
-                                        <p className="text-gray-500">Upload some images to see them here</p>
+                                        <p className="text-gray-400 text-lg">{translations["No images uploaded"] || "No images uploaded"}</p>
+                                        <p className="text-gray-500">{translations["Upload some images to see them here"] || "Upload some images to see them here"}</p>
                                     </div>
                                 </div>
                             ) : (
@@ -4046,7 +4061,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                                 <img
                                                     src={getImageUrl(image)}
                                                     alt={`${image.type} image`}
-                                                    className="w-full h-40 object-cover"
+                                                    className="w-full h-auto max-h-80 object-contain"
                                                     onError={(e) => {
                                                         const target = e.target as HTMLImageElement;
                                                         target.src = "https://tnt2.simplify.cool/images/no-image-min.jpg";

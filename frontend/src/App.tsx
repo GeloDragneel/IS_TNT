@@ -33,7 +33,6 @@ import {
     ChevronUp,
     Globe,
 } from "lucide-react";
-
 // Import components
 import Login from "./components/Login";
 
@@ -46,6 +45,7 @@ import Announcement from "./content/admin-hr/Announcement";
 import Attendance from "./content/admin-hr/Attendance";
 import Employees from "./content/admin-hr/Employees";
 import Payroll from "./content/admin-hr/Payroll";
+import SalesDashboard from "./content/sales/SalesDashboard";
 import Preorder from "./content/sales/Preorder";
 import SalesOrder from "./content/sales/SalesOrder";
 import MassMailer from "./content/sales/MassMailer";
@@ -59,6 +59,7 @@ import ProductImports from "./content/items_and_inventory/ProductImports";
 import StockTake from "./content/items_and_inventory/StockTake";
 import Customer from "./content/customer/Customer";
 import CustomerGroup from "./content/customer/CustomerGroup";
+import SupplierDashboard from "./content/supplier/SupplierDashboard";
 import Supplier from "./content/supplier/Supplier";
 import PurchaseOrder from "./content/supplier/PurchaseOrder";
 import SupplierInvoice from "./content/supplier/SupplierInvoice";
@@ -70,6 +71,7 @@ import ReceiveGoods from "./content/logistics/ReceiveGoods";
 import ShipoutItems from "./content/logistics/ShipoutItems";
 import PreparedShipment from "./content/logistics/PreparedShipment";
 import Allocation from "./content/logistics/Allocation";
+import AccountDashboard from "./content/accounts/AccountDashboard";
 import CustomerInvoices from "./content/accounts/Invoices";
 import ReceiveVoucher from "./content/accounts/ReceiveVoucher";
 import PaymentVoucher from "./content/accounts/PaymentVoucher";
@@ -94,7 +96,6 @@ interface Tab {
     iconName: string;
     isLoaded?: boolean; // Track if tab has been loaded
 }
-
 interface SubMenuItem {
     id: string;
     label: string;
@@ -104,24 +105,24 @@ interface SubMenuItem {
     componentName: string;
     iconName: string;
 }
-
 interface MenuSection {
     id: string;
     label: string;
     icon: React.ComponentType<{ className?: string }>;
     items: SubMenuItem[];
 }
-
 interface User {
     username: string;
     user_id: number;
     fullName?: string;
     language: string;
 }
-
 // Component mapping for persistence
 const componentMap: Record<string, React.FC<any>> = {
     Dashboard,
+    AccountDashboard,
+    SalesDashboard,
+    SupplierDashboard,
     Analytics,
     StaffMovement,
     HRDashboard,
@@ -167,7 +168,6 @@ const componentMap: Record<string, React.FC<any>> = {
     ProfitAndLoss,
     TrialAndBalance,
 };
-
 // Icon mapping for persistence
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
     Home,
@@ -270,7 +270,6 @@ function App() {
         if (size.width <= 1300) {
             console.log(size);
         }
-        console.log(size);
     }, [size]);
 
     // Update initial tab label when translations are loaded
@@ -461,6 +460,7 @@ function App() {
         localStorage.removeItem("app-tab-counter");
         localStorage.removeItem("app-expanded-sections");
         localStorage.removeItem("app-rendered-tabs");
+        localStorage.clear();
 
         // Clear all tab-specific cache data
         Object.keys(localStorage).forEach((key) => {
@@ -493,293 +493,6 @@ function App() {
     if (!isAuthenticated) {
         return <Login onLogin={handleLogin} />;
     }
-    /*
-    const menuSections: MenuSection[] = [
-        {
-            id: "home",
-            label: translations["Home"],
-            icon: Home,
-            items: [
-                { id: "dashboard", labelKey: "Dashboard", label: translations["Dashboard"], icon: LayoutDashboard, component: Dashboard, componentName: "Dashboard", iconName: "LayoutDashboard" },
-                { id: "analytics", labelKey: "Analytics", label: translations["Analytics"], icon: BarChart3, component: Analytics, componentName: "Analytics", iconName: "BarChart3" },
-                { id: "staff-movement", labelKey: "Staff Movement", label: translations["Staff Movement"], icon: Users, component: StaffMovement, componentName: "StaffMovement", iconName: "Users" },
-            ],
-        },
-        {
-            id: "admin-hr",
-            label: translations["Admin and HR"],
-            icon: UserCheck,
-            items: [
-                {
-                    id: "hr-dashboard",
-                    labelKey: "Dashboard",
-                    label: translations["Dashboard"],
-                    icon: LayoutDashboard,
-                    component: HRDashboard,
-                    componentName: "HRDashboard",
-                    iconName: "LayoutDashboard",
-                },
-                { id: "announcement", labelKey: "Announcement", label: translations["Announcement"], icon: Megaphone, component: Announcement, componentName: "Announcement", iconName: "Megaphone" },
-                { id: "attendance", labelKey: "Attendance", label: translations["Attendance"], icon: Clock, component: Attendance, componentName: "Attendance", iconName: "Clock" },
-                { id: "employees", labelKey: "Employees", label: translations["Employees"], icon: Users, component: Employees, componentName: "Employees", iconName: "Users" },
-                { id: "payroll", labelKey: "Payroll", label: translations["Payroll"], icon: DollarSign, component: Payroll, componentName: "Payroll", iconName: "DollarSign" },
-            ],
-        },
-        {
-            id: "items-inventory",
-            label: translations["Items & Inventory"],
-            icon: Package,
-            items: [
-                { id: "products", labelKey: "Products", label: translations["Products"], icon: Wrench, component: Products, componentName: "Products", iconName: "Wrench" },
-                { id: "services", labelKey: "Services", label: translations["Services"], icon: Wrench, component: Services, componentName: "Services", iconName: "Wrench" },
-                { id: "inventory", labelKey: "Inventory", label: translations["Inventory"], icon: Wrench, component: Inventory, componentName: "Inventory", iconName: "Wrench" },
-                {
-                    id: "inventory-tracking",
-                    labelKey: "InventoryTracking",
-                    label: translations["Inventory Tracking"],
-                    icon: Wrench,
-                    component: InventoryTracking,
-                    componentName: "InventoryTracking",
-                    iconName: "Wrench",
-                },
-                {
-                    id: "internal-transfer",
-                    labelKey: "InternalTransfer",
-                    label: translations["Internal Transfer"],
-                    icon: Wrench,
-                    component: InternalTransfer,
-                    componentName: "InternalTransfer",
-                    iconName: "Wrench",
-                },
-                {
-                    id: "product-imports",
-                    labelKey: "ProductImports",
-                    label: translations["Product Imports"],
-                    icon: Wrench,
-                    component: ProductImports,
-                    componentName: "ProductImports",
-                    iconName: "Wrench",
-                },
-                {
-                    id: "stock-take",
-                    labelKey: "StockTake",
-                    label: translations["Stock Pick"],
-                    icon: Wrench,
-                    component: StockTake,
-                    componentName: "StockTake",
-                    iconName: "Wrench",
-                },
-            ],
-        },
-        {
-            id: "logistics",
-            label: translations["Logistics"],
-            icon: Truck,
-            items: [
-                { id: "allocation", labelKey: "Allocation", label: translations["Allocation"], icon: LayoutDashboard, component: Allocation, componentName: "Allocation", iconName: "LayoutDashboard" },
-                {
-                    id: "prepare-shipment",
-                    labelKey: "Prepare Shipment",
-                    label: translations["Prepare Shipment"],
-                    icon: Package,
-                    component: PreparedShipment,
-                    componentName: "PreparedShipment",
-                    iconName: "Package",
-                },
-                { id: "receive-goods", labelKey: "Receive Goods", label: translations["Receive Goods"], icon: Truck, component: ReceiveGoods, componentName: "ReceiveGoods", iconName: "Truck" },
-                {
-                    id: "shipout-items",
-                    labelKey: "Shipout Items",
-                    label: translations["Ship Out Items"],
-                    icon: ShoppingCart,
-                    component: ShipoutItems,
-                    componentName: "ShipoutItems",
-                    iconName: "ShoppingCart",
-                },
-            ],
-        },
-        {
-            id: "customer",
-            label: translations["MCustomer"],
-            icon: Users,
-            items: [
-                { id: "customer-list", labelKey: "Customer", label: translations["MCustomer"], icon: Users, component: Customer, componentName: "Customer", iconName: "Users" },
-                {
-                    id: "customer-group",
-                    labelKey: "Customer Group",
-                    label: translations["Customer Group"],
-                    icon: UserCheck,
-                    component: CustomerGroup,
-                    componentName: "CustomerGroup",
-                    iconName: "UserCheck",
-                },
-            ],
-        },
-        {
-            id: "sales",
-            label: translations["Sales"],
-            icon: ShoppingCart,
-            items: [
-                { id: "pre-orders", labelKey: "Pre-Orders", label: translations["PreOrders2"], icon: Clock, component: Preorder, componentName: "Preorder", iconName: "Clock" },
-                { id: "sales-order", labelKey: "Sales Order", label: translations["SalesOrder"], icon: ShoppingCart, component: SalesOrder, componentName: "SalesOrder", iconName: "ShoppingCart" },
-                { id: "mass-mailer", labelKey: "Mass Mailer", label: translations["Mass Mailer"], icon: Mail, component: MassMailer, componentName: "MassMailer", iconName: "Mail" },
-            ],
-        },
-        {
-            id: "supplier",
-            label: translations["Supplier"],
-            icon: Truck,
-            items: [
-                { id: "supplier-list", labelKey: "Supplier List", label: translations["Suppliers"], icon: Users, component: Supplier, componentName: "Supplier", iconName: "Users" },
-                {
-                    id: "purchase-order",
-                    labelKey: "Purchase Order",
-                    label: translations["Purchase Orders"],
-                    icon: FileText,
-                    component: PurchaseOrder,
-                    componentName: "PurchaseOrder",
-                    iconName: "FileText",
-                },
-                {
-                    id: "supplier-invoices",
-                    labelKey: "Supplier Invoices",
-                    label: translations["Supplier Invoices"],
-                    icon: DollarSign,
-                    component: SupplierInvoice,
-                    componentName: "SupplierInvoice",
-                    iconName: "DollarSign",
-                },
-            ],
-        },
-        {
-            id: "accounts",
-            label: translations["Accounts"],
-            icon: DollarSign,
-            items: [
-                {
-                    id: "accounts-payable",
-                    labelKey: "Accounts Payable",
-                    label: translations["Accounts Payable"],
-                    icon: FileText,
-                    component: AccountsPayable,
-                    componentName: "AccountsPayable",
-                    iconName: "FileText",
-                },
-                {
-                    id: "customer-credit-note",
-                    labelKey: "Credit Notes (Customer)",
-                    label: translations["Credit Notes (Customer)"],
-                    icon: FileText,
-                    component: CustomerCreditNote,
-                    componentName: "CustomerCreditNote",
-                    iconName: "FileText",
-                },
-                {
-                    id: "supplier-credit-note",
-                    labelKey: "Credit Notes (Supplier)",
-                    label: translations["Credit Notes (Supplier)"],
-                    icon: FileText,
-                    component: SupplierCreditNote,
-                    componentName: "SupplierCreditNote",
-                    iconName: "FileText",
-                },
-                {
-                    id: "customer-deposit",
-                    labelKey: "Customer Deposit",
-                    label: translations["Customer Deposit"],
-                    icon: DollarSign,
-                    component: CustomerDeposit,
-                    componentName: "CustomerDeposit",
-                    iconName: "DollarSign",
-                },
-                {
-                    id: "receive-voucher",
-                    labelKey: "Receive Voucher",
-                    label: translations["Receive Voucher"],
-                    icon: FileText,
-                    component: ReceiveVoucher,
-                    componentName: "ReceiveVoucher",
-                    iconName: "FileText",
-                },
-                {
-                    id: "journal-entries",
-                    labelKey: "Journal Entries",
-                    label: translations["Journal Entries"],
-                    icon: DollarSign,
-                    component: JournalEntries,
-                    componentName: "JournalEntries",
-                    iconName: "DollarSign",
-                },
-                {
-                    id: "payment-voucher",
-                    labelKey: "Payment Voucher",
-                    label: translations["Payment Voucher"],
-                    icon: DollarSign,
-                    component: PaymentVoucher,
-                    componentName: "PaymentVoucher",
-                    iconName: "DollarSign",
-                },
-                {
-                    id: "profit-and-loss",
-                    labelKey: "Profit and Loss",
-                    label: translations["Profit and Loss"],
-                    icon: DollarSign,
-                    component: ProfitAndLoss,
-                    componentName: "ProfitAndLoss",
-                    iconName: "DollarSign",
-                },
-                {
-                    id: "operating-expenses",
-                    labelKey: "Operating Expenses",
-                    label: translations["Operating Expenses"],
-                    icon: DollarSign,
-                    component: OperatingExpenses,
-                    componentName: "OperatingExpenses",
-                    iconName: "DollarSign",
-                },
-                {
-                    id: "charts-of-account",
-                    labelKey: "Charts of Accounts",
-                    label: translations["Charts of Accounts"],
-                    icon: DollarSign,
-                    component: ChartsOfAccount,
-                    componentName: "ChartsOfAccount",
-                    iconName: "DollarSign",
-                },
-                { id: "invoice", labelKey: "Invoice", label: translations["Invoices"], icon: FileText, component: CustomerInvoices, componentName: "CustomerInvoices", iconName: "FileText" },
-                {
-                    id: "transaction-list",
-                    labelKey: "Transaction List",
-                    label: translations["Transaction List"],
-                    icon: FileText,
-                    component: TransactionList,
-                    componentName: "TransactionList",
-                    iconName: "FileText",
-                },
-                {
-                    id: "trial-balance",
-                    labelKey: "Trial Balance",
-                    label: translations["Trial Balance"],
-                    icon: FileText,
-                    component: TrialAndBalance,
-                    componentName: "TrialAndBalance",
-                    iconName: "FileText",
-                },
-            ],
-        },
-        {
-            id: "administrator",
-            label: translations["Administrator"],
-            icon: Shield,
-            items: [
-                { id: "access-rights", labelKey: "Access Rights", label: translations["Access Rights"], icon: Shield, component: AccessRight, componentName: "AccessRight", iconName: "Shield" },
-                { id: "backup-restore", labelKey: "Backup and Restore", label: translations["Backup & Restore"], icon: Database, component: Backup, componentName: "Backup", iconName: "Database" },
-                { id: "settings", labelKey: "Settings", label: translations["Settings"], icon: Settings, component: AdminSettings, componentName: "AdminSettings", iconName: "Settings" },
-                { id: "logs", labelKey: "Logs", label: translations["Logs"], icon: Activity, component: Logs, componentName: "Logs", iconName: "Activity" },
-            ],
-        },
-    ];
-    */
     const menuSections: MenuSection[] = menus.map((section: any) => {
         return {
             id: section.id,
@@ -796,7 +509,6 @@ function App() {
             })),
         };
     });
-
     const handleMenuClick = (item: SubMenuItem) => {
         const newTabId = `${item.id}-${tabCounter.current++}`;
         const newTab: Tab = {
@@ -812,7 +524,6 @@ function App() {
         setActiveTab(newTabId);
         setSidebarOpen(false);
     };
-
     const closeTab = (tabId: string) => {
         const tabToClose = tabs.find((tab) => tab.id === tabId);
         if (!tabToClose?.closable) return;
@@ -840,15 +551,12 @@ function App() {
             setActiveTab(nextTab?.id || "dashboard");
         }
     };
-
     const toggleDropdown = (dropdown: string) => {
         setDropdownOpen(dropdownOpen === dropdown ? null : dropdown);
     };
-
     const toggleSection = (sectionId: string) => {
         setExpandedSections((prev) => (prev.includes(sectionId) ? prev.filter((id) => id !== sectionId) : [...prev, sectionId]));
     };
-
     const scrollTabs = (direction: "left" | "right") => {
         if (tabsContainerRef.current) {
             const scrollAmount = 200;
@@ -880,7 +588,6 @@ function App() {
                             <X className="h-5 w-5" />
                         </button>
                     </div>
-
                     <nav className="p-3 space-y-1 overflow-y-auto h-full pb-20">
                         {menuSections.map((section) => (
                             <div key={section.id} className="space-y-1">
@@ -913,10 +620,8 @@ function App() {
                         ))}
                     </nav>
                 </div>
-
                 {/* Sidebar Overlay */}
                 {sidebarOpen && <div className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden" onClick={() => setSidebarOpen(false)} />}
-
                 {/* Main Content */}
                 <div className="flex flex-col min-h-screen">
                     {/* Fixed Header with Tabs */}
@@ -973,7 +678,6 @@ function App() {
                                     </button>
                                 </div>
                             </div>
-
                             {/* Right Section - Action Icons */}
                             <div className="flex items-center space-x-2">
                                 {/* Notifications */}
@@ -998,7 +702,6 @@ function App() {
                                         </div>
                                     )}
                                 </div>
-
                                 {/* Settings */}
                                 <div className="relative">
                                     <button onClick={() => toggleDropdown("settings")} className="p-2 rounded-lg hover:bg-gray-600 transition-colors">
@@ -1028,7 +731,6 @@ function App() {
                                         </div>
                                     )}
                                 </div>
-
                                 {/* Profile */}
                                 <div className="relative">
                                     <button onClick={() => toggleDropdown("profile")} className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-600 transition-colors">
@@ -1042,11 +744,11 @@ function App() {
                                                 <p className="text-sm text-gray-400">{currentUser?.username}</p>
                                             </div>
                                             <div className="p-2">
-                                                <button className="w-full text-left p-2 hover:bg-gray-600 rounded-lg text-sm">Profile</button>
-                                                <button className="w-full text-left p-2 hover:bg-gray-600 rounded-lg text-sm">Account Settings</button>
+                                                <button className="w-full text-left p-2 hover:bg-gray-600 rounded-lg text-sm">{translations["Profile"]}</button>
+                                                <button className="w-full text-left p-2 hover:bg-gray-600 rounded-lg text-sm">{translations["Settings"]}</button>
                                                 <hr className="my-2 border-gray-600" />
                                                 <button onClick={handleLogout} className="w-full text-left p-2 hover:bg-gray-600 rounded-lg text-sm text-red-400">
-                                                    Sign Out
+                                                    {translations["logout"]}
                                                 </button>
                                             </div>
                                         </div>
@@ -1055,7 +757,6 @@ function App() {
                             </div>
                         </div>
                     </header>
-
                     {/* Main Content Area with Top Padding */}
                     <main className="flex-1 pt-20 p-1">
                         <div className="rounded-lg p-0 shadow-lg border" style={{ backgroundColor: "transparent", borderColor: "transparent" }}>
@@ -1064,9 +765,7 @@ function App() {
                                 const TabContent = componentMap[tab.componentName] || Dashboard;
                                 const isActive = activeTab === tab.id;
                                 const shouldRender = renderedTabs.has(tab.id);
-
                                 if (!shouldRender) return null;
-
                                 return (
                                     <div key={tab.id} style={{ display: isActive ? "block" : "none" }}>
                                         <TabContent tabId={tab.id} />
@@ -1076,7 +775,6 @@ function App() {
                         </div>
                     </main>
                 </div>
-
                 {/* Click outside to close dropdowns */}
                 {dropdownOpen && <div className="fixed inset-0" onClick={() => setDropdownOpen(null)} />}
             </div>

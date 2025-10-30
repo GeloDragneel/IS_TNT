@@ -25,8 +25,7 @@ class Menu_data extends Model
     ];
 
     // In Menu_data.php
-    public function accessRights()
-    {
+    public function accessRights(){
         return $this->hasMany(Access_rights::class, 'menu_id', 'id');
     }
 }

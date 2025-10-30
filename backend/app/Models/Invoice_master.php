@@ -55,7 +55,6 @@ class Invoice_master extends Model
         'invoice_type',
         'cnt_ship',
     ];
-
     public function customer(){
         return $this->belongsTo(Customer::class, 'customer_id', 'id');
     }

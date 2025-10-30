@@ -1078,7 +1078,7 @@ class ProductController extends Controller{
                                 break;
                             case 'slide':
                                 $timestamp = str_replace('.', '', microtime(true)) . "_{$newImageIndex}";
-                                $filename = "{$productCode}_{$timestamp}.{$extension}";
+                                $filename = "{$productCode}_{$timestamp}.jpg";
                                 $directory = 'products/slide';
                                 break;
                         }

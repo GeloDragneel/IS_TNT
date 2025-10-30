@@ -394,7 +394,6 @@ class PreorderController extends Controller{
                 'offered_cost'                => optional($order->product)->offered_cost ?? 0,
                 'offered_cost_currency'       => optional($order->product)->supplier_currency ?? '',
                 'voucher_value'               => $voucher_value ?? 0,
-                // price setup fields (from $priceSetup)
                 'deposit_currency'            => $priceSetup->currency ?? '',
                 'retail_price_currency'       => $priceSetup->currency ?? '',
                 'preorder_price_currency'     => $priceSetup->currency ?? '',

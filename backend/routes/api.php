@@ -409,4 +409,13 @@ Route::middleware('throttle:api')->group(function () {
     Route::get('/dashboard-shipments', [DashboardController::class, 'getDashboardShipments']);
     Route::get('/dashboard-preorder-closing', [DashboardController::class, 'getDashboardPreorderClosing']);
     Route::get('/dashboard-new-orders', [DashboardController::class, 'getDashboardNewOrders']);
+    Route::get('/dashboard-items-and-inventory/{m}/{y}', [DashboardController::class, 'getDashboardItemsAndInventory']);
+    Route::get('/dashboard-logistics/{m}/{y}', [DashboardController::class, 'getDashboardLogistics']);
+    Route::get('/dashboard-allocation/{m}/{y}', [DashboardController::class, 'getDashboardAllocation']);
+    Route::get('/dashboard-shipout/{m}/{y}', [DashboardController::class, 'getDashboardShipout']);
+    Route::get('/dashboard-customer/{m}/{y}', [DashboardController::class, 'getDashboardCustomer']);
+    Route::get('/dashboard-sales/{m}/{y}', [DashboardController::class, 'getDashboardSales']);
+    Route::get('/dashboard-po/{m}/{y}', [DashboardController::class, 'getDashboardPO']);
+    Route::get('/dashboard-supplier/{m}/{y}', [DashboardController::class, 'getDashboardSupplier']);
+    Route::get('/dashboard-accounts/{m}/{y}', [DashboardController::class, 'getDashboardAccounts']);
 });

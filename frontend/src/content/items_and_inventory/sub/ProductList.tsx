@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { productService, ApiProduct } from "@/services/productService";
+import { dashboardService } from "@/services/dashboardService";
 import { useLanguage } from "@/context/LanguageContext";
 import CustomCheckbox from "@/components/CustomCheckbox";
 import { showConfirm } from "@/utils/alert";
@@ -7,11 +8,12 @@ import { showSuccessToast, showErrorToast } from "@/utils/toast";
 import Pagination from "@/components/Pagination";
 import ItemsPerPageSelector from "@/components/ItemsPerPageSelector";
 import CopyToClipboard from "@/components/CopyToClipboard";
-import { X } from "lucide-react";
+import { X, Pause, Archive, Building, Package } from "lucide-react";
 import PusherEcho from "@/utils/echo";
 import { DropdownData, formatMoney, OptionType } from "@/utils/globalFunction";
 import ImageLightbox from "@/components/ImageLightbox"; // adjust the path
 import { ExportReportSelector } from "@/utils/ExportReportSelector";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, LegendPayload, PieLabelRenderProps } from "recharts";
 import { fetchWarehouses, fetchProductTypes, fetchProductManufaturer, fetchProductSeries, fetchProductBrand, fetchSuppliers, fetchCurrencies } from "@/utils/fetchDropdownData";
 
 // Handle the Smooth skeleton loading
@@ -94,7 +96,11 @@ interface ProductListProps {
     expandedRows: number[];
     onExpandedRowsChange: (expanded: number[]) => void;
 }
-
+interface DashboardFields {
+    name: string;
+    value: number;
+    color: string;
+}
 const ProductList: React.FC<ProductListProps> = ({ tabId, onProductSelect, onChangeView, onInitiateCopy, selectedProducts, onSelectedProductsChange }) => {
     const { translations, lang } = useLanguage();
     const [products, setProducts] = useState<ApiProduct[]>([]);
@@ -116,7 +122,12 @@ const ProductList: React.FC<ProductListProps> = ({ tabId, onProductSelect, onCha
     const [suppliersData, setSuppliersData] = useState<DropdownData[]>([]);
     const [currenciesData, setCurrenciesData] = useState<DropdownData[]>([]);
     const [warehousesData, setWarehousesData] = useState<DropdownData[]>([]);
-
+    const [salesByManufacturer, setSalesByManufacturer] = useState<DashboardFields[]>([]);
+    const [mostViewedProduct, setMostViewedProduct] = useState<DashboardFields[]>([]);
+    const [totalProducts, setTotalProducts] = useState(0);
+    const [totalArchive, setTotalArchive] = useState(0);
+    const [totalHoldQty, setTotalHoldQty] = useState(0);
+    const [totalStock, setTotalStock] = useState(0);
     const [fields, setFields] = useState<Record<string, boolean>>({});
     const [selectAll, setSelectAll] = useState({
         productInfo: false,
@@ -128,7 +139,8 @@ const ProductList: React.FC<ProductListProps> = ({ tabId, onProductSelect, onCha
         const savedLoading = localStorage.getItem(`${tabId}-loading-products`);
         return savedLoading !== null ? JSON.parse(savedLoading) : true;
     });
-
+    const now = new Date();
+    const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     // Form state - Updated to handle single vs multi-select properly
     const [formData, setFormData] = useState({
         product_code: "",
@@ -140,6 +152,7 @@ const ProductList: React.FC<ProductListProps> = ({ tabId, onProductSelect, onCha
         product_description_cn: "",
         is_tnt: 0,
         is_wholesale: 0,
+        date_to: currentYearMonth,
     });
 
     const [currentPage, setCurrentPage] = useState(() => {
@@ -265,6 +278,36 @@ const ProductList: React.FC<ProductListProps> = ({ tabId, onProductSelect, onCha
 
         fetchProducts(currentPage, itemsPerPage, searchTerm);
     }, [currentPage, itemsPerPage, searchTerm, tabId]);
+
+    useEffect(() => {
+        const fetchDashboard = async () => {
+            const dateStr = formData.date_to;
+            const [year, month] = dateStr.split("-");
+            const data = await dashboardService.getDashboardItemsAndInventory(Number(month), Number(year));
+            const salesByManufacturer = data.salesByManufacturer;
+            const mostViewedProduct = data.mostViewProduct;
+
+            // Map API data into your Manufacturer interface
+            const mappedManufacturer: DashboardFields[] = salesByManufacturer.map((item: any) => ({
+                name: lang === "en" ? item.manufacturer_en : item.manufacturer_cn,
+                value: item.sumAmount,
+                color: item.color || "bg-gray-500", // fallback color
+            }));
+            const mappedMostViewed: DashboardFields[] = mostViewedProduct.map((item: any) => ({
+                name: lang === "en" ? item.product_title_en : item.product_title_cn,
+                value: item.percentage,
+                color: item.color || "bg-gray-500", // fallback color
+            }));
+
+            setSalesByManufacturer(mappedManufacturer);
+            setMostViewedProduct(mappedMostViewed);
+            setTotalProducts(data.totalProducts);
+            setTotalArchive(data.totalArchive);
+            setTotalStock(data.totalAvailableStock);
+            setTotalHoldQty(data.totalHoldQty);
+        };
+        fetchDashboard();
+    }, [lang, tabId, formData.date_to]);
 
     const fetchProducts = async (page = currentPage, perPage = itemsPerPage, search = "") => {
         try {
@@ -576,6 +619,7 @@ const ProductList: React.FC<ProductListProps> = ({ tabId, onProductSelect, onCha
             product_description_cn: "",
             is_tnt: 0,
             is_wholesale: 0,
+            date_to: "",
         });
         setShowTagging(true);
     };
@@ -1048,256 +1092,419 @@ const ProductList: React.FC<ProductListProps> = ({ tabId, onProductSelect, onCha
             </div>
         );
     };
+    const tailwindToHex: Record<string, string> = {
+        "red-500": "#ef4444",
+        "blue-500": "#3b82f6",
+        "green-500": "#22c55e",
+        "yellow-500": "#eab308",
+        "purple-500": "#a855f7",
+        "pink-500": "#ec4899",
+        "gray-500": "#6b7280",
+    };
+    const pieData = salesByManufacturer.map((cat) => {
+        const colorKey = cat.color.replace("bg-", "").replace("/50", "");
+        return {
+            name: cat.name,
+            value: cat.value,
+            color: tailwindToHex[colorKey] || "#8884d8",
+        };
+    });
+    const CustomTooltip = (props: any) => {
+        const { active, payload } = props;
+        const totalSumAmount = salesByManufacturer.reduce((total, item) => total + item.value, 0);
+        if (active && payload && payload.length) {
+            const total = totalSumAmount;
+            const percentage = ((payload[0].value / total) * 100).toFixed(1);
+            return (
+                <div className="bg-gray-900 border border-gray-700 rounded-lg shadow-xl p-3">
+                    <p className="text-white font-semibold text-sm">{payload[0].name}</p>
+                    <p className="text-gray-300 text-sm">{formatMoney(payload[0].value)}</p>
+                    <p className="text-gray-400 text-xs">{percentage}%</p>
+                </div>
+            );
+        }
+
+        return null;
+    };
+    const renderCustomLabel = (props: PieLabelRenderProps) => {
+        // cast numeric fields explicitly
+        const cx = props.cx as number;
+        const cy = props.cy as number;
+        const midAngle = props.midAngle as number;
+        const innerRadius = props.innerRadius as number;
+        const outerRadius = props.outerRadius as number;
+        const percent = props.percent as number | undefined;
+
+        const RADIAN = Math.PI / 180;
+        const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+        const x = cx + radius * Math.cos(-midAngle * RADIAN);
+        const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+        if (percent && percent < 0.05) return null;
+
+        return (
+            <text x={x} y={y} fill="white" textAnchor={x > cx ? "start" : "end"} dominantBaseline="central" className="text-xs font-semibold" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.8)" }}>
+                {`${(percent! * 100).toFixed(0)}%`}
+            </text>
+        );
+    };
+    interface CustomLegendProps {
+        payload?: LegendPayload[];
+    }
+    const CustomLegend: React.FC<CustomLegendProps> = ({ payload }) => {
+        if (!payload) return null;
+        return (
+            <div className="flex flex-wrap justify-center gap-2 mt-2 px-2">
+                {payload.map((entry, index) => (
+                    <div key={`legend-${index}`} className="flex items-center gap-1.5 bg-gray-800/50 px-2.5 py-1.5 rounded hover:bg-gray-800 transition-colors">
+                        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
+                        <span className="text-gray-300 text-xs font-medium whitespace-nowrap">{entry.value}</span>
+                    </div>
+                ))}
+            </div>
+        );
+    };
     return (
-        <div className="space-y-6">
-            {/* Main Content Card */}
-            <div className="rounded-lg border shadow-sm" style={{ backgroundColor: "#19191c", borderColor: "#404040" }}>
-                {/* Toolbar */}
-                <div className="p-2 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center space-x-4">
-                            <div className="relative">
-                                <input
-                                    type="search"
-                                    placeholder={translations["Search"]}
-                                    value={searchTerm}
-                                    onChange={(e) => {
-                                        setSearchTerm(e.target.value);
+        <div className="grid grid-cols-12 gap-1">
+            <div className="col-span-3 h-[calc(100vh-70px)] overflow-y-auto pr-2">
+                {/* Sticky Header */}
+                {/* <div className="sticky top-0 z-10 bg-[#19191c] border-b border-gray-700 p-4">
+                    <div className="flex gap-2 items-center">
+                        <span className="text-[#ffffffcc]">{translations["Filter"]} : </span>
+                        <input
+                            type="month"
+                            value={formData.date_to}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                setFormData((prev) => ({ ...prev, date_to: value }));
+                            }}
+                            className="flex-1 px-3 py-2 border-[1px] border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm rounded"
+                            placeholder="End Month"
+                        />
+                    </div>
+                </div> */}
+                {/* Cards Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2 mt-2">
+                    {[
+                        { title: translations["On Hold"] || "On Hold", value: totalHoldQty, change: "12.5%", icon: Pause, bg: "bg-blue-900/50", iconColor: "text-blue-400" },
+                        { title: translations["Total Products"] || "Total Products", value: totalProducts, change: "8.2%", icon: Package, bg: "bg-green-900/50", iconColor: "text-green-400" },
+                        { title: translations["On hand"] || "On hand", value: totalStock, change: "15.3%", icon: Building, bg: "bg-purple-900/50", iconColor: "text-purple-400" },
+                        { title: translations["Total Archive"] || "Total Archive", value: totalArchive, change: "6.1%", icon: Archive, bg: "bg-orange-900/50", iconColor: "text-orange-400" },
+                    ].map((card, idx) => (
+                        <div key={idx} className="p-4 rounded-lg shadow-md border border-gray-700" style={{ backgroundColor: "#19191c", borderColor: "#404040" }}>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-gray-400 text-sm">{card.title}</p>
+                                    <p className="text-2xl font-bold text-white mt-1">{card.value}</p>
+                                </div>
+                                <div className={`${card.bg} p-3 rounded-lg`}>
+                                    <card.icon className={card.iconColor} size={24} />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                {/* Pie Chart Section */}
+                <div className="p-4 rounded-lg shadow-md border border-gray-700 mb-2" style={{ backgroundColor: "#19191c", borderColor: "#404040", height: "400px" }}>
+                    <h2 className="text-lg font-bold text-white mb-4">{translations["Sales By Manufacturer"]}</h2>
+                    <div style={{ height: "calc(100% - 130px)" }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <defs>
+                                    {pieData.map((entry, index) => (
+                                        <linearGradient key={`gradient-${index}`} id={`gradient-${index}`} x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor={entry.color} stopOpacity={1} />
+                                            <stop offset="100%" stopColor={entry.color} stopOpacity={0.7} />
+                                        </linearGradient>
+                                    ))}
+                                </defs>
+                                <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} innerRadius={60} paddingAngle={2} label={renderCustomLabel}>
+                                    {pieData.map((entry, index) => (
+                                        <Cell
+                                            key={`cell-${index}`}
+                                            fill={`url(#gradient-${index})`}
+                                            stroke="#1f2937"
+                                            strokeWidth={2}
+                                            className={`hover:opacity-80 transition-opacity cursor-pointer ${entry.name}`}
+                                        />
+                                    ))}
+                                </Pie>
+                                <Tooltip content={<CustomTooltip />} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
+                    <CustomLegend payload={pieData.map((d) => ({ value: d.name, color: d.color }))} />
+                </div>
+                {/* Progress Bars Section */}
+                <div className="p-4 rounded-lg shadow-md border border-gray-700 mb-2" style={{ backgroundColor: "#19191c", borderColor: "#404040" }}>
+                    <h2 className="text-lg font-bold text-white mb-4">{translations["Most Viewed Product"]}</h2>
+                    <div className="space-y-4">
+                        {mostViewedProduct.map((cat, idx) => (
+                            <div key={idx}>
+                                <div className="flex items-center justify-between mb-1">
+                                    <span className="text-sm font-medium text-gray-300">{cat.name}</span>
+                                    <span className="text-sm font-bold text-white">{cat.value}%</span>
+                                </div>
+                                <div className="w-full bg-gray-700 rounded-full h-3">
+                                    <div className={`${cat.color} h-3 rounded-full`} style={{ width: `${cat.value}%` }} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+            <div className="col-span-9">
+                <div className="space-y-6">
+                    {/* Main Content Card */}
+                    <div className="rounded-lg border shadow-sm" style={{ backgroundColor: "#19191c", borderColor: "#404040" }}>
+                        {/* Toolbar */}
+                        <div className="p-2 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
+                            <div className="flex justify-between items-center">
+                                <div className="flex items-center space-x-4">
+                                    <div className="relative">
+                                        <input
+                                            type="search"
+                                            placeholder={translations["Search"]}
+                                            value={searchTerm}
+                                            onChange={(e) => {
+                                                setSearchTerm(e.target.value);
+                                                setCurrentPage(1);
+                                            }}
+                                            className="pl-10 pr-4 py-2 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm"
+                                            style={{ backgroundColor: "#2d2d30", borderColor: "#555555" }}
+                                        />
+                                    </div>
+                                    <button
+                                        className="ml-2 px-3 py-2 border rounded-lg text-white transition-colors flex items-center space-x-px hover:bg-cyan-600 text-sm"
+                                        style={{ backgroundColor: "#0891b2", borderColor: "#2d2d30", marginLeft: "5px" }}
+                                    >
+                                        <span>{translations["Product List"]}</span>
+                                    </button>
+                                    <button
+                                        onClick={() => onChangeView("tagging")}
+                                        className="ml-2 px-3 py-2 border rounded-lg text-white transition-colors flex items-center space-x-px hover:bg-gray-600 text-sm"
+                                        style={{ backgroundColor: "#2d2d30", borderColor: "#2d2d30", marginLeft: "5px" }}
+                                    >
+                                        <span>{translations["Tagging List"]}</span>
+                                    </button>
+                                    <button
+                                        onClick={() => onChangeView("archive")}
+                                        className="ml-2 px-3 py-2 border rounded-lg text-white transition-colors flex items-center space-x-px hover:bg-gray-600 text-sm"
+                                        style={{ backgroundColor: "#2d2d30", borderColor: "#2d2d30", marginLeft: "5px" }}
+                                    >
+                                        <span>{translations["Archive"]}</span>
+                                    </button>
+                                    <button
+                                        onClick={() => onClear()}
+                                        className="ml-2 px-3 py-2 border rounded-lg text-white transition-colors flex items-center space-x-px hover:bg-gray-600 text-sm"
+                                        style={{ backgroundColor: "#2d2d30", borderColor: "#2d2d30", marginLeft: "5px" }}
+                                    >
+                                        <span>{translations["Reset"]}</span>
+                                    </button>
+                                    <button
+                                        className="hidden ml-2 px-3 py-2 border rounded-lg text-white transition-colors flex items-center space-x-px hover:bg-gray-600 text-sm"
+                                        style={{ backgroundColor: "#2d2d30", borderColor: "#2d2d30", marginLeft: "5px" }}
+                                    >
+                                        <span>{translations["Advance Search"]}</span>
+                                    </button>
+                                </div>
+                                <div className="flex items-center space-x-4">
+                                    <div className="flex items-center space-x-1">
+                                        <button
+                                            disabled={selectedProducts.length === 0}
+                                            onClick={handleTagging}
+                                            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
+                                        >
+                                            <span>{translations["Tagging"]}</span>
+                                        </button>
+                                        <button
+                                            onClick={(e) => handleRowClick(e, 0)}
+                                            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
+                                        >
+                                            <span>{translations["Add New"]}</span>
+                                        </button>
+                                        <button
+                                            disabled={selectedProducts.length === 0}
+                                            onClick={handleCopy}
+                                            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
+                                        >
+                                            <span>{translations["Copy"]}</span>
+                                        </button>
+                                        <button
+                                            disabled={selectedProducts.length === 0}
+                                            onClick={handleDeleteSelected}
+                                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
+                                        >
+                                            <span>{translations["Delete"]}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {/* Table */}
+                        <div className="overflow-x-auto flex-grow">
+                            <div className="h-[calc(100vh-180px)] overflow-y-auto">
+                                <table className="w-full">
+                                    <thead className="sticky top-0 z-[1]" style={{ backgroundColor: "#1f2132" }}>
+                                        <tr className="border-b" style={{ borderColor: "#2d2d30" }}>
+                                            <th className="w-[2%] text-left py-1 px-4 text-gray-400 text-sm w-12">
+                                                <CustomCheckbox
+                                                    checked={selectedProducts.length === products.length && products.length > 0}
+                                                    onChange={(checked) => handleSelectAll(checked)}
+                                                    ariaLabel="Select all products"
+                                                />
+                                            </th>
+                                            <th className="w-[28%] text-left py-2 px-4 text-gray-400 text-sm">{translations["Product"]}</th>
+                                            <th className="w-[10%] text-left py-2 px-4 text-gray-400 text-sm text-center">{translations["Retail Price"]}</th>
+                                            <th className="w-[10%] text-left py-2 px-4 text-gray-400 text-sm text-center">{translations["Preorder Price"]}</th>
+                                            <th className="w-[10%] text-left py-2 px-4 text-gray-400 text-sm text-center">{translations["Deposit"]}</th>
+                                            <th className="w-[10%] text-left py-2 px-4 text-gray-400 text-sm text-center">{translations["Item Cost"]}</th>
+                                            <th className="w-[9%] text-left py-2 px-4 text-gray-400 text-sm text-center">{translations["Status"]}</th>
+                                            <th className="w-[7%] text-left py-2 px-4 text-gray-400 text-sm text-center">{translations["Qty"]}</th>
+                                            <th className="w-[7%] text-left py-2 px-4 text-gray-400 text-sm text-center">{translations["ToyNToys"]}</th>
+                                            <th className="w-[7%] text-left py-2 px-4 text-gray-400 text-sm text-center">{translations["Wholesale"]}</th>
+                                        </tr>
+                                    </thead>
+                                    {loading ? (
+                                        <LoadingSpinnerTbody rowsCount={itemsPerPage} />
+                                    ) : (
+                                        <tbody>
+                                            {filteredProducts.map((product, index) => (
+                                                <tr
+                                                    key={product.id || index}
+                                                    onClick={(e) => handleRowClick(e, product.id)}
+                                                    className={`clickable border-b hover:bg-gray-700 hover:bg-opacity-30 transition-colors cursor-pointer ${
+                                                        selectedProducts.includes(product.id as number) ? "bg-gray-700 bg-opacity-30" : ""
+                                                    }`}
+                                                    style={{ borderColor: "#40404042" }}
+                                                >
+                                                    <td className="py-2 px-2 text-center" onClick={(e) => e.stopPropagation()}>
+                                                        <div className="flex justify-center items-center">
+                                                            <CustomCheckbox
+                                                                checked={selectedProducts.includes(product.id as number)}
+                                                                onChange={(checked) => handleSelectProduct(product.id as number, checked)}
+                                                                ariaLabel={`Select product ${product.product_code}`}
+                                                            />
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-2 px-2">
+                                                        <div className="flex items-center space-x-3">
+                                                            <div
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleShowImages(product.id);
+                                                                }}
+                                                                className="w-10 h-10 bg-gray-600 rounded-lg flex items-center justify-center"
+                                                            >
+                                                                <img
+                                                                    src={getImageUrl(product.product_thumbnail)}
+                                                                    alt="Thumbnail"
+                                                                    className="w-full h-full object-cover"
+                                                                    onError={(e) => {
+                                                                        (e.target as HTMLImageElement).src = `${import.meta.env.VITE_BASE_URL}/storage/products/no-image-min.jpg`;
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <div className="group flex items-center">
+                                                                    <p className="text-gray-300 text-custom-sm select-text">{product.product_code}</p>
+                                                                    <CopyToClipboard text={product.product_code} />
+                                                                </div>
+                                                                <div className="group flex items-center">
+                                                                    <p className="text-gray-400 text-custom-sm">{lang == "en" ? product.product_title_en : product.product_title_cn}</p>
+                                                                    <CopyToClipboard text={lang == "en" ? product.product_title_en : product.product_title_cn} />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-2 px-2 text-gray-400 text-center text-custom-sm">
+                                                        {product.price_currency}
+                                                        <br />
+                                                        {formatMoney(product.retail_price)}
+                                                    </td>
+                                                    <td className="py-2 px-2 text-gray-400 text-center text-custom-sm">
+                                                        {product.price_currency}
+                                                        <br />
+                                                        {formatMoney(product.retail_price)}
+                                                    </td>
+                                                    <td className="py-2 px-2 text-gray-400 text-center text-custom-sm">
+                                                        {product.price_currency}
+                                                        <br />
+                                                        {formatMoney(product.preorder_price)}
+                                                    </td>
+                                                    <td className="py-2 px-2 text-gray-400 text-center text-custom-sm">
+                                                        {product.item_cost_currency}
+                                                        <br />
+                                                        {formatMoney(product.item_cost)}
+                                                    </td>
+                                                    <td className="py-2 px-2 text-center">
+                                                        <span className={`px-2 py-1 rounded-full text-xs text-custom-sm ${getStatusColor(product.product_status)}`}>
+                                                            {productStatusLocalized(product.product_status, safeLang)}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-2 px-2 text-gray-400 text-center text-custom-sm">
+                                                        {(() => {
+                                                            const qty = product.available_qty ?? 0;
+                                                            const isPOQty = parseInt(product.is_po_qty);
+                                                            const status = product.product_status;
+                                                            if (status === "Coming Soon" && isPOQty === 1) {
+                                                                return `[${qty}]`;
+                                                            }
+                                                            return qty;
+                                                        })()}
+                                                    </td>
+                                                    <td className="py-2 px-2 text-center" onClick={(e) => e.stopPropagation()}>
+                                                        <label className="relative inline-flex items-center cursor-pointer">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={Number(product.is_tnt) === 1}
+                                                                onChange={() => handleToggleToyNToys(product.id, product.is_tnt)}
+                                                                className="sr-only peer"
+                                                            />
+                                                            <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-cyan-500 rounded-full peer peer-checked:bg-emerald-600 transition-colors duration-200"></div>
+                                                            <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 transform peer-checked:translate-x-full"></div>
+                                                        </label>
+                                                    </td>
+                                                    <td className="py-2 px-2 text-center" onClick={(e) => e.stopPropagation()}>
+                                                        <label className="relative inline-flex items-center cursor-pointer">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={Number(product.is_wholesale) === 1}
+                                                                onChange={() => handleToggleWholesale(product.id, product.is_wholesale)}
+                                                                className="sr-only peer"
+                                                            />
+                                                            <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-cyan-500 rounded-full peer peer-checked:bg-emerald-600 transition-colors duration-200"></div>
+                                                            <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 transform peer-checked:translate-x-full"></div>
+                                                        </label>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    )}
+                                </table>
+                            </div>
+                        </div>
+                        {/* Footer with Pagination */}
+                        <div className="p-2 border-t flex items-center justify-between" style={{ borderColor: "#404040" }}>
+                            <div className="flex items-center space-x-2">
+                                <MemoizedPagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />
+                                <MemoizedItemsPerPageSelector
+                                    value={itemsPerPage}
+                                    onChange={(val: number) => {
+                                        setItemsPerPage(val);
                                         setCurrentPage(1);
                                     }}
-                                    className="pl-10 pr-4 py-2 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm"
-                                    style={{ backgroundColor: "#2d2d30", borderColor: "#555555" }}
+                                    options={pageSizeOptions}
                                 />
+                                <ExportReportSelector formats={["odt", "ods", "xlsx"]} baseName="ProductList" ids={selectedProducts} language={lang} />
                             </div>
-                            <button
-                                className="ml-2 px-3 py-2 border rounded-lg text-white transition-colors flex items-center space-x-px hover:bg-cyan-600 text-sm"
-                                style={{ backgroundColor: "#0891b2", borderColor: "#2d2d30", marginLeft: "5px" }}
-                            >
-                                <span>{translations["Product List"]}</span>
-                            </button>
-                            <button
-                                onClick={() => onChangeView("tagging")}
-                                className="ml-2 px-3 py-2 border rounded-lg text-white transition-colors flex items-center space-x-px hover:bg-gray-600 text-sm"
-                                style={{ backgroundColor: "#2d2d30", borderColor: "#2d2d30", marginLeft: "5px" }}
-                            >
-                                <span>{translations["Tagging List"]}</span>
-                            </button>
-                            <button
-                                onClick={() => onChangeView("archive")}
-                                className="ml-2 px-3 py-2 border rounded-lg text-white transition-colors flex items-center space-x-px hover:bg-gray-600 text-sm"
-                                style={{ backgroundColor: "#2d2d30", borderColor: "#2d2d30", marginLeft: "5px" }}
-                            >
-                                <span>{translations["Archive"]}</span>
-                            </button>
-                            <button
-                                onClick={() => onClear()}
-                                className="ml-2 px-3 py-2 border rounded-lg text-white transition-colors flex items-center space-x-px hover:bg-gray-600 text-sm"
-                                style={{ backgroundColor: "#2d2d30", borderColor: "#2d2d30", marginLeft: "5px" }}
-                            >
-                                <span>{translations["Reset"]}</span>
-                            </button>
-                            <button
-                                className="hidden ml-2 px-3 py-2 border rounded-lg text-white transition-colors flex items-center space-x-px hover:bg-gray-600 text-sm"
-                                style={{ backgroundColor: "#2d2d30", borderColor: "#2d2d30", marginLeft: "5px" }}
-                            >
-                                <span>{translations["Advance Search"]}</span>
-                            </button>
+                            <div className="flex items-center space-x-1">{/* Optional right side content */}</div>
                         </div>
-                        <div className="flex items-center space-x-4">
-                            <div className="flex items-center space-x-1">
-                                <button
-                                    disabled={selectedProducts.length === 0}
-                                    onClick={handleTagging}
-                                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
-                                >
-                                    <span>{translations["Tagging"]}</span>
-                                </button>
-                                <button
-                                    onClick={(e) => handleRowClick(e, 0)}
-                                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
-                                >
-                                    <span>{translations["Add New"]}</span>
-                                </button>
-                                <button
-                                    disabled={selectedProducts.length === 0}
-                                    onClick={handleCopy}
-                                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
-                                >
-                                    <span>{translations["Copy"]}</span>
-                                </button>
-                                <button
-                                    disabled={selectedProducts.length === 0}
-                                    onClick={handleDeleteSelected}
-                                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
-                                >
-                                    <span>{translations["Delete"]}</span>
-                                </button>
-                            </div>
-                        </div>
+                        {renderCopyPopup()}
+                        {renderTagging()}
+                        {isLightboxOpen && <ImageLightbox images={images} onClose={() => setIsLightboxOpen(false)} />}
                     </div>
                 </div>
-                {/* Table */}
-                <div className="overflow-x-auto flex-grow">
-                    <div className="h-[calc(100vh-180px)] overflow-y-auto">
-                        <table className="w-full">
-                            <thead className="sticky top-0 z-[1]" style={{ backgroundColor: "#1f2132" }}>
-                                <tr className="border-b" style={{ borderColor: "#2d2d30" }}>
-                                    <th className="w-[2%] text-left py-1 px-4 text-gray-400 text-sm w-12">
-                                        <CustomCheckbox
-                                            checked={selectedProducts.length === products.length && products.length > 0}
-                                            onChange={(checked) => handleSelectAll(checked)}
-                                            ariaLabel="Select all products"
-                                        />
-                                    </th>
-                                    <th className="w-[28%] text-left py-2 px-4 text-gray-400 text-sm">{translations["Product"]}</th>
-                                    <th className="w-[10%] text-left py-2 px-4 text-gray-400 text-sm text-center">{translations["Retail Price"]}</th>
-                                    <th className="w-[10%] text-left py-2 px-4 text-gray-400 text-sm text-center">{translations["Preorder Price"]}</th>
-                                    <th className="w-[10%] text-left py-2 px-4 text-gray-400 text-sm text-center">{translations["Deposit"]}</th>
-                                    <th className="w-[10%] text-left py-2 px-4 text-gray-400 text-sm text-center">{translations["Item Cost"]}</th>
-                                    <th className="w-[9%] text-left py-2 px-4 text-gray-400 text-sm text-center">{translations["Status"]}</th>
-                                    <th className="w-[7%] text-left py-2 px-4 text-gray-400 text-sm text-center">{translations["Qty"]}</th>
-                                    <th className="w-[7%] text-left py-2 px-4 text-gray-400 text-sm text-center">{translations["ToyNToys"]}</th>
-                                    <th className="w-[7%] text-left py-2 px-4 text-gray-400 text-sm text-center">{translations["Wholesale"]}</th>
-                                </tr>
-                            </thead>
-                            {loading ? (
-                                <LoadingSpinnerTbody rowsCount={itemsPerPage} />
-                            ) : (
-                                <tbody>
-                                    {filteredProducts.map((product, index) => (
-                                        <tr
-                                            key={product.id || index}
-                                            onClick={(e) => handleRowClick(e, product.id)}
-                                            className={`clickable border-b hover:bg-gray-700 hover:bg-opacity-30 transition-colors cursor-pointer ${
-                                                selectedProducts.includes(product.id as number) ? "bg-gray-700 bg-opacity-30" : ""
-                                            }`}
-                                            style={{ borderColor: "#40404042" }}
-                                        >
-                                            <td className="py-2 px-2 text-center" onClick={(e) => e.stopPropagation()}>
-                                                <div className="flex justify-center items-center">
-                                                    <CustomCheckbox
-                                                        checked={selectedProducts.includes(product.id as number)}
-                                                        onChange={(checked) => handleSelectProduct(product.id as number, checked)}
-                                                        ariaLabel={`Select product ${product.product_code}`}
-                                                    />
-                                                </div>
-                                            </td>
-                                            <td className="py-2 px-2">
-                                                <div className="flex items-center space-x-3">
-                                                    <div
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleShowImages(product.id);
-                                                        }}
-                                                        className="w-10 h-10 bg-gray-600 rounded-lg flex items-center justify-center"
-                                                    >
-                                                        <img
-                                                            src={getImageUrl(product.product_thumbnail)}
-                                                            alt="Thumbnail"
-                                                            className="w-full h-full object-cover"
-                                                            onError={(e) => {
-                                                                (e.target as HTMLImageElement).src = `${import.meta.env.VITE_BASE_URL}/storage/products/no-image-min.jpg`;
-                                                            }}
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <div className="group flex items-center">
-                                                            <p className="text-gray-300 text-custom-sm select-text">{product.product_code}</p>
-                                                            <CopyToClipboard text={product.product_code} />
-                                                        </div>
-                                                        <div className="group flex items-center">
-                                                            <p className="text-gray-400 text-custom-sm">{lang == "en" ? product.product_title_en : product.product_title_cn}</p>
-                                                            <CopyToClipboard text={lang == "en" ? product.product_title_en : product.product_title_cn} />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="py-2 px-2 text-gray-400 text-center text-custom-sm">
-                                                {product.price_currency}
-                                                <br />
-                                                {formatMoney(product.retail_price)}
-                                            </td>
-                                            <td className="py-2 px-2 text-gray-400 text-center text-custom-sm">
-                                                {product.price_currency}
-                                                <br />
-                                                {formatMoney(product.retail_price)}
-                                            </td>
-                                            <td className="py-2 px-2 text-gray-400 text-center text-custom-sm">
-                                                {product.price_currency}
-                                                <br />
-                                                {formatMoney(product.preorder_price)}
-                                            </td>
-                                            <td className="py-2 px-2 text-gray-400 text-center text-custom-sm">
-                                                {product.item_cost_currency}
-                                                <br />
-                                                {formatMoney(product.item_cost)}
-                                            </td>
-                                            <td className="py-2 px-2 text-center">
-                                                <span className={`px-2 py-1 rounded-full text-xs text-custom-sm ${getStatusColor(product.product_status)}`}>
-                                                    {productStatusLocalized(product.product_status, safeLang)}
-                                                </span>
-                                            </td>
-                                            <td className="py-2 px-2 text-gray-400 text-center text-custom-sm">
-                                                {(() => {
-                                                    const qty = product.available_qty ?? 0;
-                                                    const isPOQty = parseInt(product.is_po_qty);
-                                                    const status = product.product_status;
-                                                    if (status === "Coming Soon" && isPOQty === 1) {
-                                                        return `[${qty}]`;
-                                                    }
-                                                    return qty;
-                                                })()}
-                                            </td>
-                                            <td className="py-2 px-2 text-center" onClick={(e) => e.stopPropagation()}>
-                                                <label className="relative inline-flex items-center cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={Number(product.is_tnt) === 1}
-                                                        onChange={() => handleToggleToyNToys(product.id, product.is_tnt)}
-                                                        className="sr-only peer"
-                                                    />
-                                                    <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-cyan-500 rounded-full peer peer-checked:bg-emerald-600 transition-colors duration-200"></div>
-                                                    <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 transform peer-checked:translate-x-full"></div>
-                                                </label>
-                                            </td>
-                                            <td className="py-2 px-2 text-center" onClick={(e) => e.stopPropagation()}>
-                                                <label className="relative inline-flex items-center cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={Number(product.is_wholesale) === 1}
-                                                        onChange={() => handleToggleWholesale(product.id, product.is_wholesale)}
-                                                        className="sr-only peer"
-                                                    />
-                                                    <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-cyan-500 rounded-full peer peer-checked:bg-emerald-600 transition-colors duration-200"></div>
-                                                    <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 transform peer-checked:translate-x-full"></div>
-                                                </label>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            )}
-                        </table>
-                    </div>
-                </div>
-                {/* Footer with Pagination */}
-                <div className="p-2 border-t flex items-center justify-between" style={{ borderColor: "#404040" }}>
-                    <div className="flex items-center space-x-2">
-                        <MemoizedPagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />
-                        <MemoizedItemsPerPageSelector
-                            value={itemsPerPage}
-                            onChange={(val: number) => {
-                                setItemsPerPage(val);
-                                setCurrentPage(1);
-                            }}
-                            options={pageSizeOptions}
-                        />
-                        <ExportReportSelector formats={["odt", "ods", "xlsx"]} baseName="ProductList" ids={selectedProducts} language={lang} />
-                    </div>
-                    <div className="flex items-center space-x-1">{/* Optional right side content */}</div>
-                </div>
-                {renderCopyPopup()}
-                {renderTagging()}
-                {isLightboxOpen && <ImageLightbox images={images} onClose={() => setIsLightboxOpen(false)} />}
             </div>
         </div>
     );

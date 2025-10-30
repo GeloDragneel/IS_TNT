@@ -37,6 +37,12 @@ class Inventory_allocation extends Model
     public function salesOrder(){
         return $this->belongsTo(Sales_order_master::class, 'so_number', 'so_number');
     }
+    public function invoiceDetail(){
+        return $this->belongsTo(Invoice_detail::class, 'id', 'allocated_id');
+    }
+    public function soDetail(){
+        return $this->belongsTo(Sales_order_detail::class, 'id', 'allocated_id');
+    }
     public function product(){
         return $this->belongsTo(Products::class, 'product_id', 'id');
     }

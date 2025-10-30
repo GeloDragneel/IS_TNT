@@ -3,21 +3,24 @@ import { customerService, ApiCustomer } from "@/services/customerService";
 import { useLanguage } from "@/context/LanguageContext";
 import CustomCheckbox from "@/components/CustomCheckbox";
 import { showConfirm } from "@/utils/alert";
+import { dashboardService } from "@/services/dashboardService";
 import { showSuccessToast, showErrorToast } from "@/utils/toast";
 import Pagination from "@/components/Pagination";
 import ItemsPerPageSelector from "@/components/ItemsPerPageSelector";
 import CopyToClipboard from "@/components/CopyToClipboard";
 import { LoadingSpinnerTbody } from "@/utils/LoadingSpinnerTbody";
-import { X } from "lucide-react";
+import { X, Users, CheckCircle, XCircle } from "lucide-react";
 import PusherEcho from "@/utils/echo";
 import { ExportReportSelector } from "@/utils/ExportReportSelector";
-import { productStatusLocalized, getStatusColor } from "@/utils/globalFunction";
+import { productStatusLocalized, getStatusColor, DropdownData, formatMoney } from "@/utils/globalFunction";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, LegendPayload, PieLabelRenderProps } from "recharts";
 import { fetchWarehouses, fetchSalesPerson, fetchCourier, fetchTaxGroup, fetchShippingTerms, fetchCountries, fetchStates, fetchCustomerType, OptionType } from "@/utils/fetchDropdownData";
-import { DropdownData } from "@/utils/globalFunction";
-
+import { VectorMap } from "@react-jvectormap/core";
+import { worldMill } from "@react-jvectormap/world";
+import { colors } from "@/utils/colors";
+import "tippy.js/dist/tippy.css";
 const MemoizedPagination = React.memo(Pagination);
 const MemoizedItemsPerPageSelector = React.memo(ItemsPerPageSelector);
-
 interface CustomerListProps {
     tabId: string;
     onCustomerSelect: (customerId: number, saveType?: string) => void;
@@ -27,6 +30,18 @@ interface CustomerListProps {
     onSelectedCustomersChange: (selected: number[]) => void;
     expandedRows: number[];
     onExpandedRowsChange: (expanded: number[]) => void;
+}
+interface DashboardFields {
+    month: string;
+    name: string;
+    value: number;
+    color: string;
+}
+interface Country {
+    country_code: string;
+    country_en: string;
+    country_cn: string;
+    cnt: number;
 }
 
 const CustomerList: React.FC<CustomerListProps> = ({ tabId, onCustomerSelect, onInitiateCopy, selectedCustomers, onSelectedCustomersChange }) => {
@@ -45,18 +60,26 @@ const CustomerList: React.FC<CustomerListProps> = ({ tabId, onCustomerSelect, on
     const [shippingTermsData, setShippingTermsData] = useState<DropdownData[]>([]);
     const [countriesData, setCountriesData] = useState<DropdownData[]>([]);
     const [statesData, setStatesData] = useState<DropdownData[]>([]);
-
     const [fields, setFields] = useState<Record<string, boolean>>({});
     const [selectAll, setSelectAll] = useState({
         customerInfo: false,
     });
-
+    const [countryRanking, setCountryRanking] = useState<Country[]>([]);
+    const [mapData, setMapData] = useState<Record<string, number>>({});
+    const [countryInfo, setCountryInfo] = useState<Record<string, Country>>({});
+    const [topCustomers, setTopCustomers] = useState<DashboardFields[]>([]);
+    const [totalWholesale, setTotalWholesale] = useState(0);
+    const [totalRetail, setTotalRetail] = useState("");
+    const [totalActive, setTotalActive] = useState("");
+    const [totalInActive, setTotalInActive] = useState(0);
     const throttleTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-
     const [loading, setLoading] = useState(() => {
         const savedLoading = localStorage.getItem(`${tabId}-loading-customers`);
         return savedLoading !== null ? JSON.parse(savedLoading) : true;
     });
+    const now = new Date();
+    const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const langRef = useRef(lang);
     // Form state - Updated to handle single vs multi-select properly
     const [formData, setFormData] = useState({
         customer_code: "",
@@ -79,6 +102,7 @@ const CustomerList: React.FC<CustomerListProps> = ({ tabId, onCustomerSelect, on
         customer_type: null as OptionType | null,
         pod: null as OptionType | null,
         rwarehouse: null as OptionType | null,
+        date_to: currentYearMonth,
     });
 
     const [currentPage, setCurrentPage] = useState(() => {
@@ -295,6 +319,51 @@ const CustomerList: React.FC<CustomerListProps> = ({ tabId, onCustomerSelect, on
 
         fetchCustomers(currentPage, itemsPerPage, searchTerm);
     }, [currentPage, itemsPerPage, searchTerm, tabId]);
+
+    useEffect(() => {
+        const fetchDashboard = async () => {
+            const dateStr = formData.date_to;
+            const [year, month] = dateStr.split("-");
+            const data = await dashboardService.getDashboardCustomer(Number(month), Number(year));
+            const topCustomer = data.topCustomer;
+            const countryArr = data.countryRanking;
+            const mappedTopCustomer: DashboardFields[] = topCustomer.map((item: any) => ({
+                name: item.customer_code,
+                value: item.base_total,
+                color: item.color || "bg-gray-500", // fallback color
+            }));
+            const countryRankList: Country[] = countryArr.map((item: any) => ({
+                country_code: item.country_code,
+                country_en: item.country_en,
+                country_cn: item.country_cn,
+                cnt: item.cnt,
+            }));
+            setTopCustomers(mappedTopCustomer);
+            setCountryRanking(countryRankList);
+            setTotalWholesale(data.totalWholesale);
+            setTotalRetail(data.totalRetail);
+            setTotalInActive(data.totalInActive);
+            setTotalActive(data.totalActive);
+        };
+        fetchDashboard();
+    }, [lang, tabId, formData.date_to]);
+
+    useEffect(() => {
+        const newMapData: Record<string, number> = {};
+        const newCountryInfo: Record<string, any> = {};
+
+        countryRanking.forEach((item) => {
+            newMapData[item.country_code] = item.cnt;
+            newCountryInfo[item.country_code] = item;
+        });
+
+        setMapData(newMapData);
+        setCountryInfo(newCountryInfo);
+    }, [countryRanking, lang]);
+
+    useEffect(() => {
+        langRef.current = lang;
+    }, [lang]);
 
     const fetchCustomers = async (page = currentPage, perPage = itemsPerPage, search = "") => {
         try {
@@ -644,172 +713,366 @@ const CustomerList: React.FC<CustomerListProps> = ({ tabId, onCustomerSelect, on
             </div>
         );
     };
-    return (
-        <div className="space-y-6">
-            {/* Main Content Card */}
-            <div className="rounded-lg border shadow-sm" style={{ backgroundColor: "#19191c", borderColor: "#404040" }}>
-                {/* Toolbar */}
-                <div className="p-2 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center space-x-4">
-                            <div className="relative">
-                                <input
-                                    type="search"
-                                    placeholder={translations["Search"]}
-                                    value={searchTerm}
-                                    onChange={(e) => {
-                                        setSearchTerm(e.target.value);
-                                        setCurrentPage(1);
-                                    }}
-                                    className="pl-10 pr-4 py-2 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm"
-                                    style={{ backgroundColor: "#2d2d30", borderColor: "#555555" }}
-                                />
-                            </div>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                            <div className="flex items-center space-x-1">
-                                <button
-                                    onClick={(e) => handleRowClick(e, 0)}
-                                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
-                                >
-                                    <span>{translations["Add New"]}</span>
-                                </button>
-                                <button
-                                    disabled={selectedCustomers.length === 0}
-                                    onClick={handleCopy}
-                                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
-                                >
-                                    <span>{translations["Copy"]}</span>
-                                </button>
-                                <button
-                                    disabled={selectedCustomers.length === 0}
-                                    onClick={handleDeleteSelected}
-                                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
-                                >
-                                    <span>{translations["Delete"]}</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+
+    const countryNumbers: Record<string, number> = {};
+    // const colors = generateColors(50);
+    countryRanking.forEach((item, index) => {
+        if (item.cnt > 0) countryNumbers[item.country_code] = index + 1;
+    });
+
+    const tailwindToHex: Record<string, string> = {
+        "red-500": "#ef4444",
+        "blue-500": "#3b82f6",
+        "green-500": "#22c55e",
+        "yellow-500": "#eab308",
+        "purple-500": "#a855f7",
+        "pink-500": "#ec4899",
+        "gray-500": "#6b7280",
+    };
+    const pieData = topCustomers.map((cat) => {
+        const colorKey = cat.color.replace("bg-", "").replace("/50", "");
+        return {
+            name: cat.name,
+            value: cat.value,
+            color: tailwindToHex[colorKey] || "#8884d8",
+        };
+    });
+    const CustomTooltip = (props: any) => {
+        const { active, payload } = props;
+        const totalSumAmount = topCustomers.reduce((total, item) => total + item.value, 0);
+        if (active && payload && payload.length) {
+            const total = totalSumAmount;
+            const percentage = ((payload[0].value / total) * 100).toFixed(1);
+            return (
+                <div className="bg-gray-900 border border-gray-700 rounded-lg shadow-xl p-3">
+                    <p className="text-white font-semibold text-sm">{payload[0].name}</p>
+                    <p className="text-gray-300 text-sm">{formatMoney(payload[0].value)}</p>
+                    <p className="text-gray-400 text-xs">{percentage}%</p>
                 </div>
-                {/* Table */}
-                <div className="overflow-x-auto flex-grow">
-                    <div className="h-[calc(100vh-180px)] overflow-y-auto">
-                        <table className="w-full">
-                            <thead className="sticky top-0 z-[1]" style={{ backgroundColor: "#1f2132" }}>
-                                <tr className="border-b" style={{ borderColor: "#2d2d30" }}>
-                                    <th className="py-1 px-2 text-gray-400 text-sm flex items-center justify-center">
-                                        <CustomCheckbox checked={selectedCustomers.length === customers.length && customers.length > 0} onChange={(checked) => handleSelectAll(checked)} />
-                                    </th>
-                                    <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Customer Code"]}</th>
-                                    <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Customer Name"]}</th>
-                                    <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Company"]}</th>
-                                    <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Customer Type"]}</th>
-                                    <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Email"]}</th>
-                                    <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Sales Person"]}</th>
-                                    <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Country"]}</th>
-                                    <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Tel No"]}</th>
-                                    <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["subscribe"]}</th>
-                                    <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Status"]}</th>
+            );
+        }
+
+        return null;
+    };
+    const renderCustomLabel = (props: PieLabelRenderProps) => {
+        // cast numeric fields explicitly
+        const cx = props.cx as number;
+        const cy = props.cy as number;
+        const midAngle = props.midAngle as number;
+        const innerRadius = props.innerRadius as number;
+        const outerRadius = props.outerRadius as number;
+        const percent = props.percent as number | undefined;
+
+        const RADIAN = Math.PI / 180;
+        const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+        const x = cx + radius * Math.cos(-midAngle * RADIAN);
+        const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+        if (percent && percent < 0.05) return null;
+
+        return (
+            <text x={x} y={y} fill="white" textAnchor={x > cx ? "start" : "end"} dominantBaseline="central" className="text-xs font-semibold" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.8)" }}>
+                {`${(percent! * 100).toFixed(0)}%`}
+            </text>
+        );
+    };
+    interface CustomLegendProps {
+        payload?: LegendPayload[];
+    }
+    const CustomLegend: React.FC<CustomLegendProps> = ({ payload }) => {
+        if (!payload) return null;
+        return (
+            <div className="flex flex-wrap justify-center gap-2 mt-2 px-2">
+                {payload.map((entry, index) => (
+                    <div key={`legend-${index}`} className="flex items-center gap-1.5 bg-gray-800/50 px-2.5 py-1.5 rounded hover:bg-gray-800 transition-colors">
+                        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
+                        <span className="text-gray-300 text-xs font-medium whitespace-nowrap">{entry.value}</span>
+                    </div>
+                ))}
+            </div>
+        );
+    };
+    if (Object.keys(mapData).length === 0) return null;
+    return (
+        <div className="grid grid-cols-12 gap-1">
+            <div className="col-span-3 h-[calc(100vh-70px)] overflow-y-auto pr-2">
+                {/* Cards Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2 mt-2">
+                    {[
+                        { title: translations["Active Customer"] || "Active Customer", value: totalActive, change: "12.5%", icon: CheckCircle, bg: "bg-blue-900/50", iconColor: "text-blue-400" },
+                        { title: translations["Total Wholesale"] || "Total Wholesale", value: totalWholesale, change: "8.2%", icon: Users, bg: "bg-green-900/50", iconColor: "text-green-400" },
+                        {
+                            title: translations["In-Active Customer"] || "In-Active Customer",
+                            value: totalInActive,
+                            change: "15.3%",
+                            icon: XCircle,
+                            bg: "bg-purple-900/50",
+                            iconColor: "text-purple-400",
+                        },
+                        { title: translations["Total Retail"] || "Total Retail", value: totalRetail, change: "6.1%", icon: Users, bg: "bg-orange-900/50", iconColor: "text-orange-400" },
+                    ].map((card, idx) => (
+                        <div key={idx} className="p-4 rounded-lg shadow-md border border-gray-700" style={{ backgroundColor: "#19191c", borderColor: "#404040" }}>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-gray-400 text-sm">{card.title}</p>
+                                    <p className="text-2xl font-bold text-white mt-1">{card.value}</p>
+                                </div>
+                                <div className={`${card.bg} p-3 rounded-lg`}>
+                                    <card.icon className={card.iconColor} size={24} />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                {/* Progress Bars Section */}
+                <div className="w-full h-[300px] md:h-[400px] relative rounded-lg overflow-hidden border border-gray-700 shadow-inner mb-2" id="vector-map">
+                    {/* The map */}
+                    {lang && ( // force re-render on lang change
+                        <VectorMap
+                            key={lang} // ← this forces React to recreate the map when lang changes
+                            map={worldMill}
+                            style={{ width: "100%", height: "100%" }}
+                            backgroundColor="#19191c"
+                            series={{
+                                regions: [
+                                    {
+                                        attribute: "fill",
+                                        values: countryNumbers, // numbers, not colors
+                                        scale: colors, // colors applied via scale
+                                        normalizeFunction: "polynomial",
+                                    },
+                                ],
+                            }}
+                            onRegionTipShow={(_, el, code) => {
+                                const info = countryInfo[code];
+                                const $el = el as any;
+                                if (info) {
+                                    $el.html(`<strong>${lang === "en" ? info.country_en : info.country_cn}</strong><br>${translations["Customer"]}: ${info.cnt ?? 0}`);
+                                }
+                            }}
+                        />
+                    )}
+
+                    {/* Small summary table at bottom-right */}
+                    <div className="absolute bottom-2 right-2 w-48 max-h-[40%] bg-gray-900 bg-opacity-90 text-white text-xs rounded-lg shadow-lg p-2 overflow-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="border-b border-gray-600">
+                                    <th className="py-0.5 px-1">{translations["Country"]}</th>
+                                    <th className="py-0.5 px-1 text-right">{translations["Count"]}</th>
                                 </tr>
                             </thead>
-                            {loading ? (
-                                <LoadingSpinnerTbody rowsCount={itemsPerPage} />
-                            ) : (
-                                <tbody>
-                                    {filteredCustomers.map((customer, index) => (
-                                        <tr
-                                            key={customer.id || index}
-                                            onClick={(e) => handleRowClick(e, customer.id)}
-                                            className={`clickable border-b hover:bg-gray-700 hover:bg-opacity-30 transition-colors cursor-pointer ${
-                                                selectedCustomers.includes(customer.id as number) ? "bg-gray-700 bg-opacity-30" : ""
-                                            }`}
-                                            style={{ borderColor: "#40404042" }}
-                                        >
-                                            <td className="py-2 px-2 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-                                                <CustomCheckbox
-                                                    checked={selectedCustomers.includes(customer.id as number)}
-                                                    onChange={(checked) => handleSelectCustomer(customer.id as number, checked)}
-                                                />
-                                            </td>
-                                            <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
-                                                <div className="flex items-center space-x-3">
-                                                    <div className="group flex items-center">
-                                                        <p className="text-gray-400 text-custom-sm">{customer.customer_code}</p>
-                                                        <CopyToClipboard text={customer.customer_code || ""} />
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
-                                                <div className="flex items-center space-x-3">
-                                                    <div className="group flex items-center">
-                                                        <p className="text-gray-400 text-custom-sm">{customer.account_name_en}</p>
-                                                        <CopyToClipboard text={customer.account_name_en || ""} />
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">{customer.company_en || translations["N.A."]}</td>
-                                            <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
-                                                {customer.customer_type == "RC" ? translations["Retail Customer"] : translations["Wholesale Customer"]}
-                                            </td>
-                                            <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
-                                                <div className="flex items-center space-x-3">
-                                                    <div className="group flex items-center">
-                                                        <p className="text-gray-400 text-custom-sm">{customer.email_address || translations["N.A."]}</p>
-                                                        <CopyToClipboard text={customer.email_address || ""} />
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">{customer.sales_person_name}</td>
-                                            <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">{lang == "en" ? customer.country_en : customer.country_cn}</td>
-                                            <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
-                                                <div className="flex items-center space-x-3">
-                                                    <div className="group flex items-center">
-                                                        <p className="text-gray-400 text-custom-sm">{customer.tel_no}</p>
-                                                        <CopyToClipboard text={customer.tel_no || ""} />
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
-                                                <span className={`px-2 py-1 rounded-full text-xs text-custom-sm ${getStatusColor(Number(customer.status))}`}>
-                                                    {productStatusLocalized(Number(customer.status), safeLang)}
-                                                </span>
-                                            </td>
-                                            <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
-                                                <span className={`px-2 py-1 rounded-full text-xs text-custom-sm ${getStatusColor(Number(customer.is_subscribe))}`}>
-                                                    {productStatusLocalized(Number(customer.is_subscribe), safeLang)}
-                                                </span>
-                                            </td>
+                            <tbody>
+                                {countryRanking
+                                    .filter((c) => c.cnt > 0)
+                                    .sort((a, b) => b.cnt - a.cnt)
+                                    .map((c) => (
+                                        <tr key={c.country_code} className="border-b border-gray-700 hover:bg-gray-800">
+                                            <td className="py-0.5 px-1">{lang === "en" ? c.country_en : c.country_cn}</td>
+                                            <td className="py-0.5 px-1 text-right font-bold">{c.cnt}</td>
                                         </tr>
                                     ))}
-                                </tbody>
-                            )}
+                            </tbody>
                         </table>
                     </div>
                 </div>
-                {/* Footer with Pagination */}
-                <div className="p-2 border-t flex items-center justify-between" style={{ borderColor: "#404040" }}>
-                    <div className="flex items-center space-x-1">
-                        <MemoizedPagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />
-                        <MemoizedItemsPerPageSelector
-                            value={itemsPerPage}
-                            onChange={(val: number) => {
-                                setItemsPerPage(val);
-                                setCurrentPage(1);
-                            }}
-                            options={pageSizeOptions}
-                        />
-                        <ExportReportSelector
-                            formats={["odt", "ods", "xlsx"]}
-                            baseName="CustomerInformation"
-                            ids={selectedCustomers.length > 0 ? selectedCustomers : customers.map((p) => p.id)}
-                            language={lang}
-                        />
+                <div className="p-4 rounded-lg shadow-md border border-gray-700 mb-2" style={{ backgroundColor: "#19191c", borderColor: "#404040", height: "400px" }}>
+                    <h2 className="text-lg font-bold text-white mb-4">{translations["Top 5 Customers"] || "Top 5 Customers"}</h2>
+                    <div style={{ height: "calc(100% - 130px)" }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <defs>
+                                    {pieData.map((entry, index) => (
+                                        <linearGradient key={`gradient-${index}`} id={`gradient-${index}`} x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor={entry.color} stopOpacity={1} />
+                                            <stop offset="100%" stopColor={entry.color} stopOpacity={0.7} />
+                                        </linearGradient>
+                                    ))}
+                                </defs>
+                                <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} innerRadius={60} paddingAngle={2} label={renderCustomLabel}>
+                                    {pieData.map((entry, index) => (
+                                        <Cell
+                                            key={`cell-${index}`}
+                                            fill={`url(#gradient-${index})`}
+                                            stroke="#1f2937"
+                                            strokeWidth={2}
+                                            className={`hover:opacity-80 transition-opacity cursor-pointer ${entry.name}`}
+                                        />
+                                    ))}
+                                </Pie>
+                                <Tooltip content={<CustomTooltip />} />
+                            </PieChart>
+                        </ResponsiveContainer>
                     </div>
-                    <div className="flex items-center space-x-1">{/* Optional right side content */}</div>
+                    <CustomLegend payload={pieData.map((d) => ({ value: d.name, color: d.color }))} />
                 </div>
+            </div>
+            <div className="col-span-9">
+                <div className="space-y-6">
+                    {/* Main Content Card */}
+                    <div className="rounded-lg border shadow-sm" style={{ backgroundColor: "#19191c", borderColor: "#404040" }}>
+                        {/* Toolbar */}
+                        <div className="p-2 border-b flex-shrink-0" style={{ borderColor: "#404040" }}>
+                            <div className="flex justify-between items-center">
+                                <div className="flex items-center space-x-4">
+                                    <div className="relative">
+                                        <input
+                                            type="search"
+                                            placeholder={translations["Search"]}
+                                            value={searchTerm}
+                                            onChange={(e) => {
+                                                setSearchTerm(e.target.value);
+                                                setCurrentPage(1);
+                                            }}
+                                            className="pl-10 pr-4 py-2 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm"
+                                            style={{ backgroundColor: "#2d2d30", borderColor: "#555555" }}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-4">
+                                    <div className="flex items-center space-x-1">
+                                        <button
+                                            onClick={(e) => handleRowClick(e, 0)}
+                                            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
+                                        >
+                                            <span>{translations["Add New"]}</span>
+                                        </button>
+                                        <button
+                                            disabled={selectedCustomers.length === 0}
+                                            onClick={handleCopy}
+                                            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
+                                        >
+                                            <span>{translations["Copy"]}</span>
+                                        </button>
+                                        <button
+                                            disabled={selectedCustomers.length === 0}
+                                            onClick={handleDeleteSelected}
+                                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
+                                        >
+                                            <span>{translations["Delete"]}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {/* Table */}
+                        <div className="overflow-x-auto flex-grow">
+                            <div className="h-[calc(100vh-180px)] overflow-y-auto">
+                                <table className="w-full">
+                                    <thead className="sticky top-0 z-[1]" style={{ backgroundColor: "#1f2132" }}>
+                                        <tr className="border-b" style={{ borderColor: "#2d2d30" }}>
+                                            <th className="py-1 px-2 text-gray-400 text-sm flex items-center justify-center">
+                                                <CustomCheckbox checked={selectedCustomers.length === customers.length && customers.length > 0} onChange={(checked) => handleSelectAll(checked)} />
+                                            </th>
+                                            <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Customer Code"]}</th>
+                                            <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Customer Name"]}</th>
+                                            <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Customer Type"]}</th>
+                                            <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Email"]}</th>
+                                            <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Sales Person"]}</th>
+                                            <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Country"]}</th>
+                                            <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Tel No"]}</th>
+                                            <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["subscribe"]}</th>
+                                            <th className=" text-left py-2 px-2 text-gray-400 text-sm">{translations["Status"]}</th>
+                                        </tr>
+                                    </thead>
+                                    {loading ? (
+                                        <LoadingSpinnerTbody rowsCount={itemsPerPage} />
+                                    ) : (
+                                        <tbody>
+                                            {filteredCustomers.map((customer, index) => (
+                                                <tr
+                                                    key={customer.id || index}
+                                                    onClick={(e) => handleRowClick(e, customer.id)}
+                                                    className={`clickable border-b hover:bg-gray-700 hover:bg-opacity-30 transition-colors cursor-pointer ${
+                                                        selectedCustomers.includes(customer.id as number) ? "bg-gray-700 bg-opacity-30" : ""
+                                                    }`}
+                                                    style={{ borderColor: "#40404042" }}
+                                                >
+                                                    <td className="py-2 px-2 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                                                        <CustomCheckbox
+                                                            checked={selectedCustomers.includes(customer.id as number)}
+                                                            onChange={(checked) => handleSelectCustomer(customer.id as number, checked)}
+                                                        />
+                                                    </td>
+                                                    <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
+                                                        <div className="flex items-center space-x-3">
+                                                            <div className="group flex items-center">
+                                                                <p className="text-gray-400 text-custom-sm">{customer.customer_code}</p>
+                                                                <CopyToClipboard text={customer.customer_code || ""} />
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
+                                                        <div className="flex items-center space-x-3">
+                                                            <div className="group flex items-center">
+                                                                <p className="text-gray-400 text-custom-sm">{customer.account_name_en}</p>
+                                                                <CopyToClipboard text={customer.account_name_en || ""} />
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
+                                                        {customer.customer_type == "RC" ? translations["Retail Customer"] : translations["Wholesale Customer"]}
+                                                    </td>
+                                                    <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
+                                                        <div className="flex items-center space-x-3">
+                                                            <div className="group flex items-center">
+                                                                <p className="text-gray-400 text-custom-sm">{customer.email_address || translations["N.A."]}</p>
+                                                                <CopyToClipboard text={customer.email_address || ""} />
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">{customer.sales_person_name}</td>
+                                                    <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">{lang == "en" ? customer.country_en : customer.country_cn}</td>
+                                                    <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
+                                                        <div className="flex items-center space-x-3">
+                                                            <div className="group flex items-center">
+                                                                <p className="text-gray-400 text-custom-sm">{customer.tel_no}</p>
+                                                                <CopyToClipboard text={customer.tel_no || ""} />
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
+                                                        <span className={`px-2 py-1 rounded-full text-xs text-custom-sm ${getStatusColor(Number(customer.status))}`}>
+                                                            {productStatusLocalized(Number(customer.status), safeLang)}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
+                                                        <span className={`px-2 py-1 rounded-full text-xs text-custom-sm ${getStatusColor(Number(customer.is_subscribe))}`}>
+                                                            {productStatusLocalized(Number(customer.is_subscribe), safeLang)}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    )}
+                                </table>
+                            </div>
+                        </div>
+                        {/* Footer with Pagination */}
+                        <div className="p-2 border-t flex items-center justify-between" style={{ borderColor: "#404040" }}>
+                            <div className="flex items-center space-x-1">
+                                <MemoizedPagination currentPage={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />
+                                <MemoizedItemsPerPageSelector
+                                    value={itemsPerPage}
+                                    onChange={(val: number) => {
+                                        setItemsPerPage(val);
+                                        setCurrentPage(1);
+                                    }}
+                                    options={pageSizeOptions}
+                                />
+                                <ExportReportSelector
+                                    formats={["odt", "ods", "xlsx"]}
+                                    baseName="CustomerInformation"
+                                    ids={selectedCustomers.length > 0 ? selectedCustomers : customers.map((p) => p.id)}
+                                    language={lang}
+                                />
+                            </div>
+                            <div className="flex items-center space-x-1">{/* Optional right side content */}</div>
+                        </div>
 
-                {renderCopyPopup()}
+                        {renderCopyPopup()}
+                    </div>
+                </div>
             </div>
         </div>
     );

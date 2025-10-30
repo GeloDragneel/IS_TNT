@@ -92,7 +92,7 @@ class CustomerInvoiceController extends Controller{
             $query->whereIn('invoice_status_id', $poStatus);
         }
         if ($categoryDates === 'InvoiceDate' && $dateFrom && $dateTo) {
-            $query->whereBetween(DB::raw("STR_TO_DATE(so_date, '%b %d %Y')"), [$dateFrom, $dateTo]);
+            $query->whereBetween(DB::raw("STR_TO_DATE(invoice_date, '%b %d %Y')"), [$dateFrom, $dateTo]);
         }
         if ($search) {
             $query->where(function ($q) use ($search) {
