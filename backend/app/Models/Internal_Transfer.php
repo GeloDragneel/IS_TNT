@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Internal_Transfer extends Model{
+use App\Models\BaseModel;
+
+class Internal_Transfer extends BaseModel{
     use HasFactory;
     
     protected $table = 't_internal_transfer';

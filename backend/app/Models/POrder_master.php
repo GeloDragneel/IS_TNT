@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class POrder_master extends Model
+use App\Models\BaseModel;
+
+class POrder_master extends BaseModel
 {
     use HasFactory;
     

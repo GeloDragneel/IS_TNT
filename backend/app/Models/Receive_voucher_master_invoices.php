@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Receive_voucher_master_invoices extends Model
+use App\Models\BaseModel;
+
+class Receive_voucher_master_invoices extends BaseModel
 {
     use HasFactory;
 

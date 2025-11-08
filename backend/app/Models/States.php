@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class States extends Model
+use App\Models\BaseModel;
+
+class States extends BaseModel
 {
     use HasFactory;
 

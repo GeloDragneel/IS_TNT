@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Inventory_tblmaster extends Model{
+use App\Models\BaseModel;
+
+class Inventory_tblmaster extends BaseModel{
     
     use HasFactory;
     protected $table = 't_inventory_tblmaster';

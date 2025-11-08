@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Charts_of_account extends Model
+use App\Models\BaseModel;
+
+class Charts_of_account extends BaseModel
 {
     use HasFactory;
 

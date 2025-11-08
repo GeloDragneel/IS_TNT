@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Customer_deposit extends Model{
+use App\Models\BaseModel;
+
+class Customer_deposit extends BaseModel{
     use HasFactory;
 
     protected $table = 't_customer_deposit';

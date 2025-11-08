@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Logs extends Model
+use App\Models\BaseModel;
+
+class Logs extends BaseModel
 {
     use HasFactory;
 

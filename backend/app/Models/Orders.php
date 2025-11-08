@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Customer;
 use App\Models\Products;
 
-class Orders extends Model
+use App\Models\BaseModel;
+
+class Orders extends BaseModel
 {
     use HasFactory;
     protected $table = 't_orders';

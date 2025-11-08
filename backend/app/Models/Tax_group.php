@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Tax_group extends Model
+use App\Models\BaseModel;
+
+class Tax_group extends BaseModel
 {
     use HasFactory;
 

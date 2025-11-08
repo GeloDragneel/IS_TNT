@@ -153,7 +153,7 @@ class PreorderController extends Controller{
             'total' => $item->total,
             'deposit' => $item->deposit,
             'base_deposit' => $item->base_deposit,
-            'sales_person_name' => $item->customer->salesPerson->full_name,
+            'sales_person_name' => $item->customer->salesPerson->full_name ?? '',
         ]);
 
         // Preparing the response

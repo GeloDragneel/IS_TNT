@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Payment_voucher_detail extends Model
+use App\Models\BaseModel;
+
+class Payment_voucher_detail extends BaseModel
 {
     use HasFactory;
 

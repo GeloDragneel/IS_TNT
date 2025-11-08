@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Invoice_master extends Model
+use App\Models\BaseModel;
+
+class Invoice_master extends BaseModel
 {
     use HasFactory;
 

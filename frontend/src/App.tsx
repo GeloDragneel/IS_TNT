@@ -296,6 +296,26 @@ function App() {
         };
     }, []);
 
+    useEffect(() => {
+        const channel = PusherEcho.channel("sync-channel");
+        channel.listen(".sync-event", () => {
+            const url = import.meta.env.VITE_ENV === "local" ? "http://toyntoys-local-v2/query/sync_db_new.php" : "https://tnt2.simplify.cool/query/sync_db_new.php";
+            setTimeout(() => {
+                axios
+                    .get(url)
+                    .then(() => {
+                        console.log("PHP file called successfully");
+                    })
+                    .catch((error) => {
+                        console.error("Error calling PHP file:", error);
+                    });
+            }, 25000); // 25000ms = 25 seconds
+        });
+        return () => {
+            PusherEcho.leave("sync-channel");
+        };
+    }, []);
+
     // Check for existing authentication on app load
     useEffect(() => {
         const savedAuth = localStorage.getItem("xintra-auth");

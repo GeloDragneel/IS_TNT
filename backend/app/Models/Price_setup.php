@@ -5,7 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Customer_group;
-class Price_setup extends Model
+
+use App\Models\BaseModel;
+
+class Price_setup extends BaseModel
 {
     use HasFactory;
 

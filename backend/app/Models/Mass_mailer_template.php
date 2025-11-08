@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Mass_mailer_template extends Model
+use App\Models\BaseModel;
+
+class Mass_mailer_template extends BaseModel
 {
     use HasFactory;
 

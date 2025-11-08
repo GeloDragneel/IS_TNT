@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Serial_no extends Model
+use App\Models\BaseModel;
+
+class Serial_no extends BaseModel
 {
     use HasFactory;
 

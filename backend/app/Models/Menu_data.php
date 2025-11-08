@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Menu_data extends Model
+use App\Models\BaseModel;
+
+class Menu_data extends BaseModel
 {
     use HasFactory;
 

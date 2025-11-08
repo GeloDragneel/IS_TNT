@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Account_customer_cn extends Model
+use App\Models\BaseModel;
+
+class Account_customer_cn extends BaseModel
 {
     use HasFactory;
 

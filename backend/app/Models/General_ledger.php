@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class General_ledger extends Model
+use App\Models\BaseModel;
+
+class General_ledger extends BaseModel
 {
     use HasFactory;
 

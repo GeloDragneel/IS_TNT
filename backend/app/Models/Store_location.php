@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Store_location extends Model
+use App\Models\BaseModel;
+
+class Store_location extends BaseModel
 {
     use HasFactory;
 

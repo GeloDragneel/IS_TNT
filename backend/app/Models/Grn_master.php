@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Grn_master extends Model
+use App\Models\BaseModel;
+
+class Grn_master extends BaseModel
 {
     use HasFactory;
 

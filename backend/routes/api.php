@@ -48,8 +48,6 @@ Route::post('/login', [App\Http\Controllers\CustomAuthController::class, 'login'
 Route::get('/access-rights/{loginId}', [App\Http\Controllers\GlobalController::class, 'getUserMenu']);
 Route::get('/translations/{lang}', [App\Http\Controllers\CustomAuthController::class, 'getTranslations']);
 
-// PRODUCT API
-
 // Protected routes - require authentication
 Route::middleware('check.session')->group(function () {
     Route::get('/check-auth', [CustomAuthController::class, 'checkAuth']);

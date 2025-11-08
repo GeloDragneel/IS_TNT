@@ -69,7 +69,8 @@ class SOController extends Controller{
                 'salesOrderDetails.services:id,service_code,description_en,description_cn',
                 'salesOrderDetailsCopy.services:id,service_code,description_en,description_cn',
                 'invoiceStatus:id,status_value_en,status_value_cn',
-            ])->orderByDesc('so_number')
+            ])->whereNotNull('customer_id')
+            ->orderByDesc('so_number')
             ->orderByDesc('id');
         }
         else{
@@ -83,6 +84,7 @@ class SOController extends Controller{
                 'salesOrderDetailsCopy.services:id,service_code,description_en,description_cn',
                 'invoiceStatus:id,status_value_en,status_value_cn',
             ])->where('invoice_status_id',2)
+            ->whereNotNull('customer_id')
             ->orderByRaw("FIELD(invoice_status_id, 2, 8)")
             ->orderByDesc('id');
         }
@@ -481,6 +483,27 @@ class SOController extends Controller{
                             $invMaster->base_credit_used = $soMaster->base_credit_used;
                             $invMaster->due_date = $soMaster->due_date;
                             $invMaster->delivery_date = $soMaster->delivery_date;
+                            $invMaster->total = $soMaster->total;
+                            $invMaster->base_total = $soMaster->base_total;
+                            $invMaster->sub_total = $soMaster->sub_total;
+                            $invMaster->base_sub_total = $soMaster->base_sub_total;
+                            $invMaster->total_deposit = $soMaster->total_deposit;
+                            $invMaster->base_total_deposit = $soMaster->base_total_deposit;
+                            $invMaster->total_to_pay = $soMaster->total_to_pay;
+                            $invMaster->base_total_to_pay = $soMaster->base_total_to_pay;
+                            $invMaster->total_deduction = $soMaster->total_deduction;
+                            $invMaster->base_total_deduction = $soMaster->base_total_deduction;
+                            $invMaster->cr_amount = $soMaster->cr_amount;
+                            $invMaster->base_cr_amount = $soMaster->base_cr_amount;
+                            $invMaster->adv_amount = $soMaster->adv_amount;
+                            $invMaster->base_adv_amount = $soMaster->base_adv_amount;
+                            $invMaster->excess_amount = $soMaster->excess_amount;
+                            $invMaster->base_excess_amount = $soMaster->base_excess_amount;
+                            $invMaster->voucher_amount = $soMaster->voucher_amount;
+                            $invMaster->base_voucher_amount = $soMaster->base_voucher_amount;
+                            $invMaster->sub_total_on_cost = $soMaster->sub_total_on_cost;
+                            $invMaster->tax_amount = $soMaster->tax_amount;
+                            $invMaster->base_tax_amount = $soMaster->base_tax_amount;
                             $invMaster->save();
                         }
                         else{

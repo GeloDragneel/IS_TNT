@@ -300,21 +300,21 @@ const AllocationList: React.FC<AllocationListProps> = ({ tabId }) => {
         <div className="grid grid-cols-12 gap-1">
             <div className="col-span-3 h-[calc(100vh-70px)] overflow-y-auto pr-2">
                 {/* Sticky Header */}
-                {/* <div className="sticky top-0 z-10 bg-[#19191c] border-b border-gray-700 p-4 rounded-lg shadow-md border">
+                <div className="sticky top-0 z-10 bg-[#19191c] border-b border-gray-700 p-4 rounded-lg shadow-md border">
                     <div className="flex gap-2 items-center">
                         <span className="text-[#ffffffcc]">{translations["Filter"]} : </span>
                         <input
                             type="month"
-                            value={formData.date_to}
+                            value={formData.date_to2}
                             onChange={(e) => {
                                 const value = e.target.value;
-                                setFormData((prev) => ({ ...prev, date_to: value }));
+                                setFormData((prev) => ({ ...prev, date_to2: value }));
                             }}
                             className="flex-1 px-3 py-2 border-[1px] border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm rounded"
                             placeholder="End Month"
                         />
                     </div>
-                </div> */}
+                </div>
                 {/* Cards Section */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2 mt-2">
                     {[

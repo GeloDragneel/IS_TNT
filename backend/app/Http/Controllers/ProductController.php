@@ -79,7 +79,7 @@ class ProductController extends Controller{
         $result = $perPage === -1 ? $query->get() : $query->paginate($perPage);
 
         $transform = function ($product) {
-            $priceSetup = $product->priceSetup->firstWhere('customer_group_id', 6);
+            $priceSetup = optional($product->priceSetup)->firstWhere('customer_group_id', 6);
             $product->price_currency = optional($priceSetup)->currency;
             $product->retail_price = optional($priceSetup)->retail_price;
             $product->preorder_price = optional($priceSetup)->preorder_price;
@@ -1096,7 +1096,10 @@ class ProductController extends Controller{
                         $newImageIndex++;
                     }
                 } elseif (!empty($image['id'])) {
-                    Product_images::find($image['id'])->update(['rank' => $image['rank']]);
+                    $img = Product_images::find($image['id']);
+                    if ($img) {
+                        $img->update(['rank' => $image['rank']]);
+                    }
                 }
             }
         }

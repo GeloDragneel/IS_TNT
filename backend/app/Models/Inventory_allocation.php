@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Inventory_allocation extends Model
+use App\Models\BaseModel;
+
+class Inventory_allocation extends BaseModel
 {
     use HasFactory;
 

@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Shipping_terms extends Model
+use App\Models\BaseModel;
+
+class Shipping_terms extends BaseModel
 {
     use HasFactory;
 

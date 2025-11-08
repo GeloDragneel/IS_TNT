@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Payment_voucher_master extends Model{
+use App\Models\BaseModel;
+
+class Payment_voucher_master extends BaseModel{
     use HasFactory;
     protected $table = 't_pv_master';
     protected $fillable = [

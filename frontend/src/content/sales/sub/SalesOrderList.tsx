@@ -152,6 +152,7 @@ const SalesOrderList: React.FC<SalesOrderListProps> = ({ tabId, onSalesOrderSele
     const [loadCancelOrder_CTOCUST, setLoadCancelOrder_CTOCUST] = useState(false);
     const [loadCancelOrder_NRTOMI, setLoadCancelOrder_NRTOMI] = useState(false);
     const [loadCancelOrder_RPTOC, setLoadCancelOrder_RPTOC] = useState(false);
+    const [loadingConfirm, setLoadConfirm] = useState(false);
     const [cancelOrder, setShowCancelOrder] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
     const exportRef = useRef<{ triggerExport: () => void }>(null);
@@ -722,6 +723,7 @@ const SalesOrderList: React.FC<SalesOrderListProps> = ({ tabId, onSalesOrderSele
         );
     };
     const handleConfirm = async () => {
+        setLoadConfirm(true);
         const idInvoices = selectedInvoices.filter((item, index) => selectedInvoices.indexOf(item) === index);
         const idShipments = selectedShipment.filter((item, index) => selectedShipment.indexOf(item) === index);
         const selectedConfirmed = salesOrderList.filter((so) => idInvoices.includes(so.id));
@@ -753,6 +755,7 @@ const SalesOrderList: React.FC<SalesOrderListProps> = ({ tabId, onSalesOrderSele
         try {
             const result = await salesOrderService.confirmSalesOrder(data);
             if (result.token === "Error") {
+                setLoadConfirm(false);
                 showErrorToast(result.message);
                 return;
             }
@@ -771,10 +774,14 @@ const SalesOrderList: React.FC<SalesOrderListProps> = ({ tabId, onSalesOrderSele
             invMsg = invMsg.slice(0, -1);
             selectInvoices([]);
             selectShipment([]);
+            setLoadConfirm(false);
             showSuccessToast(invMsg + " " + translations[result.message]);
             fetchSalesOrder(currentPage, itemsPerPage, defaultFilters);
         } catch (error) {
+            setLoadConfirm(false);
             showErrorToast(translations["Failed to save Transaction."] || "Failed to save Transaction.");
+        } finally {
+            setLoadConfirm(false);
         }
     };
     const handleShowCustomerCredit = async (customerId: number) => {
@@ -1151,12 +1158,24 @@ const SalesOrderList: React.FC<SalesOrderListProps> = ({ tabId, onSalesOrderSele
                                                         <button
                                                             type="button"
                                                             onClick={handleConfirm}
-                                                            disabled={!selectedInvoices.includes(list.id as number)}
-                                                            className="px-1 py-1 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors text-sm"
+                                                            disabled={loadingConfirm || !selectedInvoices.includes(list.id as number)}
+                                                            className={`px-1 py-1 rounded-lg transition-colors text-sm text-white ${
+                                                                loadingConfirm ? "bg-gray-400 cursor-not-allowed" : "bg-cyan-600 hover:bg-cyan-700"
+                                                            }`}
                                                         >
-                                                            <span>{translations["Confirm"]}</span>
+                                                            {loadingConfirm ? (
+                                                                <span className="flex items-center justify-center gap-1">
+                                                                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                                                                    </svg>
+                                                                </span>
+                                                            ) : (
+                                                                <span>{translations["Confirm"]}</span>
+                                                            )}
                                                         </button>
                                                     </td>
+
                                                     <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">
                                                         <div className="group flex items-center">
                                                             <p className="text-gray-400 text-custom-sm">{highlightMatch(list.so_number, searchTerm)}</p>
@@ -1447,22 +1466,6 @@ const SalesOrderList: React.FC<SalesOrderListProps> = ({ tabId, onSalesOrderSele
                                         ))
                                     )}
                                 </tbody>
-                                {/* <tfoot>
-                            {CustomerCreditFooter?.map((footer, index) => (
-                                <tr key={index} className="border-b hover:bg-gray-700 hover:bg-opacity-30 transition-colors" style={{ borderColor: "#40404042" }}>
-                                    <td className="px-4 py-3 text-left text-gray-300 text-sm"></td>
-                                    <td className="px-4 py-3 text-left text-gray-300 text-sm"></td>
-                                    <td className="px-4 py-3 text-left text-gray-300 text-sm"></td>
-                                    <td className="px-4 py-3 text-right text-gray-300 text-sm"></td>
-                                    <td className="py-2 px-2 text-right text-custom-sm">
-                                        <span>{translations["Closing Balance"]} : </span>
-                                        <span className="text-yellow-400">
-                                            {footer.currency} {formatMoney(footer.balance)}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tfoot> */}
                             </table>
                         </div>
                     </div>

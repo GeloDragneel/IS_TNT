@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Email_settings extends Model
+use App\Models\BaseModel;
+
+class Email_settings extends BaseModel
 {
     use HasFactory;
 

@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Product_images_tagging extends Model
+use App\Models\BaseModel;
+
+class Product_images_tagging extends BaseModel
 {
     use HasFactory;
 

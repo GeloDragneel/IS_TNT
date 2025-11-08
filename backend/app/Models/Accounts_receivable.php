@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Accounts_receivable extends Model
+use App\Models\BaseModel;
+
+class Accounts_receivable extends BaseModel
 {
     use HasFactory;
     protected $table = 't_accounts_receivable';

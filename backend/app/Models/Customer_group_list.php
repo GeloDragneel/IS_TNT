@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Customer_group_list extends Model
+use App\Models\BaseModel;
+
+class Customer_group_list extends BaseModel
 {
     use HasFactory;
 

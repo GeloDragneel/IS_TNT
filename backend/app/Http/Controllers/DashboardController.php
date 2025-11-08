@@ -217,19 +217,13 @@ class DashboardController extends Controller{
     }
     public function getDashboardItemsAndInventory($m,$y){
         // Step 1: Get invoice details for the given month/year
-        /*
         $invMaster = Invoice_detail::with(['product.manufacturer'])
             ->where('invoice_status_id', 1)
             ->whereRaw(
                 'YEAR(STR_TO_DATE(invoice_date, "%b %d %Y")) = ? AND MONTH(STR_TO_DATE(invoice_date, "%b %d %Y")) = ?',
                 [$y, $m]
             )->orderByDesc('id')->get();
-        */
-        $invMaster = Invoice_detail::with(['product.manufacturer'])
-            ->where('invoice_status_id', 1)
-            ->orderByDesc('id')
-            ->get();
-
+    
         $colorPalette = [
             'bg-blue-500',
             'bg-cyan-500',
@@ -260,27 +254,6 @@ class DashboardController extends Controller{
                 $item['color'] = $colorPalette[$index % count($colorPalette)]; // ✅ assign color by index
                 return $item;
             });
-        /*
-        $withdrawFromInventory = Inventory_allocation::with(['product','chartOfAccount'])
-            ->where('account_no', 'LIKE', '6%')
-            ->whereYear('created_at', $y)
-            ->whereMonth('created_at', $m)
-            ->orderByDesc('id')
-            ->get()
-            ->map(function ($items) {
-                $first = $items->first();
-                return [
-                    'product_code' => $items->product->product_code ?? '',
-                    'product_title_en' => $items->product->product_title_en ?? '',
-                    'product_title_cn' => $items->product->product_title_cn ?? '',
-                    'account_code' => $items->chartOfAccount->account_code ?? '',
-                    'account_name_en' => $items->chartOfAccount->account_name_en ?? '',
-                    'account_name_cn' => $items->chartOfAccount->account_name_cn ?? '',
-                    'qty' => $items->qty,
-                    'created_at' => Carbon::parse($items->created_at)->format('M d Y - h:i:s A'),
-                ];
-            });
-        */
 
         $internalTransfer = Internal_Transfer::with(['product'])->whereRaw(
             'YEAR(STR_TO_DATE(transfer_date, "%b %d %Y")) = ? AND MONTH(STR_TO_DATE(transfer_date, "%b %d %Y")) = ?',
@@ -386,6 +359,7 @@ class DashboardController extends Controller{
             'YEAR(STR_TO_DATE(grn_date, "%b %d %Y")) = ?',[$y]
         )->get();
 
+
         $colorPalette = [
             'bg-blue-500',
             'bg-purple-500',
@@ -417,7 +391,18 @@ class DashboardController extends Controller{
             ->reverse() // oldest first
             ->values();
 
-        $topSuppliers = $grnDetails
+        $filteredGrnDetails = $grnDetails->filter(function ($item) use ($m) {
+            if (empty($item->grn_date)) {
+                return false;
+            }
+
+            // Parse "Oct 31 2025" → get month number
+            $month = Carbon::createFromFormat('M d Y', $item->grn_date)->format('n');
+
+            return $month == $m;
+        });
+
+        $topSuppliers = $filteredGrnDetails
             ->groupBy('supplier_id')
             ->map(function ($items, $supplierId) {
                 $supplier = $items->first()->supplier;
@@ -436,9 +421,8 @@ class DashboardController extends Controller{
                 return $item;
             });
 
-
-        $totalComingSoon = $grnDetails->where('grn_status_id', 1)->sum('qty');
-        $totalReceived = $grnDetails->where('grn_status_id', 2)->sum('qty');
+        $totalComingSoon = $filteredGrnDetails->where('grn_status_id', 1)->sum('qty');
+        $totalReceived = $filteredGrnDetails->where('grn_status_id', 2)->sum('qty');
 
         // Return both in one response
         return response()->json([
@@ -488,17 +472,30 @@ class DashboardController extends Controller{
             ->reverse()
             ->values();
 
-        $totalReceived = $allocation->sum('qty');
-        $totalReceivedValue = $allocation->sum('qty');
-        $totalAllocated = $allocation->sum('allocated_qty');
 
-        $totalAllocatedPaid = Invoice_detail::where('product_type',0)->whereIn('invoice_status_id',[1,3])->whereRaw(
-            'YEAR(STR_TO_DATE(invoice_date, "%b %d %Y")) = ?',[$y]
-        )->sum('base_total');
+        $filteredAllocation = $allocation->filter(function ($item) use ($m) {
+            if (!$item->salesOrder || empty($item->salesOrder->so_date)) {
+                return false;
+            }
+            // Parse so_date like "Oct 31 2025" → extract month number
+            $month = Carbon::createFromFormat('M d Y', $item->salesOrder->so_date)->format('n');
+            return $month == $m;
+        });
+
+        $totalReceived = $filteredAllocation->sum('qty');
+        $totalReceivedValue = $filteredAllocation->sum('qty');
+        $totalAllocated = $filteredAllocation->sum('allocated_qty');
+
+        $totalAllocatedPaid = Invoice_detail::where('product_type', 0)
+            ->whereIn('invoice_status_id', [1, 3])
+            ->whereRaw('YEAR(STR_TO_DATE(invoice_date, "%b %d %Y")) = ?', [$y])
+            ->whereRaw('MONTH(STR_TO_DATE(invoice_date, "%b %d %Y")) = ?', [$m])
+            ->sum('base_total');
 
         $totalAllocatedUnPaid = Sales_order_master::with('salesOrderDetails')
             ->where('invoice_status_id', 2)
             ->whereRaw('YEAR(STR_TO_DATE(so_date, "%b %d %Y")) = ?', [$y])
+            ->whereRaw('MONTH(STR_TO_DATE(so_date, "%b %d %Y")) = ?', [$m])
             ->get()
             ->sum(function ($master) {
                 return $master->salesOrderDetails
@@ -506,7 +503,9 @@ class DashboardController extends Controller{
                     ->sum('base_total');
             });
 
-        $invWithdraw = Inventory_allocation::with(['chartOfAccount'])->whereYear('created_at', $y)
+        $invWithdraw = Inventory_allocation::with(['chartOfAccount'])
+            ->whereYear('created_at', $y)
+            ->whereMonth('created_at', $m)
             ->whereRaw('CHAR_LENGTH(account_no) > 1')
             ->get();
 

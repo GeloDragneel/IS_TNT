@@ -398,6 +398,7 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
         }
         return perPage;
     });
+
     // REALTIME
     useEffect(() => {
         const channel = PusherEcho.channel("preorder-channel");
@@ -417,6 +418,7 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
             PusherEcho.leave("preorder-channel");
         };
     }, [currentPage, itemsPerPage, searchTerm, tabId]);
+
     useEffect(() => {
         const handleEscKey = (e: KeyboardEvent) => {
             if (e.key === "Escape" && document.activeElement === inputRef.current) {

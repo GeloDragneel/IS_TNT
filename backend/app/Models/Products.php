@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Price_setup;
 use App\Models\Product_images;
 
-class Products extends Model
+use App\Models\BaseModel;
+
+class Products extends BaseModel
 {
     use HasFactory;
 

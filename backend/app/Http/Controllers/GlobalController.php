@@ -667,7 +667,6 @@ class GlobalController extends Controller
             ->sortBy('ranking') // Sort by ranking in ascending order
             ->filter(); // Apply the filter
 
-        
         // Separate parents and children
         $parents = $userMenus->where('root_name', 'root');
         $children = $userMenus->where('root_name', '!=', 'root');

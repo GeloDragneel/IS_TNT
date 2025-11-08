@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Sales_order_qty_ids extends Model
+use App\Models\BaseModel;
+
+class Sales_order_qty_ids extends BaseModel
 {
     use HasFactory;
     protected $table = 't_sales_order_qty_ids';

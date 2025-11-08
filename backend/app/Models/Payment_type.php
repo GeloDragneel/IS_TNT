@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Payment_type extends Model{
+use App\Models\BaseModel;
+
+class Payment_type extends BaseModel{
     use HasFactory;
 
     protected $table = 'm_payment_type';

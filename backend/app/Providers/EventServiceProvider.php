@@ -36,6 +36,7 @@ class EventServiceProvider extends ServiceProvider
         \App\Events\CustomerGroupEvent::class => [],
         \App\Events\APEvent::class => [],
         \App\Events\AccessRightEvent::class => [],
+        \App\Events\SyncEvent::class => [],
     ];
 
     /**

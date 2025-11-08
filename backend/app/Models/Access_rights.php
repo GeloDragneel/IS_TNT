@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Access_rights extends Model
+use App\Models\BaseModel;
+
+class Access_rights extends BaseModel
 {
     use HasFactory;
 

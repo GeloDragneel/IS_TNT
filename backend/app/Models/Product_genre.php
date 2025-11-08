@@ -5,7 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Genre;
-class Product_genre extends Model
+
+use App\Models\BaseModel;
+
+class Product_genre extends BaseModel
 {
     use HasFactory;
 
