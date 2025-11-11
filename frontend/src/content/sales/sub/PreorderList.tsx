@@ -624,6 +624,48 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
             setConfirmButton(false);
         }
     }, [selectedPreorder]);
+
+    useEffect(() => {
+        const TOTAL_LIMIT = Number(formData.balance_to_pay || 0);
+
+        if (TOTAL_LIMIT > 0 && selectedData.crDetails && selectedData.crDetails.length > 0) {
+            setSelectedData((prev: any) => {
+                const updatedCrDetails = [...prev.crDetails];
+                let remainingToDistribute = TOTAL_LIMIT;
+
+                // Reset all fields first
+                updatedCrDetails.forEach((detail: any, idx: number) => {
+                    if (Number(detail.amount) > 0) {
+                        updatedCrDetails[idx] = {
+                            ...updatedCrDetails[idx],
+                            default_amount: 0,
+                        };
+                    }
+                });
+
+                // Distribute the total amount
+                for (let i = 0; i < updatedCrDetails.length; i++) {
+                    if (Number(updatedCrDetails[i].amount) > 0 && remainingToDistribute > 0) {
+                        const maxForThisRow = Number(updatedCrDetails[i].amount);
+                        const amountToSet = Math.min(remainingToDistribute, maxForThisRow);
+
+                        updatedCrDetails[i] = {
+                            ...updatedCrDetails[i],
+                            default_amount: amountToSet,
+                        };
+
+                        remainingToDistribute -= amountToSet;
+                    }
+                }
+
+                return {
+                    ...prev,
+                    crDetails: updatedCrDetails,
+                };
+            });
+        }
+    }, [formData.balance_to_pay, creditsPopup]); // Triggers when balance_to_pay changes
+
     const fetchPreorder = async (page = currentPage, perPage = itemsPerPage, filters: FilterParams = { search: "" }) => {
         try {
             if (loading) {
@@ -1485,11 +1527,24 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
             setLoadingSaveVoucher(false);
         }
     };
+    const handleRemoveConfirmItems = async (id: number) => {
+        if (selectedPreorder.length === 1) {
+            showErrorToast(translations["Please remain atleast 1 item"] || "Please remain atleast 1 item");
+            return;
+        }
+
+        const confirmed = await showConfirm(translations["System Message"], translations["Are you sure you want to delete this record?"], translations["Delete"], translations["Cancel"]);
+        if (!confirmed) return;
+
+        selectedPreorder = selectedPreorder.filter((item) => item !== id);
+        onselectedPreorderChange(selectedPreorder);
+        handleConfirmOrder();
+    };
     const renderConfirmOrder = () => {
         if (!confirmPopup) return null;
         return (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-[#19191c] rounded-xl border border-[#ffffff1a] w-[70vw] h-auto flex flex-col">
+                <div className="bg-[#19191c] rounded-xl border border-[#ffffff1a] w-[80vw] h-auto flex flex-col">
                     {/* Header */}
                     <div className="flex items-center justify-between p-4 border-b border-[#ffffff1a]">
                         <div className="flex items-center space-x-4">
@@ -1575,7 +1630,10 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
                                                                             {item.currency} {formatMoney(item.item_deposit)}
                                                                         </td>
                                                                         <td className={`py-3 px-4 text-gray-400 text-left text-custom-sm ${!showInputs.isAll ? "" : "hidden"}`}>
-                                                                            <button className={`px-1 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-xs`}>
+                                                                            <button
+                                                                                onClick={() => handleRemoveConfirmItems(item.id)}
+                                                                                className={`px-1 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-xs`}
+                                                                            >
                                                                                 <X size={16} />
                                                                             </button>
                                                                         </td>
@@ -1949,6 +2007,7 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
                                         <tbody>
                                             {selectedData.crDetails.map((item: any, index: number) => {
                                                 if (Number(item.amount) > 0) {
+                                                    let inputValue = Number(item.default_amount) > Number(item.amount) ? 0 : item.default_amount ?? 0;
                                                     return (
                                                         <tr key={index}>
                                                             <td className="py-3 px-4 text-gray-400 text-left text-custom-sm">{item.account_code}</td>
@@ -1959,15 +2018,53 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
                                                             </td>
                                                             <td className="py-3 px-4 text-gray-400 text-left text-custom-sm">
                                                                 <input
-                                                                    value={item.default_amount ?? "0.00"}
+                                                                    value={inputValue === 0 ? "" : inputValue}
                                                                     onChange={(e) => {
-                                                                        const value = Number(e.target.value);
+                                                                        const inputVal = e.target.value === "" ? 0 : Number(e.target.value);
+                                                                        const TOTAL_LIMIT = Number(formData.balance_to_pay || 0);
+
                                                                         setSelectedData((prev: any) => {
                                                                             const updatedCrDetails = [...prev.crDetails];
+                                                                            const currentMaxAmount = Number(updatedCrDetails[index].amount);
+
+                                                                            // Cap input to row's max amount
+                                                                            const value = Math.min(inputVal, currentMaxAmount);
+
+                                                                            // Update current row
                                                                             updatedCrDetails[index] = {
                                                                                 ...updatedCrDetails[index],
                                                                                 default_amount: value,
                                                                             };
+
+                                                                            // Calculate remaining
+                                                                            const remaining = TOTAL_LIMIT - value;
+
+                                                                            // Clear all OTHER fields first
+                                                                            updatedCrDetails.forEach((detail: any, idx: number) => {
+                                                                                if (idx !== index && Number(detail.amount) > 0) {
+                                                                                    updatedCrDetails[idx] = {
+                                                                                        ...updatedCrDetails[idx],
+                                                                                        default_amount: 0,
+                                                                                    };
+                                                                                }
+                                                                            });
+
+                                                                            // If there's remaining, fill the next field
+                                                                            if (remaining > 0) {
+                                                                                for (let i = 0; i < updatedCrDetails.length; i++) {
+                                                                                    if (i !== index && Number(updatedCrDetails[i].amount) > 0) {
+                                                                                        const maxForThisRow = Number(updatedCrDetails[i].amount);
+                                                                                        const amountToSet = Math.min(remaining, maxForThisRow);
+
+                                                                                        updatedCrDetails[i] = {
+                                                                                            ...updatedCrDetails[i],
+                                                                                            default_amount: amountToSet,
+                                                                                        };
+                                                                                        break;
+                                                                                    }
+                                                                                }
+                                                                            }
+
                                                                             return {
                                                                                 ...prev,
                                                                                 crDetails: updatedCrDetails,
@@ -1975,7 +2072,8 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
                                                                         });
                                                                     }}
                                                                     type="number"
-                                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                                                    placeholder="0"
+                                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm w-full"
                                                                 />
                                                             </td>
                                                         </tr>

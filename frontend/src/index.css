@@ -402,7 +402,7 @@ input[type="number"] {
 }
 
 /* RESIZE SCREEN MEDIA */
-@media (max-width: 1400px) {
+@media (max-width: 1450px) {
     .py-1 {
         padding-top: 0.2rem;
         padding-bottom: 0.2rem;

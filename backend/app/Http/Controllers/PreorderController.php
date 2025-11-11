@@ -1290,8 +1290,7 @@ class PreorderController extends Controller{
 
         return $exists ? $orderId : 0;
     }
-    public function getCreditsDetail_old(int $customerId, string $targetCurrency,$balanceToPay)
-    {
+    public function getCreditsDetail_old(int $customerId, string $targetCurrency,$balanceToPay){
         // Step 1: Load all matching Account_customer_cn with related Charts_of_account
         $records = Account_customer_cn::with('account')
             ->where('customer_id', $customerId)
@@ -1363,8 +1362,7 @@ class PreorderController extends Controller{
             ->values()
             ->all();
     }
-    public function getCreditsDetail($customerId, $targetCurrency,$balanceToPay)
-    {
+    public function getCreditsDetail($customerId, $targetCurrency,$balanceToPay){
         $records = Account_customer_cn::with('account')
             ->where('customer_id', $customerId)
             ->get();
@@ -1445,6 +1443,7 @@ class PreorderController extends Controller{
         // Filter out accounts with non-positive totals
         $final = $intermediate
             ->filter(fn($row) => floatval($row['amount']) > 0)
+            ->sortByDesc('amount')   // <- sort descending
             ->values();
 
         return $final;
@@ -1544,8 +1543,7 @@ class PreorderController extends Controller{
             Orders::whereIn('id', $orderIds)->update(['order_status' => 1]);
         }
     }
-    function doPayCredits($params, $type)
-    {
+    function doPayCredits_old($params, $type){
         $balanceToPay = $params['balance_to_pay'];
         $baseCurrency = ISSettings::where('tag', 'basecurrency')->value('en');
         $operator = Operator::where('convertion', $params['currency'] . $baseCurrency)->value('operator') ?? '';
@@ -1871,8 +1869,365 @@ class PreorderController extends Controller{
             ]);
         }
     }
-    function doPayReceiveVoucher($param)
-    {
+    function doPayCredits($params, $type){
+        $balanceToPay = $params['balance_to_pay'];
+        $baseCurrency = ISSettings::where('tag', 'basecurrency')->value('en');
+        $operator = Operator::where('convertion', $params['currency'] . $baseCurrency)->value('operator') ?? '';
+        $baseBalanceToPay = 0;
+
+        $orderIds = explode(',', $params['orderId']);
+
+        // Optimize query: use sum for both cases consistently
+        if ($type === "JV") {
+            $paymentOrder = Orders::whereIn('id', $orderIds)->pluck('item_deposit')->implode(',');
+        }
+
+        if ($type === "JVRV") {
+            $paymentOrder = Orders::whereIn('id', $orderIds)->sum('item_deposit');
+        }
+
+        // Calculate base balance to pay
+        if ($baseCurrency == $params['currency']) {
+            $baseBalanceToPay = $balanceToPay;
+        } else {
+            if ($operator == "Divide") {
+                $baseBalanceToPay = $balanceToPay / $params['ex_rate'];
+            } elseif ($operator == "Multiply") {
+                $baseBalanceToPay = $balanceToPay * $params['ex_rate'];
+            }
+        }
+
+        // Format transaction date
+        $transactionDate = date('M d Y');
+
+        // Prepare data array with consistent key names
+        $data = [
+            'account_code1' => 21301,
+            'account_code2' => 21313,
+            'account_code3' => 21312,
+            'account_code4' => 21310,
+            'account_code5' => '',
+
+            'description1' => 'Customer Deposit',
+            'description2' => 'Customer Credit Note',
+            'description3' => 'Customer Advance Payment',
+            'description4' => 'Customer Excess Payment',
+            'description5' => '',
+
+            'amount1' => $balanceToPay,
+            'amount2' => $params['credit_note'],
+            'amount3' => $params['advance_payment'],
+            'amount4' => $params['base_excess_payment'],
+            'amount5' => 1,
+
+            'base_amount1' => $baseBalanceToPay,
+            'base_amount2' => $params['base_credit_note'],
+            'base_amount3' => $params['base_advance_payment'],
+            'base_amount4' => $params['base_excess_payment'],
+            'base_amount5' => 0,
+
+            'debit1' => 0,
+            'debit2' => $params['base_credit_note'],
+            'debit3' => $params['base_advance_payment'],
+            'debit4' => $params['base_excess_payment'],
+            'debit5' => 0,
+
+            'credit1' => $baseBalanceToPay,
+            'credit2' => 0,
+            'credit3' => 0,
+            'credit4' => 0,
+            'credit5' => 0,
+
+            'currency' => $params['currency'],
+            'ex_rate' => $params['ex_rate'],
+            'ar_invoice_no' => '',
+            'ref_id' => 1,
+            'transaction_date' => $transactionDate,
+            'customer' => $params['customerId'],
+            'orders_id' => $params['orderId'],
+            'payment_order' => $paymentOrder,
+            'Type' => $type,
+        ];
+
+        try {
+            return DB::transaction(function () use ($data) {
+                $now = Carbon::now();
+                $curDate = $now->format('ymd-His');
+                $jvNo = "JV" . $curDate;
+
+                $refID = $data['ref_id'];
+                $transactionDate = $data['transaction_date'];
+                $customer = $data['customer'];
+                $currency = $data['currency'];
+                $exRate = $data['ex_rate'];
+                $arInvoiceNo = $data['ar_invoice_no'];
+                $ordersID = $data['orders_id'];
+                $paymentOrder = $data['payment_order'];
+
+                // Batch inserts for General_entries and General_ledger
+                $generalEntriesData = [];
+                $generalLedgerData = [];
+
+                // Entry 1: CUSTDEP
+                if ($data['amount1'] > 0) {
+                    $generalEntriesData[] = [
+                        'jv_no' => $jvNo,
+                        'account_code' => $data['account_code1'],
+                        'description' => $data['description1'],
+                        'currency' => $currency,
+                        'ex_rate' => $exRate,
+                        'invoice_no' => $arInvoiceNo,
+                        'amount' => $data['amount1'],
+                        'base_amount' => $data['base_amount1'],
+                        'debit' => $data['debit1'],
+                        'credit' => $data['credit1'],
+                        'ref_id' => $refID,
+                        'transaction_date' => $transactionDate,
+                        'customer_id' => $customer,
+                    ];
+
+                    $generalLedgerData[] = [
+                        'account_code' => $data['account_code1'],
+                        'transaction_date' => $transactionDate,
+                        'acc_table' => 'general_entries',
+                        'currency' => $currency,
+                        'ex_rate' => $exRate,
+                        'acc_table_id' => "{$refID}-1",
+                        'customer_id' => $customer,
+                        'amount' => $data['amount1'],
+                        'ref_data' => $jvNo,
+                        'debit' => 0,
+                        'credit' => $data['base_amount1'],
+                    ];
+                }
+
+                // Entry 2: Credit Note
+                if ($data['amount2'] > 0) {
+                    $generalEntriesData[] = [
+                        'jv_no' => $jvNo,
+                        'account_code' => $data['account_code2'],
+                        'description' => $data['description2'],
+                        'currency' => $currency,
+                        'ex_rate' => $exRate,
+                        'invoice_no' => $arInvoiceNo,
+                        'amount' => $data['amount2'],
+                        'base_amount' => $data['base_amount2'],
+                        'debit' => $data['debit2'],
+                        'credit' => $data['credit2'],
+                        'ref_id' => $refID,
+                        'transaction_date' => $transactionDate,
+                        'customer_id' => $customer,
+                    ];
+
+                    $generalLedgerData[] = [
+                        'account_code' => $data['account_code2'],
+                        'transaction_date' => $transactionDate,
+                        'acc_table' => 'general_entries',
+                        'currency' => $currency,
+                        'ex_rate' => $exRate,
+                        'acc_table_id' => "{$refID}-2",
+                        'customer_id' => $customer,
+                        'amount' => $data['amount2'],
+                        'ref_data' => $jvNo,
+                        'debit' => $data['base_amount2'],
+                        'credit' => 0,
+                    ];
+                }
+
+                // Entry 3: Advance Payment
+                if ($data['amount3'] > 0) {
+                    $generalEntriesData[] = [
+                        'jv_no' => $jvNo,
+                        'account_code' => $data['account_code3'],
+                        'description' => $data['description3'],
+                        'currency' => $currency,
+                        'ex_rate' => $exRate,
+                        'invoice_no' => $arInvoiceNo,
+                        'amount' => $data['amount3'],
+                        'base_amount' => $data['base_amount3'],
+                        'debit' => $data['debit3'],
+                        'credit' => $data['credit3'],
+                        'ref_id' => $refID,
+                        'transaction_date' => $transactionDate,
+                        'customer_id' => $customer,
+                    ];
+                    $generalLedgerData[] = [
+                        'account_code' => $data['account_code3'],
+                        'transaction_date' => $transactionDate,
+                        'acc_table' => 'general_entries',
+                        'currency' => $currency,
+                        'ex_rate' => $exRate,
+                        'acc_table_id' => "{$refID}-3",
+                        'customer_id' => $customer,
+                        'amount' => $data['amount3'],
+                        'ref_data' => $jvNo,
+                        'debit' => $data['base_amount3'],
+                        'credit' => 0,
+                    ];
+                }
+
+                // Entry 4: Excess Payment
+                if ($data['amount4'] > 0) {
+                    $generalEntriesData[] = [
+                        'jv_no' => $jvNo,
+                        'account_code' => $data['account_code4'],
+                        'description' => $data['description4'],
+                        'currency' => $currency,
+                        'ex_rate' => $exRate,
+                        'invoice_no' => $arInvoiceNo,
+                        'amount' => $data['amount4'],
+                        'base_amount' => $data['base_amount4'],
+                        'debit' => $data['debit4'],
+                        'credit' => $data['credit4'],
+                        'ref_id' => $refID,
+                        'transaction_date' => $transactionDate,
+                        'customer_id' => $customer,
+                    ];
+
+                    $generalLedgerData[] = [
+                        'account_code' => $data['account_code4'],
+                        'transaction_date' => $transactionDate,
+                        'acc_table' => 'general_entries',
+                        'currency' => $currency,
+                        'ex_rate' => $exRate,
+                        'acc_table_id' => "{$refID}-4",
+                        'customer_id' => $customer,
+                        'amount' => $data['amount4'],
+                        'ref_data' => $jvNo,
+                        'debit' => $data['base_amount4'],
+                        'credit' => 0,
+                    ];
+                }
+
+                // Batch insert General_entries and General_ledger
+                if (!empty($generalEntriesData)) {
+                    General_entries::insert($generalEntriesData);
+                }
+                if (!empty($generalLedgerData)) {
+                    General_ledger::insert($generalLedgerData);
+                }
+
+                // Entry 5: Account_customer_cn and Payment_orders_cn
+                if ($data['amount5'] > 0) {
+                    $lastInsertedId = 0;
+                    $accountCustomerData = [];
+
+                    foreach ([2, 3, 4] as $i) {
+                        if ($data["amount{$i}"] > 0) {
+                            $accountCustomerData[] = [
+                                'account_code' => $data["account_code{$i}"],
+                                'customer_id' => $customer,
+                                'currency' => $currency,
+                                'cr_detail_id' => NULL,
+                                'ref_data' => $jvNo,
+                                'amount' => $data["amount{$i}"],
+                                'base_amount' => $data["base_amount{$i}"],
+                                'ex_rate' => $exRate,
+                                'debit' => $data["amount{$i}"],
+                                'credit' => 0,
+                                'particulars' => match ($i) {
+                                    2 => 'Offset Credit Note~抵扣帐款单',
+                                    3 => 'Offset Advance Payment~抵扣预付款',
+                                    4 => 'Offset Excess Payment~抵扣超额支付款',
+                                },
+                                'transaction_date' => $transactionDate,
+                            ];
+                        }
+                    }
+
+                    // Insert all account_customer records and get the last ID
+                    if (!empty($accountCustomerData)) {
+                        Account_customer_cn::insert($accountCustomerData);
+                        $lastInsertedId = DB::getPdo()->lastInsertId();
+                    }
+
+                    $orderIdArray = array_map('trim', is_array($ordersID) ? $ordersID : explode(',', $ordersID));
+                    $paymentOrderArray = array_map('trim', is_array($paymentOrder) ? $paymentOrder : explode(',', $paymentOrder));
+                    $isCombined = ($data['Type'] === "JV") ? 0 : 1;
+
+                    // Optimize: Batch fetch RV and JV sums for all orders at once
+                    $sumRVs = Receive_voucher_detail::whereIn('order_id', $orderIdArray)
+                        ->groupBy('order_id')
+                        ->selectRaw('order_id, SUM(amount) as total')
+                        ->pluck('total', 'order_id');
+
+                    $sumJVs = Payment_orders_cn::whereIn('order_id', $orderIdArray)
+                        ->get()
+                        ->groupBy('order_id')
+                        ->map(function ($group) {
+                            return $group->contains('is_combined', 1)
+                                ? $group->where('is_combined', 1)->max('payment_order')
+                                : $group->where('is_combined', 0)->sum('payment_order');
+                        });
+
+                    $paymentOrdersCnData = [];
+                    foreach ($orderIdArray as $index => $orderId) {
+                        $sumRV = $sumRVs[$orderId] ?? 0;
+                        $sumJV = $sumJVs[$orderId] ?? 0;
+
+                        $depositRVJV = $sumRV + $sumJV;
+                        $payment_order = count($paymentOrderArray) === 1
+                            ? $paymentOrderArray[0]
+                            : ($paymentOrderArray[$index] ?? 0);
+
+                        $paymentOrder = $payment_order - $depositRVJV;
+
+                        $paymentOrdersCnData[] = [
+                            'account_customer_cn_id' => $lastInsertedId,
+                            'order_id' => $orderId,
+                            'payment_order' => $paymentOrder,
+                            'is_combined' => $isCombined,
+                        ];
+                    }
+
+                    // Batch insert Payment_orders_cn
+                    if (!empty($paymentOrdersCnData)) {
+                        Payment_orders_cn::insert($paymentOrdersCnData);
+                    }
+
+                    // Single update for all orders
+                    Orders::whereIn('id', $orderIdArray)->update(['order_status' => 1]);
+                }
+
+                // Fetch orders with relationships once
+                $orderIds = explode(',', $ordersID);
+                $orders = Orders::with(['product','customer'])
+                    ->whereIn('id', $orderIds)
+                    ->get();
+
+                $globalController = new GlobalController();
+                foreach ($orders as $order) {
+                    $globalController->logAction(
+                        'Preorder', 't_orders',
+                        'Confirm',
+                        'Paid JV : Customer Code : ' . $order->customer->customer_code .
+                        ' - Product Code : ' . $order->product->product_code
+                    );
+                }
+                
+                event(new CustomerEvent('confirm'));
+                event(new PreorderEvent('confirm'));
+                event(new LogEvent('insert'));
+
+                return response()->json([
+                    'token'     => 'Success',
+                    'message'   => 'Order(s) Successfully Saved',
+                    'message2'  => '',
+                    'id'        => '',
+                    'action'    => 'Confirm'
+                ]);
+            });
+        } catch (\Exception $e) {
+            return response()->json([
+                'token'     => 'Error',
+                'message'   => 'Failed to create jv',
+                'message2'  => $e->getMessage(),
+                'id'        => 0,
+                'action'    => 'Confirm'
+            ]);
+        }
+    }
+    function doPayReceiveVoucher($param){
         if (is_null($param['bank'])) {
             return response()->json([
                 'token'     => 'Error',
