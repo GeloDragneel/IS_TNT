@@ -172,14 +172,24 @@ class PreorderController extends Controller{
         ]);
     }
     private function calculateFooterFromQuery($query){
-        $aggregates = $query->selectRaw('
-            SUM(qty) as total_qty,
-            SUM(qty * price) as total_amount,
-            SUM(base_total) as total_base_total,
-            SUM(e_cost_total) as total_e_cost_total,
-            SUM(e_profit) as total_e_profit,
-            SUM(CASE WHEN order_status = 2 THEN 0 ELSE base_item_deposit END) as total_base_deposit
-        ')->first();
+        // Clone the query to avoid modifying the original
+        $aggregateQuery = clone $query;
+        
+        // Remove ordering and limit for aggregation
+        $aggregates = $aggregateQuery
+            ->getQuery() // Get the base query builder
+            ->orders = null; // Remove order by
+        
+        $aggregates = $aggregateQuery
+            ->limit(null) // Remove limit
+            ->selectRaw('
+                SUM(qty) as total_qty,
+                SUM(qty * price) as total_amount,
+                SUM(base_total) as total_base_total,
+                SUM(e_cost_total) as total_e_cost_total,
+                SUM(e_profit) as total_e_profit,
+                SUM(CASE WHEN order_status = 2 THEN 0 ELSE base_item_deposit END) as total_base_deposit
+            ')->first();
 
         return [
             'qty' => $aggregates->total_qty ?? 0,
@@ -457,28 +467,39 @@ class PreorderController extends Controller{
         }
         return 0;
     }
-    function getProductStatus(int $productId): string|null
+    function getProductStatus(int $productId): ?string
     {
         $product = Products::find($productId);
 
-        if (!$product) return null;
+        if (!$product) {
+            return null;
+        }
 
-        $hasGRN = DB::table('t_grn_detail')->where('product_id', $productId)->exists();
+        // Check if product has GRN (Goods Receipt Note)
+        $hasGRN = DB::table('t_grn_detail')
+            ->where('product_id', $productId)
+            ->exists();
 
-        $today = Carbon::today();
-        $preorderEnd = null;
+        // If product has GRN, it's always Retail
+        if ($hasGRN) {
+            return 'Retail';
+        }
 
+        // Check preorder status
         if (!empty($product->preorder_end_date)) {
             try {
                 $preorderEnd = Carbon::createFromFormat('M d Y', $product->preorder_end_date);
+                $today = Carbon::today();
+
+                if ($today->lessThanOrEqualTo($preorderEnd)) {
+                    return 'Preorder';
+                }
             } catch (\Exception $e) {
-                return 'Retail'; // fallback in case of bad format
+                // Log the error for debugging
+                \Log::warning("Invalid preorder_end_date format for product {$productId}: {$product->preorder_end_date}");
             }
         }
 
-        if (!$hasGRN && $preorderEnd && $today->lessThanOrEqualTo($preorderEnd)) {
-            return 'Preorder';
-        }
         return 'Retail';
     }
     function checkPOOrderQty(int $productId, int $currentOrderId, int $newQty): int

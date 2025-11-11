@@ -11,8 +11,7 @@ class BaseModel extends Model
     /**
      * Booted method to attach global events for all models extending this.
     */
-    protected static function booted()
-    {
+    protected static function booted(){
         static::created(function ($model) {
             $model->logAudit('created', $model->toArray());
         });
@@ -25,7 +24,6 @@ class BaseModel extends Model
             $model->logAudit('deleted', $model->toArray());
         });
     }
-
     /**
      * Helper function to log the action.
     */

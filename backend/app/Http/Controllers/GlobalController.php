@@ -705,7 +705,7 @@ class GlobalController extends Controller
     public function logAction($module,$table,$action,$description){
         // Assuming you have variables for the log data, e.g., module, table, action, description, added_by
         // $addedBy = auth()->user() ? auth()->user()->user_id : null;
-        $addedBy = session('user_id') ?? 68;
+        $addedBy = session('user_id') ?? 69;
         $logData = [
             'module' => $module,
             'table' => $table,
