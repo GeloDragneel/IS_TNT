@@ -90,12 +90,15 @@ Route::middleware('throttle:api')->group(function () {
     Route::get('/expenses-list', [GlobalController::class, 'getAllExpenses']);
     Route::post('/restore-database', [GlobalController::class, 'restoreDatabase']);
     Route::post('/backup-database', [GlobalController::class, 'backupDatabase']);
+    Route::post('/download-database', [GlobalController::class, 'downloadBackup']);
     Route::put('/delete-database', [GlobalController::class, 'deleteDatabase']);
     Route::get('/get-invoice-type', [GlobalController::class, 'getAllInvoiceType']);
     Route::get('/get-shipping-stat', [GlobalController::class, 'getAllShippingStat']);
     Route::get('/invoice-status', [GlobalController::class, 'getInvoiceStatus']);
     Route::get('/payment-type-list', [GlobalController::class, 'getAllPaymentType']);
     Route::get('/get-serial-no', [GlobalController::class, 'getSerialNo']);
+    Route::post('/ai-report-query', [GlobalController::class, 'aiReportQuery']);
+    // Route::get('/ai-db-schema', [GlobalController::class, 'getSchemaDescription']);
 
     // PRODUCT API
     Route::get('/product-list', [ProductController::class, 'getAllProducts']);
@@ -144,6 +147,7 @@ Route::middleware('throttle:api')->group(function () {
     Route::put('/save-stock-take', [ProductController::class, 'saveStockTake']);
     Route::put('/delete-stock-take', [ProductController::class, 'delStockTake']);
     Route::put('/publish-product-imports', [ProductController::class, 'publishProductImports']);
+    Route::post('/download-library', [ProductController::class, 'downloadLibrary']);
 
     // CUSTOMER API
     Route::get('/customer-info/{id}', [CustomerController::class, 'getCustomerInfo']);

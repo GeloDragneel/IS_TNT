@@ -28,7 +28,7 @@ const LogLists: React.FC<LogListsProps> = ({ tabId }) => {
     const [loadingMessage, setLoadingMessage] = useState("");
     const [db_time, setTime] = useState("");
     const [loading, setLoading] = useState(false);
-
+    const [downloading, setDownloading] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(() => {
         const metaKey = `${tabId}-cached-meta-backup`;
         const cachedMeta = localStorage.getItem(metaKey);
@@ -176,6 +176,26 @@ const LogLists: React.FC<LogListsProps> = ({ tabId }) => {
             console.error("No Record(s) Has Been Deleted : ", err);
         }
     };
+    const handleDownload = async (filename: string) => {
+        setDownloading(filename);
+        try {
+            // Pass only filename, the service handles the rest
+            const response = await globalService.downloadDatabase(filename);
+            // response.data contains the blob
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            showErrorToast('Failed to download backup file');
+        } finally {
+            setDownloading(null);
+        }
+    };
     const filteredBackup = backupLists.filter((list) => {
         const searchLower = searchTerm.toLowerCase();
         return list.filename?.toString().includes(searchLower) || list.size_human?.toLowerCase().includes(searchLower) || list.last_modified?.toLowerCase().includes(searchLower);
@@ -316,7 +336,10 @@ const LogLists: React.FC<LogListsProps> = ({ tabId }) => {
                                         <td className="py-3 px-2 text-gray-400 text-left text-custom-sm">{list.size_human}</td>
                                         <td className="py-3 px-2 text-gray-400 text-left text-custom-sm flex items-center space-x-1">
                                             <div className="relative group inline-block">
-                                                <button className={`px-1 py-1 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors text-xs`}>
+                                                <button 
+                                                    onClick={() => list.filename && handleDownload(list.filename)}
+                                                    disabled={downloading === list.filename}
+                                                    className={`px-1 py-1 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors text-xs`}>
                                                     <Download size={20} />
                                                 </button>
                                                 <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-10">

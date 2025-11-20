@@ -367,7 +367,7 @@ const CustomerGroupList: React.FC<CustomerGroupListProps> = ({ tabId }) => {
                                     <span>{translations["Processing2"]}...</span>
                                 </>
                             ) : (
-                                <span>{translations["Send"]}</span>
+                                <span>{formData.id === 0 ? translations["Save"] : translations['Update']}</span>
                             )}
                         </button>
                     </div>

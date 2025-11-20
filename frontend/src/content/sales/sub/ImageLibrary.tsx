@@ -12,7 +12,7 @@ const ImageLibrary: React.FC<ImageLibraryProps> = ({ onImageSelect, onClose }) =
     const [dragOver, setDragOver] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [searchProduct, setSearchProduct] = useState("");
-    const { translations, lang } = useLanguage();
+    const { translations } = useLanguage();
     const handleImageUpload = (files: FileList) => {
         Array.from(files).forEach((file) => {
             if (file.type.startsWith("image/")) {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { productService, ApiProduct, ProductImage, ProductPricing, Profitability } from "@/services/productService";
+import imageCompression from "browser-image-compression";
 import {
     fetchProductTypes,
     fetchProductManufaturer,
@@ -26,7 +27,7 @@ import RichTextEditor from "@/components/RichTextEditor";
 import { useDropzone } from "react-dropzone";
 import "flatpickr/dist/themes/dark.css";
 import CustomCheckbox from "@/components/CustomCheckbox";
-import { ArrowLeft, X, Upload, Trash2, Images, GripVertical, Move, Plus } from "lucide-react";
+import { ArrowLeft, X, Upload, Trash2, Images, GripVertical, Move, Plus,Download,ChevronLeft,ChevronRight} from "lucide-react";
 import Pagination from "@/components/Pagination";
 import CopyToClipboard from "@/components/CopyToClipboard";
 import { productStatusLocalized, getStatusColor } from "@/utils/statusUtils";
@@ -82,6 +83,7 @@ const defaultProduct: ApiProduct = {
 
 const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, onBack, onSave, onChangeProductId, onChangeSaveType, tabId, copySettings }) => {
     const { translations, lang } = useLanguage();
+    const [ staticLang, setLang] = useState(lang);
     const locale = getFlatpickrLocale(translations);
     const [product, setProduct] = useState<ApiProduct | null>(null);
     const [loading, setLoading] = useState(true);
@@ -93,6 +95,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
     const [showImageGallery, setShowImageGallery] = useState(false);
     const [showCopyProduct, setShowCopyProduct] = useState(false);
     const [showPopupDropdown, setShowPopupDropdown] = useState(false);
+    const [uploadNewImage, setUploadNewImage] = useState(false);
     const [selectedImages, setSelectedImages] = useState<string[]>([]);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [isDirty, setIsDirty] = useState(false);
@@ -519,6 +522,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                     rank: 1,
                 };
                 setThumbnailImage(newImage);
+                setUploadNewImage(true);
                 setIsDirty(true);
             }
         },
@@ -538,6 +542,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                     rank: 1,
                 };
                 setDisplayImage(newImage);
+                setUploadNewImage(true);
                 setIsDirty(true);
             }
         },
@@ -557,6 +562,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                     rank: 1,
                 };
                 setBannerImage(newImage);
+                setUploadNewImage(true);
                 setIsDirty(true);
             }
         },
@@ -601,7 +607,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
 
                 return [...updatedRank, ...deletedImages];
             });
-
+            setUploadNewImage(true);
             setIsDirty(true);
         },
     });
@@ -653,9 +659,11 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
             isDirtyRef.current = false;
             setIsInitialized(false);
             setLoading(false);
+            setUploadNewImage(false);
         } else {
             // 'edit' or 'copy'
             fetchAllProductData();
+            setUploadNewImage(false);
         }
     }, [productId, saveType, copiedProductId, currentPage_Invoice, currentPage_Order]);
 
@@ -1142,7 +1150,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
             return;
         }
         if (productCode != productCodeOld && productId != 0) {
-            const confirmed = await showConfirm(translations["Product Code Update"], translations["Are you sure you want to Change Item Code"], translations["Delete"], translations["Cancel"]);
+            const confirmed = await showConfirm(translations["Product Code Update"], translations["Are you sure you want to Change Item Code"], translations["Yes"], translations["Cancel"]);
             if (!confirmed) {
                 setLoadingSave(false); // Enable button again
                 return;
@@ -1181,23 +1189,39 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
 
         // Append images
         const allImages = [thumbnailImage, displayImage, bannerImage, ...slideImages];
-        allImages.forEach((image) => {
-            if (image) {
-                if (image.isNew && image.file) {
-                    data.append("images[]", image.file);
+        for (const image of allImages) {
+            if (!image) continue;
+
+            // Create JSON metadata
+            data.append(
+                "image_data[]",
+                JSON.stringify({
+                    id: image.apiId,
+                    type: image.type,
+                    rank: image.rank,
+                    isDeleted: image.isDeleted,
+                    isNew: image.isNew,
+                })
+            );
+
+            // Only compress new files
+            if (image.isNew && image.file) {
+                // Options: adjust maxSizeMB, maxWidthOrHeight as needed
+                const options = {
+                    maxSizeMB: 0.09, // ~90 KB
+                    maxWidthOrHeight: 1200,
+                    useWebWorker: true,
+                };
+
+                try {
+                    const compressedFile = await imageCompression(image.file, options);
+                    data.append("images[]", compressedFile);
+                } catch (error) {
+                    console.error("Image compression error:", error);
+                    data.append("images[]", image.file); // fallback: use original
                 }
-                data.append(
-                    "image_data[]",
-                    JSON.stringify({
-                        id: image.apiId,
-                        type: image.type,
-                        rank: image.rank,
-                        isDeleted: image.isDeleted,
-                        isNew: image.isNew,
-                    })
-                );
             }
-        });
+        }
 
         try {
             const result = await productService.updateProduct(productId, data);
@@ -1227,6 +1251,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
             await updateCachedRaw("productImages");
             await updateCachedRaw("productWholesale");
             await updateCachedRaw("productRetail");
+            setUploadNewImage(false);
             showSuccessToast(translations["Product Successfully Saved"]);
             onSave(); // This will now trigger the cache clearing in the parent
         } catch (error) {
@@ -2011,6 +2036,62 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
             console.error("Error deleting images:", error);
         }
     };
+
+    const handleDownloadSelectedImages = async () => {
+        if (selectedImages.length === 0) return;
+
+        const confirmed = await showConfirm(
+            translations["System Message"],
+            `Are you sure you want to download ${selectedImages.length} selected image(s)?`,
+            translations["Download"],
+            translations["Cancel"]
+        );
+        if (!confirmed) return;
+
+        try {
+            const allImage = getAllImages();
+            const filteredImages = allImage.filter(img => selectedImages.includes(img.id));
+
+            const details = filteredImages.map(img => {
+                const ext = img.path?.split('.').pop() || 'jpg';
+                return {
+                    path: img.path || '',
+                    type: img.type,
+                    name: `${img.id}.${ext}`
+                };
+            });
+
+            // Download directly as blob
+            const response = await fetch(import.meta.env.VITE_API_BASE_URL + '/download-library', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    details,
+                    product_code: formData.product_code
+                })
+            });
+
+            if (!response.ok) throw new Error('Download failed');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${formData.product_code}.zip`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            setSelectedImages([]);
+            setIsDirty(true);
+        } catch (error) {
+            showErrorToast("Error downloading images:" + error);
+            console.error("Error downloading images:", error);
+        }
+    };
     const handleRowClick = async (e: React.MouseEvent, id: number, type: string) => {
         e.preventDefault();
         try {
@@ -2173,6 +2254,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
     }, []);
     const handlePreorderEndDateChange = useCallback((dates: Date[]) => {
         setFormData((prev) => ({ ...prev, preorder_end_date: dates[0] ?? null }));
+        setFormData((prev) => ({ ...prev, preorder_dateline: dates[0] ?? null }));
         if (!isDirtyRef.current) {
             setIsDirty(true); // ✅ only if user is editing
         }
@@ -2197,6 +2279,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
     }, []);
     const handlePreorderDatelineChange = useCallback((dates: Date[]) => {
         setFormData((prev) => ({ ...prev, preorder_dateline: dates[0] ?? null }));
+        setFormData((prev) => ({ ...prev, preorder_end_date: dates[0] ?? null }));
         if (!isDirtyRef.current) {
             setIsDirty(true); // ✅ only if user is editing
         }
@@ -2278,7 +2361,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                 <div className="grid gap-2">
                     {/* Product Code Section */}
                     <fieldset className="border-[1px] border-[#ffffff1a] rounded-lg p-4 space-y-2">
-                        <div className="grid grid-cols-2 gap-6">
+                        <div className="grid grid-cols-2 gap-4">
                             <div className="flex items-center space-x-4">
                                 <label className="w-32 text-gray-400 text-sm">{translations["Product Code"]}</label>
                                 <input
@@ -2307,52 +2390,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                 />
                             </div>
                             <div className="flex items-center space-x-4">
-                                <label className="w-32 text-gray-400 text-sm">{translations["Product Name"]}</label>
-                                <input
-                                    type="text"
-                                    hidden={lang === "cn"}
-                                    value={formData.product_title_en}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        setFormData((prev) => ({ ...prev, product_title_en: value }));
-                                        if (!isDirtyRef.current) {
-                                            setIsDirty(true); // ✅ only if user is editing
-                                        }
-                                    }}
-                                    className="flex-1 px-3 py-2 border-[1px] border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                />
-                                <input
-                                    type="text"
-                                    hidden={lang === "en"}
-                                    value={formData.product_title_cn}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        setFormData((prev) => ({ ...prev, product_title_cn: value }));
-                                        if (!isDirtyRef.current) {
-                                            setIsDirty(true); // ✅ only if user is editing
-                                        }
-                                    }}
-                                    className="flex-1 px-3 py-2 border-[1px] border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                />
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-6">
-                            <div className="flex items-center space-x-4">
-                                <label className="w-32 text-gray-400 text-sm">{translations["Barcode No"]}</label>
-                                <input
-                                    type="text"
-                                    value={formData.barcode}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        setFormData((prev) => ({ ...prev, barcode: value }));
-                                        if (!isDirtyRef.current) {
-                                            setIsDirty(true); // ✅ only if user is editing
-                                        }
-                                    }}
-                                    className="flex-1 px-3 py-2 border-[1px] border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                                />
-                            </div>
-                            <div className="flex items-center space-x-4">
                                 <label className="w-32 text-gray-400 text-sm">{translations["Pcs/Carton"]}</label>
                                 <input
                                     type="number"
@@ -2369,15 +2406,63 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                 />
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-6">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="flex items-center space-x-4">
+                                <label className="w-32 text-gray-400 text-sm">{translations["Barcode No"]}</label>
+                                <input
+                                    type="text"
+                                    value={formData.barcode}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        setFormData((prev) => ({ ...prev, barcode: value }));
+                                        if (!isDirtyRef.current) {
+                                            setIsDirty(true); // ✅ only if user is editing
+                                        }
+                                    }}
+                                    className="flex-1 px-3 py-2 border-[1px] border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                />
+                            </div>
                             <div className="flex items-center space-x-4">
                                 <label className="w-32 text-gray-400 text-sm">{translations["Item Weight"]}</label>
                                 <input
-                                    type="text"
+                                    type="number"
                                     value={formData.item_weight}
                                     onChange={(e) => {
                                         const value = e.target.value;
                                         setFormData((prev) => ({ ...prev, item_weight: value }));
+                                        if (!isDirtyRef.current) {
+                                            setIsDirty(true); // ✅ only if user is editing
+                                        }
+                                    }}
+                                    className="flex-1 px-3 py-2 border-[1px] border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="flex items-center space-x-4">
+                                <label className="w-32 text-gray-400 text-sm flex items-center space-x-2">
+                                    <span>{translations["Product Name"]}</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    hidden={staticLang === "cn"}
+                                    value={formData.product_title_en}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        setFormData((prev) => ({ ...prev, product_title_en: value }));
+                                        if (!isDirtyRef.current) {
+                                            setIsDirty(true); // ✅ only if user is editing
+                                        }
+                                    }}
+                                    className="flex-1 px-3 py-2 border-[1px] border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                />
+                                <input
+                                    type="text"
+                                    hidden={staticLang === "en"}
+                                    value={formData.product_title_cn}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        setFormData((prev) => ({ ...prev, product_title_cn: value }));
                                         if (!isDirtyRef.current) {
                                             setIsDirty(true); // ✅ only if user is editing
                                         }
@@ -2404,7 +2489,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                             </div>
                         </div>
                     </fieldset>
-
                     {/* Product Type Section */}
                     <fieldset className="border-[1px] border-[#ffffff1a] rounded-lg p-4 space-y-4">
                         <div className="grid gap-2">
@@ -2500,7 +2584,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                 </div>
                                 <div className="flex items-center space-x-4">
                                     <label className="w-32 text-gray-400 text-sm flex">
-                                        {translations["Brand"]}
+                                        {translations["License"]}
                                         <div className="bg-blue-500 rounded-full p-0 hover:bg-blue-400 cursor-pointer focus:outline-none inline-flex items-center justify-center ml-2">
                                             <Plus onClick={() => handlePopupDropdown("Brand")} className="h-5 w-5 text-white" />
                                         </div>
@@ -2528,7 +2612,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                     />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-1 gap-6">
+                            <div className="grid grid-cols-2 gap-6">
                                 <div className="flex items-center space-x-4">
                                     <label className="w-32 text-gray-400 text-sm flex">
                                         {translations["Genre"]}
@@ -2559,10 +2643,10 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                         menuPortalTarget={typeof window !== "undefined" ? document.body : null}
                                     />
                                 </div>
+                                <div className="flex items-center space-x-4"></div>
                             </div>
                         </div>
                     </fieldset>
-
                     {/* Product Order Section */}
                     <fieldset className="border-[1px] border-[#ffffff1a] rounded-lg p-4 space-y-4">
                         <div className="grid gap-2">
@@ -2625,7 +2709,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                             </div>
                         </div>
                     </fieldset>
-
                     {/* Description Editor Section */}
                     <fieldset className="border-[1px] border-[#ffffff1a] rounded-lg p-4 space-y-4">
                         <div className="grid gap-2">
@@ -2654,7 +2737,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                                     setIsDirty(true); // ✅ only if user is editing
                                                 }
                                             }}
-                                            className={lang === "cn" ? "hidden" : ""}
+                                            className={staticLang === "cn" ? "hidden" : ""}
                                         />
                                         <RichTextEditor
                                             value={formData.product_description_cn}
@@ -2664,7 +2747,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                                     setIsDirty(true); // ✅ only if user is editing
                                                 }
                                             }}
-                                            className={lang === "en" ? "hidden" : ""}
+                                            className={staticLang === "en" ? "hidden" : ""}
                                         />
                                     </>
                                 )}
@@ -2712,13 +2795,13 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                         </div>
 
                         {/* Product Thumbnail Image/Drop */}
-                        <div className="col-span-4 h-[472px]">
+                        <div className="col-span-4 h-[320px] w-[320px]">
                             {thumbnailImage && !thumbnailImage.isDeleted ? (
-                                <div className="relative h-[472px]">
+                                <div className="relative h-[320px] w-[320px]">
                                     <img
                                         src={getImageUrl(thumbnailImage)}
                                         alt="Product Thumbnail"
-                                        className="w-full h-[472px] object-cover rounded-lg"
+                                        className="w-full h-[320px] w-[320px] object-cover rounded-lg"
                                         onError={(e) => {
                                             const target = e.target as HTMLImageElement;
                                             target.src = "https://tnt2.simplify.cool/images/no-image-min.jpg";
@@ -2737,7 +2820,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                             ) : (
                                 <div
                                     {...thumbnailDropzone.getRootProps()}
-                                    className={`border-2 h-[472px] border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors h-full flex flex-col items-center justify-center ${
+                                    className={`border-2 h-[400px] border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors h-full flex flex-col items-center justify-center ${
                                         thumbnailDropzone.isDragActive ? "border-cyan-500 bg-cyan-500/10" : "border-gray-600 hover:border-gray-500"
                                     }`}
                                 >
@@ -2755,13 +2838,13 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                         </div>
 
                         {/* Product Display Image/Drop */}
-                        <div className="col-span-4 h-[350px]">
+                        <div className="col-span-4 h-[360px]">
                             {displayImage && !displayImage.isDeleted ? (
-                                <div className="relative h-[350px]">
+                                <div className="relative h-[360px]">
                                     <img
                                         src={getImageUrl(displayImage)}
                                         alt="Product Display"
-                                        className="w-full h-[350px] object-cover rounded-lg"
+                                        className="w-full h-[360px] object-cover rounded-lg"
                                         onError={(e) => {
                                             const target = e.target as HTMLImageElement;
                                             target.src = "https://tnt2.simplify.cool/images/no-image-min.jpg";
@@ -2780,7 +2863,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                             ) : (
                                 <div
                                     {...displayDropzone.getRootProps()}
-                                    className={`border-2 h-[350px] border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors h-full flex flex-col items-center justify-center ${
+                                    className={`border-2 h-[400px] border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors h-full flex flex-col items-center justify-center ${
                                         displayDropzone.isDragActive ? "border-cyan-500 bg-cyan-500/10" : "border-gray-600 hover:border-gray-500"
                                     }`}
                                 >
@@ -2823,7 +2906,29 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                             <div className="col-span-8">
                                 {slideImages.filter((img) => !img.isDeleted).length > 0 ? (
                                     <div className="relative">
-                                        <div className="flex space-x-3 overflow-x-auto pb-2">
+                                        {/* Left Arrow */}
+                                        <button
+                                            onClick={() => {
+                                                const container = document.getElementById('slide-images-container');
+                                                if (container) container.scrollBy({ left: -200, behavior: 'smooth' });
+                                            }}
+                                            className="absolute left-2 top-16 -translate-y-1/2 z-20 p-2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full transition-opacity"
+                                        >
+                                            <ChevronLeft className="h-5 w-5" />
+                                        </button>
+
+                                        {/* Right Arrow */}
+                                        <button
+                                            onClick={() => {
+                                                const container = document.getElementById('slide-images-container');
+                                                if (container) container.scrollBy({ left: 200, behavior: 'smooth' });
+                                            }}
+                                            className="absolute right-2 top-16 -translate-y-1/2 z-20 p-2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white rounded-full transition-opacity"
+                                        >
+                                            <ChevronRight className="h-5 w-5" />
+                                        </button>
+
+                                        <div id="slide-images-container" className="flex space-x-3 overflow-x-auto pb-2 scroll-smooth">
                                             {slideImages
                                                 .filter((img) => !img.isDeleted)
                                                 .map((image, index) => (
@@ -2867,7 +2972,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                                     </div>
                                                 ))}
                                         </div>
-
                                         {/* Drag Instructions */}
                                         <p className="text-gray-400 text-xs mt-2 flex items-center">
                                             <Move className="h-3 w-3 mr-1" />
@@ -3989,13 +4093,22 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                         <span>Select All</span>
                                     </label>
                                     {selectedImages.length > 0 && (
-                                        <button
-                                            onClick={handleDeleteSelectedImages}
-                                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-1"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                            <span>Delete ({selectedImages.length})</span>
-                                        </button>
+                                        <>
+                                            <button
+                                                onClick={handleDeleteSelectedImages}
+                                                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-1"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                                <span>{translations['Delete']} ({selectedImages.length})</span>
+                                            </button>
+                                                                                    <button
+                                                onClick={handleDownloadSelectedImages}
+                                                className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-1"
+                                            >
+                                                <Download className="h-4 w-4" />
+                                                <span>{translations['Download']} ({selectedImages.length})</span>
+                                            </button>
+                                        </>
                                     )}
                                 </>
                             )}
@@ -4194,7 +4307,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                             {translations["Close"]}
                         </button>
                         <button onClick={handleCopyProduct} className="px-2 py-2 bg-cyan-600 hover:bg-cyan-500 rounded text-white transition">
-                            {translations["Save"]}
+                            {translations["Copy"]}
                         </button>
                     </div>
                 </div>
@@ -4606,6 +4719,11 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                     {tab.label}
                                 </button>
                             ))}
+                            <label className="text-gray-400 text-sm flex items-center space-x-2 pl-2">
+                                <span className={`cursor-pointer text-custom-sm ${staticLang === "en" ? "text-blue-500 font-semibold" : "text-gray-500"}`} onClick={() => setLang("en")}>EN</span> 
+                                <span className={`cursor-pointer text-custom-sm text-gray-500`}>|</span> 
+                                <span className={`cursor-pointer text-custom-sm ${staticLang === "cn" ? "text-blue-500 font-semibold" : "text-gray-500"}`} onClick={() => setLang("cn")}>CN</span>
+                            </label>
                         </div>
                     </div>
 
@@ -4614,8 +4732,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                         <button
                             onClick={handleSave}
                             className={`px-4 py-2 text-custom-sm rounded-lg text-sm font-medium transition-colors 
-                  ${loadingSave ? "bg-gray-500 cursor-not-allowed opacity-50" : "bg-cyan-600 hover:bg-cyan-700"} 
-                  text-[#ffffffcc] flex justify-center items-center`}
+                            ${loadingSave ? "bg-gray-500 cursor-not-allowed opacity-50" : "bg-cyan-600 hover:bg-cyan-700"} 
+                            text-[#ffffffcc] flex justify-center items-center`}
                             disabled={loadingSave}
                         >
                             {loadingSave ? (
@@ -4624,7 +4742,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                     <span>{translations["Processing2"]}...</span>
                                 </>
                             ) : (
-                                <span>{translations["Save"]}</span>
+                                <span>{productId === 0 ? translations["Save"] : translations['Update']}</span>
                             )}
                         </button>
                         <button onClick={handleAddNew} className="px-2 py-2 bg-cyan-600 hover:bg-cyan-700 text-[#ffffffcc] text-custom-sm rounded-lg text-sm font-medium transition-colors">
@@ -4639,7 +4757,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                         >
                             <Images className="h-4 w-4" />
                             <span>
-                                {translations["Library"]} ({getAllImages().length})
+                                {translations["Library"]} {uploadNewImage ? translations['Unsaved'] : ''} ({getAllImages().length})
                             </span>
                         </button>
                         <button onClick={handleDelete} className="px-2 py-2 bg-red-600 hover:bg-red-700 text-[#ffffffcc] text-custom-sm rounded-lg text-sm font-medium transition-colors">

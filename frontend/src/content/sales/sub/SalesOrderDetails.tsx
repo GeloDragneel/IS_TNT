@@ -3129,7 +3129,7 @@ const SalesOrderDetails: React.FC<SalesOrderDetailsProps> = ({ salesOrderId, tab
                                     <span>{translations["Processing2"]}...</span>
                                 </>
                             ) : (
-                                <span>{translations["Save"]}</span>
+                                <span>{salesOrderId === 0 ? translations["Save"] : translations['Update']}</span>
                             )}
                         </button>
                         <button

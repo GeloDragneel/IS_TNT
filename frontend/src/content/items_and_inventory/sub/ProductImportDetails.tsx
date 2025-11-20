@@ -4615,7 +4615,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ productId, saveType, on
                                     <span>{translations["Processing2"]}...</span>
                                 </>
                             ) : (
-                                <span>{translations["Save"]}</span>
+                                <span>{productId === 0 ? translations["Save"] : translations['Update']}</span>
                             )}
                         </button>
                         <button onClick={handleAddNew} className="px-2 py-2 bg-cyan-600 hover:bg-cyan-700 text-[#ffffffcc] text-custom-sm rounded-lg text-sm font-medium transition-colors">

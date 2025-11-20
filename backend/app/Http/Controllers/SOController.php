@@ -33,6 +33,7 @@ use App\Models\Order_Voucher;
 use App\Models\Internal_Transfer;
 use App\Models\Products;
 use App\Models\Credit_note_customer_detail;
+use App\Models\Accounts_receivable;
 
 use App\Events\ProductEvent;
 use App\Events\AllocationEvent;
@@ -360,7 +361,11 @@ class SOController extends Controller{
         return $so;
     }
     private function getOrderMasterData($so){
-        $current_credit = Credits::where('customer_id',$so->customer_id)->value('current_credit');
+        $balance = Accounts_receivable::where('customer_id', $so->customer_id)
+            ->where('balance', '>', 0)
+            ->sum('balance') ?? 0;
+
+        $current_credit = Credits::where('customer_id',$so->customer_id)->value('current_credit') - $balance;
         return [
             'id' => $so->id,
             'so_number' => $so->so_number,
@@ -402,8 +407,8 @@ class SOController extends Controller{
                 else{
                     $table_id = optional($detail->services)->id;
                     $product_code = optional($detail->services)->service_code;
-                    $product_title_en = optional($detail->services)->description_en;
-                    $product_title_cn = optional($detail->services)->description_cn;
+                    $product_title_en = $detail->particular;
+                    $product_title_cn = $detail->particular;
                 }
                 return [
                     'table_id' => $table_id,
@@ -1697,43 +1702,45 @@ class SOController extends Controller{
                     if((int) $list['is_deleted'] === 0){
                         if ((int) $recordID === 0) {
                             $allocation_id = 0;
-                            if($list['alloc_type'] === 'Manual'){
-                                $alloc = Inventory_allocation::create([
-                                    'customer_id' => $request->customer_id,
-                                    'qty' => $list['qty'],
-                                    'allocated_qty' => 0,
-                                    'currency' => $request->currency,
-                                    'price' => $list['price'],
-                                    'total' => $list['total'],
-                                    'product_id' => $list['product_id'],
-                                    'pod' => $list['warehouse'],
-                                    'warehouse' => $list['warehouse'],
-                                    'sales_person_id' => $request->sales_person_id,
-                                    'so_number' => $GlobalTableNo,
-                                    'grn_detail_id' => $list['grn_detail_id'],
-                                    'grn_no' => $list['grn_no'],
-                                ]);
-                                $allocation_id = $alloc->id;
-                            }
-                            else{
-                                $alloc = Inventory_allocation::create([
-                                    'customer_id' => $request->customer_id,
-                                    'qty' => $list['qty'],
-                                    'allocated_qty' => 0,
-                                    'currency' => $request->currency,
-                                    'price' => $list['price'],
-                                    'total' => $list['total'],
-                                    'deposit' => $list['deposit'],
-                                    'product_id' => $list['product_id'],
-                                    'pod' => $list['warehouse'],
-                                    'warehouse' => $list['warehouse'],
-                                    'sales_person_id' => $request->sales_person_id,
-                                    'so_number' => $GlobalTableNo,
-                                    'grn_detail_id' => $list['grn_detail_id'],
-                                    'order_id' => $list['order_id'],
-                                    'grn_no' => $list['grn_no'],
-                                ]);
-                                $allocation_id = $alloc->id;
+                            if($list['product_type'] === 0){
+                                if($list['alloc_type'] === 'Manual'){
+                                    $alloc = Inventory_allocation::create([
+                                        'customer_id' => $request->customer_id,
+                                        'qty' => $list['qty'],
+                                        'allocated_qty' => 0,
+                                        'currency' => $request->currency,
+                                        'price' => $list['price'],
+                                        'total' => $list['total'],
+                                        'product_id' => $list['product_id'] ?: null,
+                                        'pod' => $list['warehouse'] === '' ? 0 : $list['warehouse'],
+                                        'warehouse' => $list['warehouse'] === '' ? 0 : $list['warehouse'],
+                                        'sales_person_id' => $request->sales_person_id,
+                                        'so_number' => $GlobalTableNo,
+                                        'grn_detail_id' => empty($list['grn_detail_id']) ? null : $list['grn_detail_id'],
+                                        'grn_no' => empty($list['grn_no']) ? 0 : $list['grn_no'],
+                                    ]);
+                                    $allocation_id = $alloc->id;
+                                }
+                                else{
+                                    $alloc = Inventory_allocation::create([
+                                        'customer_id' => $request->customer_id,
+                                        'qty' => $list['qty'],
+                                        'allocated_qty' => 0,
+                                        'currency' => $request->currency,
+                                        'price' => $list['price'],
+                                        'total' => $list['total'],
+                                        'deposit' => $list['deposit'],
+                                        'product_id' => $list['product_id'] ?: null,
+                                        'pod' => $list['warehouse'] === '' ? "0" : $list['warehouse'],
+                                        'warehouse' => $list['warehouse'] === '' ? "0" : $list['warehouse'],
+                                        'sales_person_id' => $request->sales_person_id,
+                                        'so_number' => $GlobalTableNo,
+                                        'grn_detail_id' => $list['grn_detail_id'] ?: null,
+                                        'order_id' => $list['order_id'] ?: null,
+                                        'grn_no' => $list['grn_no'] === '' ? "0" : $list['grn_no'],
+                                    ]);
+                                    $allocation_id = $alloc->id;
+                                }
                             }
                             $insertDetail = [
                                 'so_number' => $GlobalTableNo,

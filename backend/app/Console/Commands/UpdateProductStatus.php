@@ -16,8 +16,7 @@ class UpdateProductStatus extends Command
     protected $description = 'Update product status and remaining quantity daily at midnight';
 
     // Execute the console command.
-    public function handle()
-    {
+    public function handle(){
         // Get all products, or you can loop through based on some condition if needed
         $products = Products::all();
 
@@ -37,8 +36,7 @@ class UpdateProductStatus extends Command
     }
 
     // Assuming this method exists in the Products model
-    function updateProductRemQty(int $product_id)
-    {
+    function updateProductRemQty(int $product_id){
         // Step 1: Get the product
         $product = Products::where('id', $product_id)->first();
 

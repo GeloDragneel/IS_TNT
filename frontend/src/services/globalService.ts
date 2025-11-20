@@ -132,7 +132,18 @@ export const globalService = {
             throw new Error('Failed to delete db');
         }
     },
-
+    downloadDatabase: async (filename: string): Promise<any> => {
+        try {
+            const response = await api.post(`/download-database`,
+                { filename: filename },
+                { responseType: 'blob' } // Add responseType here
+            );
+            return response; // Return full response, not just response.data
+        } catch (error) {
+            console.error('Error downloading database:', error);
+            throw new Error('Failed to download database');
+        }
+    },
     getSerialNo: async (page = 1, perPage = 10, search = ''): Promise<PaginatedResponse<ApiSerialNo>> => {
         try {
             const response = await api.get<SerialNoResponse>('/get-serial-no', {
@@ -148,5 +159,13 @@ export const globalService = {
             throw new Error(error instanceof Error ? error.message : 'Failed to fetch serial');
         }
     },
-
+    AIReportQuery: async (query: string): Promise<any> => {
+        try {
+            const response = await api.post('/ai-report-query', { query });
+            return response.data;
+        } catch (error) {
+            console.error('Error AI Report Query:', error);
+            throw error;
+        }
+    },
 };

@@ -42,10 +42,9 @@ use App\Events\LogEvent;
 use App\Events\GRNEvent;
 use App\Events\InventoryEvent;
 use App\Events\AllocationEvent;
-
+use ZipArchive;
 use Carbon\Carbon;
 use App\Http\Controllers\GlobalController;
-
 use Illuminate\Support\Facades\Storage;
 class ProductController extends Controller{
 
@@ -1084,8 +1083,8 @@ class ProductController extends Controller{
                         }
 
                         if ($filename && $directory) {
-                            $path = $file->storeAs($directory, $filename, 'public');
-
+                            $path = $file->storeAs($directory, $filename, ['disk' => 'public', 'visibility' => null]);
+                            Product_images::where('product_id', $id)->where('path', $path)->delete();
                             Product_images::create([
                                 'product_id' => $id,
                                 'type' => $type,
@@ -3083,5 +3082,45 @@ class ProductController extends Controller{
                 'action'    => 'Confirm'
             ]);
         }
+    }
+    public function downloadLibrary(Request $request){
+        $details = $request->input('details');
+        $productCode = $request->input('product_code');
+
+        $zipFileName = storage_path("app/public/products/{$productCode}.zip");
+
+        if (file_exists($zipFileName)) {
+            unlink($zipFileName);
+        }
+
+        $zip = new ZipArchive;
+        if ($zip->open($zipFileName, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== TRUE) {
+            return response()->json(['error' => 'Cannot create ZIP'], 500);
+        }
+
+        foreach ($details as $file) {
+            $relativePath = ltrim(str_replace('/storage/', '', $file['path']), '/');
+            $filePath = storage_path("app/public/{$relativePath}");
+
+            if (!file_exists($filePath)) {
+                $zip->close();
+                @unlink($zipFileName);
+                return response()->json(['error' => 'File not found'], 404);
+            }
+
+            $zipPath = $file['name'] ?? basename($filePath);
+            $zip->addFile($filePath, $zipPath);
+        }
+
+        if (!$zip->close()) {
+            return response()->json(['error' => 'Failed to close ZIP'], 500);
+        }
+
+        clearstatcache(true, $zipFileName);
+
+        // Return file directly instead of URL
+        return response()->download($zipFileName, "{$productCode}.zip", [
+            'Content-Type' => 'application/zip',
+        ])->deleteFileAfterSend(false); // Keep file for now
     }
 }

@@ -133,8 +133,7 @@ class CustomerController extends Controller{
         ]);
     }
 
-    public function getAllCustomerByCode(Request $request)
-    {
+    public function getAllCustomerByCode(Request $request){
         $perPage = (int) $request->input('per_page', 15);
         $search = $request->input('search', '');
 
@@ -176,20 +175,24 @@ class CustomerController extends Controller{
                 : $result,
         ]);
     }
-    public function getCustomerOrder($customeId,Request $request){
+    public function getCustomerOrder($customerId, Request $request){
         $perPage = (int) $request->input('per_page', 10);
         $search = $request->input('search', '');
 
-        $query = Orders::with(['customer','product','salesPerson'])
-            ->where('show_category','orders')
+        // Use eager loading with selected columns only
+        $query = Orders::with([
+            'customer:id,customer_code,account_name_en,account_name_cn,sales_person_id',
+            'product:id,product_code,product_title_en,product_title_cn',
+            'salesPerson:id,firstname,middlename,lastname'
+        ])
+            ->where('show_category', 'orders')
             ->whereNotNull('product_id')
-            ->where('customer_id',$customeId)
-            ->orderBy('id', 'desc');
+            ->where('customer_id', $customerId);
 
+        // Search filter
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('order_id', 'like', "%{$search}%")
-                // optionally other direct order fields here
                 ->orWhereHas('product', function ($q2) use ($search) {
                     $q2->where('product_code', 'like', "%{$search}%")
                         ->orWhere('product_title_en', 'like', "%{$search}%")
@@ -197,81 +200,90 @@ class CustomerController extends Controller{
                 });
             });
         }
+
+        $query->orderByDesc('id');
+
+        // Get footer (aggregate)
         $footer2 = $this->calculateCustomerOrderFooter(clone $query);
+
+        // Paginate or get all
         $result = $perPage === -1 ? $query->get() : $query->paginate($perPage);
 
-        // Transform results to include full name and country names
-        $transform = function ($list) {
-            $list->product_code = optional($list->product)->product_code;
-            $list->product_title_en = optional($list->product)->product_title_en;
-            $list->product_title_cn = optional($list->product)->product_title_cn;
-            $list->sales_person_name = optional($list->salesPerson)->full_name;
-            $list->sub_total = $list->price * $list->qty;
-            return $list;
-        };
+        // Transform efficiently using map()
+        $data = $result instanceof LengthAwarePaginator
+            ? $result->getCollection()
+            : $result;
 
-        $data = $perPage === -1
-            ? $result->map($transform)
-            : tap($result)->getCollection()->transform($transform);
+        $data->transform(function ($item) {
+            $product = $item->product;
+            $customer = $item->customer;
+            $salesPerson = $item->salesPerson;
 
-        $filteredData = $data->map(fn($item) => [
-            'id' => $item->id,
-            'order_id' => $item->order_id,
-            'order_date' => $item->order_date,
-            'customer_id' => $item->customer_id,
-            'product_id' => $item->product_id,
-            'currency' => $item->currency,
-            'ex_rate' => $item->ex_rate,
-            'qty' => $item->qty,
-            'price' => $item->price,
-            'base_total' => $item->base_total,
-            'item_deposit' => $item->item_deposit,
-            'base_item_deposit' => $item->base_item_deposit,
-            'e_total_sales' => $item->e_total_sales,
-            'e_total_sales_currency' => $item->e_total_sales_currency,
-            'e_profit' => $item->e_profit,
-            'e_profit_currency' => $item->e_profit_currency,
-            'e_cost_total' => $item->e_cost_total,
-            'e_cost_total_currency' => $item->e_cost_total_currency,
-            'pod' => $item->pod,
-            'rwarehouse' => $item->rwarehouse,
-            'order_status' => $item->order_status,
-            'customer_code' => $item->customer->customer_code ?? '',
-            'account_name_en' => $item->customer->account_name_en ?? '',
-            'account_name_cn' => $item->customer->account_name_cn === '' ? $item->customer->account_name_en : $item->customer->account_name_cn,
-            'product_code' => $item->product_code,
-            'product_title_en' => $item->product_title_en,
-            'product_title_cn' => $item->product_title_cn,
-            'total' => $item->qty * $item->price,
-            'deposit' => $item->item_deposit,
-            'base_deposit' => $item->base_item_deposit,
-            'sales_person_name' => $item->customer->salesPerson->full_name,
-        ]);
+            return [
+                'id' => $item->id,
+                'order_id' => $item->order_id,
+                'order_date' => $item->order_date,
+                'customer_id' => $item->customer_id,
+                'product_id' => $item->product_id,
+                'currency' => $item->currency,
+                'ex_rate' => $item->ex_rate,
+                'qty' => $item->qty,
+                'price' => $item->price,
+                'base_total' => $item->base_total,
+                'item_deposit' => $item->item_deposit,
+                'base_item_deposit' => $item->base_item_deposit,
+                'e_total_sales' => $item->e_total_sales,
+                'e_total_sales_currency' => $item->e_total_sales_currency,
+                'e_profit' => $item->e_profit,
+                'e_profit_currency' => $item->e_profit_currency,
+                'e_cost_total' => $item->e_cost_total,
+                'e_cost_total_currency' => $item->e_cost_total_currency,
+                'pod' => $item->pod,
+                'rwarehouse' => $item->rwarehouse,
+                'order_status' => $item->order_status,
+                'customer_code' => $customer->customer_code ?? '',
+                'account_name_en' => $customer->account_name_en ?? '',
+                'account_name_cn' => empty($customer->account_name_cn) ? $customer->account_name_en : $customer->account_name_cn,
+                'product_code' => $product->product_code ?? '',
+                'product_title_en' => $product->product_title_en ?? '',
+                'product_title_cn' => $product->product_title_cn ?? '',
+                'total' => $item->qty * $item->price,
+                'deposit' => $item->item_deposit,
+                'base_deposit' => $item->base_item_deposit,
+                'sales_person_name' => optional($item->customer->salesPerson)->full_name,
+            ];
+        });
+
+        // Footer sums
         $footer = [
             'total_qty' => $data->sum('qty'),
-            'total_subtotal' => $data->sum('sub_total'),
+            'total_subtotal' => $data->sum(fn($i) => $i['qty'] * $i['price']),
             'total_base_total' => $data->sum('base_total'),
             'total_e_cost_total' => $data->sum('e_cost_total'),
             'total_e_profit' => $data->sum('e_profit'),
             'total_item_deposit' => $data->sum('item_deposit'),
         ];
-        $response = [
+
+        return response()->json([
             'success' => true,
             'message' => 'success',
             'list' => [
                 'current_page' => $result instanceof LengthAwarePaginator ? $result->currentPage() : 1,
-                'data' => $filteredData,
+                'data' => $data,
                 'footer' => $footer,
                 'footer2' => $footer2,
                 'last_page' => $result instanceof LengthAwarePaginator ? $result->lastPage() : 1,
                 'per_page' => $result instanceof LengthAwarePaginator ? $result->perPage() : $data->count(),
                 'total' => $result instanceof LengthAwarePaginator ? $result->total() : $data->count(),
             ]
-        ];
-        return response()->json($response);
+        ]);
     }
     private function calculateCustomerOrderFooter($query){
-        $aggregates = $query->selectRaw('
+        // Remove orderBy and pagination before running aggregates
+        $cleanQuery = clone $query;
+        $cleanQuery->getQuery()->orders = null;
+
+        $aggregates = $cleanQuery->selectRaw('
             SUM(qty) as total_qty,
             SUM(price * qty) as total_subtotal,
             SUM(base_total) as total_base_total,
@@ -281,16 +293,15 @@ class CustomerController extends Controller{
         ')->first();
 
         return [
-            'total_qty' => $aggregates->total_qty ?? 0,
-            'total_subtotal' => $aggregates->total_subtotal ?? 0,
-            'total_base_total' => $aggregates->total_base_total ?? 0,
-            'total_e_cost_total' => $aggregates->total_e_cost_total ?? 0,
-            'total_e_profit' => $aggregates->total_e_profit ?? 0,
-            'total_item_deposit' => $aggregates->total_item_deposit ?? 0,
+            'total_qty' => (float) ($aggregates->total_qty ?? 0),
+            'total_subtotal' => (float) ($aggregates->total_subtotal ?? 0),
+            'total_base_total' => (float) ($aggregates->total_base_total ?? 0),
+            'total_e_cost_total' => (float) ($aggregates->total_e_cost_total ?? 0),
+            'total_e_profit' => (float) ($aggregates->total_e_profit ?? 0),
+            'total_item_deposit' => (float) ($aggregates->total_item_deposit ?? 0),
         ];
     }
-    public function getCustomerInvoices($customeId,Request $request)
-    {
+    public function getCustomerInvoices($customeId,Request $request){
         $perPage = (int) $request->input('per_page', 10);
         $search = $request->input('search', '');
 
@@ -351,8 +362,7 @@ class CustomerController extends Controller{
         ];
         return response()->json($response);
     }
-    public function getCustomerSalesOrder($customeId,Request $request)
-    {
+    public function getCustomerSalesOrder($customeId,Request $request){
         $perPage = (int) $request->input('per_page', 10);
         $search = $request->input('search', '');
 

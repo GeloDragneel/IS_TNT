@@ -2873,7 +2873,7 @@ const SupplierDetails: React.FC<SupplierDetailsProps> = ({ purchaseOrderId, tabI
                                     <span>{translations["Processing2"]}...</span>
                                 </>
                             ) : (
-                                <span>{translations["Save"]}</span>
+                                <span>{purchaseOrderId === 0 ? translations["Save"] : translations['Update']}</span>
                             )}
                         </button>
                         <button

@@ -645,7 +645,7 @@ export const productService = {
     },
     updateTntWholesale: async (id: number, newValue: number, type: string): Promise<any> => {
         try {
-            const response = await api.post(`/update-tnt-wholesale/${id}`, {newValue,type});
+            const response = await api.post(`/update-tnt-wholesale/${id}`, { newValue, type });
             return response.data;
         } catch (error) {
             console.error('Error updating product:', error);
@@ -736,7 +736,7 @@ export const productService = {
             throw new Error('Failed to delete pricing');
         }
     },
-    getProfitabilityByOrders: async (productId: number,page = 1): Promise<{ data: Profitability[]; pagination: PaginatedResponse<Profitability> }> => {
+    getProfitabilityByOrders: async (productId: number, page = 1): Promise<{ data: Profitability[]; pagination: PaginatedResponse<Profitability> }> => {
         try {
             const response = await api.get(`/product-profit-order/${productId}`, {
                 params: { page }
@@ -819,7 +819,7 @@ export const productService = {
             throw new Error('Failed to fetch manufacturer ID');
         }
     },
-    getTaggingDetails: async (id: number): Promise<Detail[]> => { 
+    getTaggingDetails: async (id: number): Promise<Detail[]> => {
         try {
             const response = await api.get<SingleProductTagResponse>(`/product-tagging-list/${id}`);
             if (response.data.success && response.data.product) {
@@ -854,11 +854,11 @@ export const productService = {
             throw new Error('Failed to fetch products');
         }
     },
-    getInventoryTracking: async (productCode: string,warehouseCode:string, language : string): Promise<any> => { 
+    getInventoryTracking: async (productCode: string, warehouseCode: string, language: string): Promise<any> => {
         try {
             const response = await api.get(`/get-inventory-tracking/${productCode}/${warehouseCode}/${language}`);
             return response.data;
-          
+
         } catch (error) {
             console.error('Error fetching list:', error);
             if (error instanceof Error) {
@@ -867,7 +867,7 @@ export const productService = {
             throw new Error('Failed to fetch list');
         }
     },
-    getInternalTransfer: async (page = 1, perPage = 10, search = '', type : string): Promise<PaginatedResponse<ApiProduct>> => {
+    getInternalTransfer: async (page = 1, perPage = 10, search = '', type: string): Promise<PaginatedResponse<ApiProduct>> => {
         try {
             const response = await api.get(`/get-internal-transfer/${type}`, {
                 params: { page, per_page: perPage, search }
@@ -921,9 +921,9 @@ export const productService = {
             throw new Error('Failed to delete stock-take');
         }
     },
-    saveNewTransfer: async (details: any[],no:string,ext:string): Promise<void> => {
+    saveNewTransfer: async (details: any[], no: string, ext: string): Promise<void> => {
         try {
-            await api.put(`/save-transfer`, { details, no : no, ext : ext });
+            await api.put(`/save-transfer`, { details, no: no, ext: ext });
         } catch (error) {
             console.error('Error save transfer:', error);
             throw new Error('Failed to save transfer');
@@ -975,9 +975,9 @@ export const productService = {
             throw new Error('Failed to fetch list');
         }
     },
-    saveStockTake: async (details: any[],id:number): Promise<void> => {
+    saveStockTake: async (details: any[], id: number): Promise<void> => {
         try {
-            await api.put(`/save-stock-take`, { details, id : id });
+            await api.put(`/save-stock-take`, { details, id: id });
         } catch (error) {
             console.error('Error save stock-take:', error);
             throw new Error('Failed to save stock-take');
@@ -990,6 +990,15 @@ export const productService = {
         } catch (error) {
             console.error('Error save publish-product-imports:', error);
             throw new Error('Failed to save publish-product-imports');
+        }
+    },
+    downloadLibrary: async (details: any[], product_code: string): Promise<any> => {
+        try {
+            const response = await api.post(`/download-library`, { details, product_code });
+            return response.data;
+        } catch (error) {
+            console.error('Error save download-library:', error);
+            throw new Error('Failed to download-library');
         }
     },
 };

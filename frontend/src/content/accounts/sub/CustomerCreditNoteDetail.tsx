@@ -1504,7 +1504,7 @@ const ReceiveVoucherDetails: React.FC<ReceiveVoucherDetailsProps> = ({ creditNot
                             text-[#ffffffcc] flex justify-center items-center`}
                             disabled={loadingSave || masterList?.cr_status_id === 5}
                         >
-                            <span>{translations["Save"]}</span>
+                            <span>{creditNoteId === 0 ? translations["Save"] : translations['Update']}</span>
                         </button>
                         <button
                             onClick={() => {

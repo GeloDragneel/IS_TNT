@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { EmailBlock } from "../types/email";
-import { Facebook, Twitter, Instagram, Linkedin, Youtube, Play, Upload, X } from "lucide-react";
+import { Play, Upload } from "lucide-react";
 
 interface BlockRendererProps {
     block: EmailBlock;
@@ -14,7 +14,6 @@ const BlockRenderer: React.FC<BlockRendererProps> = ({ block, isSelected, update
     const [editingColumn, setEditingColumn] = useState<number | null>(null);
     const [dragOver, setDragOver] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (isEditing && textareaRef.current) {

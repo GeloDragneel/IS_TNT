@@ -593,25 +593,31 @@ class DashboardController extends Controller{
             'topCourier' => $topCourier,
         ]);
     }
-    public function getDashboardCustomer($m,$y){
-        $customer = Customer::with(['countryList'])->get();
+    public function getDashboardCustomer($m, $y){
+        // --- Aggregate customer counts directly in SQL ---
+        $totalCustomers = Customer::count();
 
-        $totalRetail = $customer->where('customer_type', 'RC')->count();
-        $totalWholesale = $customer->where('customer_type', 'WC')->count();
-        $totalInActive = $customer->where('status', 0)->count();
-        $totalActive = $customer->where('status', 1)->count();
+        $customerStats = Customer::selectRaw("
+            SUM(CASE WHEN customer_type = 'RC' THEN 1 ELSE 0 END) as totalRetail,
+            SUM(CASE WHEN customer_type = 'WC' THEN 1 ELSE 0 END) as totalWholesale,
+            SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as totalInActive,
+            SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as totalActive
+        ")->first();
 
-        $totalRetail_Pcnt = $this->cal_percentage($totalRetail,$customer->count());
-        $totalWholesale_Pcnt = $this->cal_percentage($totalWholesale,$customer->count());
-        $totalInActive_Pcnt = $this->cal_percentage($totalInActive,$customer->count());
-        $totalActive_Pcnt = $this->cal_percentage($totalActive,$customer->count());
+        $totalRetail_Pcnt = $this->cal_percentage($customerStats->totalRetail, $totalCustomers);
+        $totalWholesale_Pcnt = $this->cal_percentage($customerStats->totalWholesale, $totalCustomers);
+        $totalInActive_Pcnt = $this->cal_percentage($customerStats->totalInActive, $totalCustomers);
+        $totalActive_Pcnt = $this->cal_percentage($customerStats->totalActive, $totalCustomers);
 
-        $invMaster = Invoice_master::with(['customer'])
+        // --- Get top customers from invoices, computed in SQL ---
+        $invMaster = Invoice_master::selectRaw('customer_id, SUM(base_total) as total_spent')
             ->where('invoice_status_id', 1)
-            ->whereRaw(
-                'YEAR(STR_TO_DATE(invoice_date, "%b %d %Y")) = ? AND MONTH(STR_TO_DATE(invoice_date, "%b %d %Y")) = ?',
-                [$y, $m]
-            )->orderByDesc('id')->get();
+            ->whereRaw('YEAR(STR_TO_DATE(invoice_date, "%b %d %Y")) = ? AND MONTH(STR_TO_DATE(invoice_date, "%b %d %Y")) = ?', [$y, $m])
+            ->groupBy('customer_id')
+            ->orderByDesc('total_spent')
+            ->take(5)
+            ->with('customer:id,customer_code,account_name_en')
+            ->get();
 
         $colorPalette = [
             'bg-blue-500',
@@ -621,54 +627,43 @@ class DashboardController extends Controller{
             'bg-red-500',
         ];
 
-        $topCustomer = $invMaster
-            ->filter(fn($item) => !empty($item->customer_id))
-            ->groupBy(fn($item) => $item->customer_id)
-            ->map(function ($items, $customer_id) use ($colorPalette) {
-                $first = $items->first();
-                $customer = $first->customer ?? null;
+        $topCustomer = $invMaster->map(function ($item, $index) use ($colorPalette) {
+            return [
+                'customer_id' => $item->customer_id,
+                'customer_code' => $item->customer->customer_code ?? '',
+                'customer_name' => $item->customer->account_name_en ?? '',
+                'base_total' => $item->total_spent,
+                'color' => $colorPalette[$index % count($colorPalette)],
+            ];
+        });
+
+        // --- Country ranking (optimized with SQL grouping) ---
+        $countryRanking = Customer::selectRaw('billing_country, COUNT(*) as cnt')
+            ->whereNotNull('billing_country')
+            ->groupBy('billing_country')
+            ->with('countryList:id,country_code,country_en,country_cn')
+            ->get()
+            ->map(function ($item) {
                 return [
-                    'customer_id' => $customer_id,
-                    'customer_code' => $customer->customer_code ?? '',
-                    'customer_name' => $customer->account_name_en ?? '',
-                    'base_total' => $items->sum('base_total'),
+                    'country_id' => $item->billing_country,
+                    'country_code' => $item->countryList->country_code ?? '',
+                    'country_en' => $item->countryList->country_en ?? '',
+                    'country_cn' => $item->countryList->country_cn ?? '',
+                    'cnt' => $item->cnt,
                 ];
             })
-            ->sortByDesc('base_total')
-            ->take(5)
-            ->values()
-            ->map(function ($item, $index) use ($colorPalette) {
-                $item['color'] = $colorPalette[$index % count($colorPalette)];
-                return $item;
-            });
-
-        $countryRanking = $customer
-            ->filter(fn($item) => !empty($item->billing_country))
-            ->groupBy(fn($item) => $item->billing_country)
-            ->map(function ($items, $billing_country_id) {
-                $first = $items->first();
-                // defensive fallback if product/manufacturer missing on that first row
-                $billing_country = $first->countryList ?? null;
-
-                return [
-                    'country_id' => $billing_country_id,
-                    'country_code' => $billing_country->country_code ?? '',
-                    'country_en' => $billing_country->country_en ?? '',
-                    'country_cn' => $billing_country->country_cn ?? '',
-                    'cnt' => $items->count('id'),
-                ];
-            })
-            ->sortBy('billing_country_en')
+            ->sortBy('country_en')
             ->values();
 
+        // --- Return optimized response ---
         return response()->json([
-            'totalRetail' => $totalRetail,
+            'totalRetail' => $customerStats->totalRetail,
             'totalRetail_Pcnt' => $totalRetail_Pcnt,
-            'totalWholesale' => $totalWholesale,
+            'totalWholesale' => $customerStats->totalWholesale,
             'totalWholesale_Pcnt' => $totalWholesale_Pcnt,
-            'totalInActive' => $totalInActive,
+            'totalInActive' => $customerStats->totalInActive,
             'totalInActive_Pcnt' => $totalInActive_Pcnt,
-            'totalActive' => $totalActive,
+            'totalActive' => $customerStats->totalActive,
             'totalActive_Pcnt' => $totalActive_Pcnt,
             'topCustomer' => $topCustomer,
             'countryRanking' => $countryRanking,

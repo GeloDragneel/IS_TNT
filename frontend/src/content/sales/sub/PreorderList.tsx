@@ -1563,7 +1563,7 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
                     </div>
                     {/* Content */}
                     <div className="max-h-[calc(100vh-330px)] overflow-y-auto">
-                        <div className="flex-1 overflow-auto p-4">
+                        <div className="flex-1 overflow-auto p-2">
                             <div className="grid grid-cols-12 gap-2">
                                 <div className="col-span-12 md:col-span-12">
                                     <fieldset className="border border-[#ffffff1a] rounded-lg p-4 mb-2">
@@ -1648,30 +1648,12 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
                                     </fieldset>
                                 </div>
                                 <div className={`col-span-12 md:col-span-4 ${!showInputs.isAll ? "" : "hidden"}`}>
-                                    <fieldset className="border border-[#ffffff1a] rounded-lg p-4 mb-2">
-                                        <legend className="text-white text-left px-3 py-1 border border-[#ffffff1a] rounded-md bg-[#19191c]">
-                                            {translations["Detail(s) Required"] || "Information Required"} :
-                                        </legend>
-                                        <div className="col-span-12 md:col-span-6">
-                                            <div className="flex items-center gap-4 mb-2 hidden">
-                                                <label className="w-32 text-gray-400 text-sm">{translations["Order Date"]}</label>
-                                                <div className="flex flex-1">
-                                                    <input
-                                                        type="text"
-                                                        value={formatDate(formData.order_date, lang)}
-                                                        readOnly
-                                                        placeholder="0.00"
-                                                        onChange={(e) => {
-                                                            const value = e.target.value;
-                                                            setFormData((prev) => ({ ...prev, order_date: value }));
-                                                        }}
-                                                        className="flex-1 px-3 py-2 border border-[#ffffff1a] border-r-0 bg-transparent text-[#ffffffcc] text-custom-sm rounded-tl-md rounded-bl-md"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className={`flex items-center gap-4 mb-2 ${!showInputs.isCurrentCredit ? "" : "hidden"}`}>
-                                                <label className="w-32 text-gray-400 text-sm">{translations["Current Credit"]}</label>
-                                                <div className="flex flex-1">
+                                    <div className="flex-1 overflow-auto p-4 border border-[#ffffff1a] rounded-lg mb-2">
+                                        <div className="space-y-2">
+                                            {/* Current Credit - Made responsive */}
+                                            <div className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 ${!showInputs.isCurrentCredit ? "" : "hidden"}`}>
+                                                <label className="text-gray-400 text-sm sm:w-32 shrink-0">{translations["Current Credit"]}</label>
+                                                <div className="flex flex-1 min-w-0">
                                                     <NumericFormat
                                                         value={formData.current_credit === 0 ? "" : formData.current_credit}
                                                         decimalSeparator="."
@@ -1687,114 +1669,95 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
                                                                 current_credit: floatValue ?? 0,
                                                             }));
                                                         }}
-                                                        className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm rounded-md !rounded-tr-none !rounded-br-none"
+                                                        className="flex-1 min-w-0 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm rounded-md !rounded-tr-none !rounded-br-none"
                                                     />
                                                     <button
                                                         type="button"
                                                         onClick={handlePopupCredits}
                                                         disabled={currentCreditDisabled}
-                                                        className="px-2 py-2 bg-cyan-600 text-white !rounded-tr-md !rounded-br-md !rounded-tl-none !rounded-bl-none hover:bg-cyan-700 flex items-center justify-center border border-[#ffffff1a] border-l-0"
+                                                        className="px-2 py-2 bg-cyan-600 text-white !rounded-tr-md !rounded-br-md !rounded-tl-none !rounded-bl-none hover:bg-cyan-700 flex items-center justify-center border border-[#ffffff1a] border-l-0 shrink-0"
                                                     >
                                                         <Search className="w-4 h-4" />
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div className={`flex items-center gap-4 mb-2 ${!showInputs.isCreditNote ? "" : "hidden"}`}>
-                                                <label className="w-32 text-gray-400 text-sm">{translations["Credit Note"]}</label>
-                                                <NumericFormat
-                                                    value={formData.credit_note}
-                                                    decimalSeparator="."
-                                                    readOnly
-                                                    decimalScale={2}
-                                                    fixedDecimalScale
-                                                    allowNegative={true}
-                                                    prefix={`${formData.currency} `}
-                                                    placeholder="0.00"
-                                                    onValueChange={({ floatValue }) => {
-                                                        setFormData((prev) => ({
-                                                            ...prev,
-                                                            credit_note: String(floatValue) ?? "0.00",
-                                                        }));
-                                                    }}
-                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm rounded-md !rounded-tr-none !rounded-br-none"
-                                                />
-                                                <input
-                                                    type="hidden"
-                                                    value={formData.base_credit_note}
-                                                    readOnly
-                                                    placeholder="0.00"
-                                                    onChange={(e) => {
-                                                        const value = e.target.value;
-                                                        setFormData((prev) => ({ ...prev, base_credit_note: value }));
-                                                    }}
-                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] border-r-0 bg-transparent text-[#ffffffcc] text-custom-sm rounded-tl-md rounded-bl-md !rounded-tr-none !rounded-br-none"
-                                                />
+
+                                            {/* Credit Note - Made responsive */}
+                                            <div className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 ${!showInputs.isCreditNote ? "" : "hidden"}`}>
+                                                <label className="text-gray-400 text-sm sm:w-32 shrink-0">{translations["Credit Note"]}</label>
+                                                <div className="flex-1 min-w-0">
+                                                    <NumericFormat
+                                                        value={formData.credit_note}
+                                                        decimalSeparator="."
+                                                        readOnly
+                                                        decimalScale={2}
+                                                        fixedDecimalScale
+                                                        allowNegative={true}
+                                                        prefix={`${formData.currency} `}
+                                                        placeholder="0.00"
+                                                        onValueChange={({ floatValue }) => {
+                                                            setFormData((prev) => ({
+                                                                ...prev,
+                                                                credit_note: String(floatValue) ?? "0.00",
+                                                            }));
+                                                        }}
+                                                        className="w-full px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm rounded-md"
+                                                    />
+                                                </div>
                                             </div>
-                                            <div className={`flex items-center gap-4 mb-2 ${!showInputs.isAdvancePayment ? "" : "hidden"}`}>
-                                                <label className="w-32 text-gray-400 text-sm">{translations["Advance Payment"]}</label>
-                                                <NumericFormat
-                                                    value={formData.advance_payment}
-                                                    decimalSeparator="."
-                                                    decimalScale={2}
-                                                    readOnly
-                                                    fixedDecimalScale
-                                                    allowNegative={true}
-                                                    prefix={`${formData.currency} `}
-                                                    placeholder="0.00"
-                                                    onValueChange={({ floatValue }) => {
-                                                        setFormData((prev) => ({
-                                                            ...prev,
-                                                            advance_payment: String(floatValue) ?? "0.00",
-                                                        }));
-                                                    }}
-                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm rounded-md !rounded-tr-none !rounded-br-none"
-                                                />
-                                                <input
-                                                    type="hidden"
-                                                    value={formData.base_advance_payment}
-                                                    readOnly
-                                                    placeholder="0.00"
-                                                    onChange={(e) => {
-                                                        const value = e.target.value;
-                                                        setFormData((prev) => ({ ...prev, base_advance_payment: value }));
-                                                    }}
-                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] border-r-0 bg-transparent text-[#ffffffcc] text-custom-sm rounded-tl-md rounded-bl-md !rounded-tr-none !rounded-br-none"
-                                                />
+
+                                            {/* Advance Payment - Made responsive */}
+                                            <div className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 ${!showInputs.isAdvancePayment ? "" : "hidden"}`}>
+                                                <label className="text-gray-400 text-sm sm:w-32 shrink-0">{translations["Advance Payment"]}</label>
+                                                <div className="flex-1 min-w-0">
+                                                    <NumericFormat
+                                                        value={formData.advance_payment}
+                                                        decimalSeparator="."
+                                                        decimalScale={2}
+                                                        readOnly
+                                                        fixedDecimalScale
+                                                        allowNegative={true}
+                                                        prefix={`${formData.currency} `}
+                                                        placeholder="0.00"
+                                                        onValueChange={({ floatValue }) => {
+                                                            setFormData((prev) => ({
+                                                                ...prev,
+                                                                advance_payment: String(floatValue) ?? "0.00",
+                                                            }));
+                                                        }}
+                                                        className="w-full px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm rounded-md"
+                                                    />
+                                                </div>
                                             </div>
-                                            <div className={`flex items-center gap-4 mb-2 ${!showInputs.isExcessPayment ? "" : "hidden"}`}>
-                                                <label className="w-32 text-gray-400 text-sm">{translations["Excess Payment"]}</label>
-                                                <NumericFormat
-                                                    value={formData.excess_payment}
-                                                    decimalSeparator="."
-                                                    decimalScale={2}
-                                                    readOnly
-                                                    fixedDecimalScale
-                                                    allowNegative={true}
-                                                    prefix={`${formData.currency} `}
-                                                    placeholder="0.00"
-                                                    onValueChange={({ floatValue }) => {
-                                                        setFormData((prev) => ({
-                                                            ...prev,
-                                                            excess_payment: String(floatValue) ?? "0.00",
-                                                        }));
-                                                    }}
-                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm rounded-md !rounded-tr-none !rounded-br-none"
-                                                />
-                                                <input
-                                                    type="hidden"
-                                                    value={formData.base_excess_payment}
-                                                    readOnly
-                                                    placeholder="0.00"
-                                                    onChange={(e) => {
-                                                        const value = e.target.value;
-                                                        setFormData((prev) => ({ ...prev, base_excess_payment: value }));
-                                                    }}
-                                                    className="flex-1 px-3 py-2 border border-[#ffffff1a] border-r-0 bg-transparent text-[#ffffffcc] text-custom-sm rounded-tl-md rounded-bl-md !rounded-tr-none !rounded-br-none"
-                                                />
+
+                                            {/* Excess Payment - Made responsive */}
+                                            <div className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 ${!showInputs.isExcessPayment ? "" : "hidden"}`}>
+                                                <label className="text-gray-400 text-sm sm:w-32 shrink-0">{translations["Excess Payment"]}</label>
+                                                <div className="flex-1 min-w-0">
+                                                    <NumericFormat
+                                                        value={formData.excess_payment}
+                                                        decimalSeparator="."
+                                                        decimalScale={2}
+                                                        readOnly
+                                                        fixedDecimalScale
+                                                        allowNegative={true}
+                                                        prefix={`${formData.currency} `}
+                                                        placeholder="0.00"
+                                                        onValueChange={({ floatValue }) => {
+                                                            setFormData((prev) => ({
+                                                                ...prev,
+                                                                excess_payment: String(floatValue) ?? "0.00",
+                                                            }));
+                                                        }}
+                                                        className="w-full px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm rounded-md"
+                                                    />
+                                                </div>
                                             </div>
-                                            <div className={`flex items-center gap-4 mb-2 ${!showInputs.isTotalCreditUsed ? "" : "hidden"}`}>
-                                                <label className="w-32 text-gray-400 text-sm">{translations["Total Credit Used"]}</label>
-                                                <div className="flex flex-1">
+
+                                            {/* Total Credit Used - Made responsive */}
+                                            <div className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 ${!showInputs.isTotalCreditUsed ? "" : "hidden"}`}>
+                                                <label className="text-gray-400 text-sm sm:w-32 shrink-0">{translations["Total Credit Used"]}</label>
+                                                <div className="flex-1 min-w-0">
                                                     <NumericFormat
                                                         value={formData.total_credit_used}
                                                         decimalSeparator="."
@@ -1810,13 +1773,15 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
                                                                 total_credit_used: String(floatValue) ?? "0.00",
                                                             }));
                                                         }}
-                                                        className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm rounded-md !rounded-tr-none !rounded-br-none"
+                                                        className="w-full px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm rounded-md"
                                                     />
                                                 </div>
                                             </div>
-                                            <div className={`flex items-center gap-4 mb-2 ${!showInputs.isBankCharges ? "" : "hidden"}`}>
-                                                <label className="w-32 text-gray-400 text-sm">{translations["Bank Charges"]}</label>
-                                                <div className="flex flex-1">
+
+                                            {/* Bank Charges - Made responsive */}
+                                            <div className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 ${!showInputs.isBankCharges ? "" : "hidden"}`}>
+                                                <label className="text-gray-400 text-sm sm:w-32 shrink-0">{translations["Bank Charges"]}</label>
+                                                <div className="flex-1 min-w-0">
                                                     <NumericFormat
                                                         value={String(formData.bank_charges) === "0.00" ? "" : formData.bank_charges}
                                                         decimalSeparator="."
@@ -1831,23 +1796,15 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
                                                                 bank_charges: String(floatValue) ?? "0.00",
                                                             }));
                                                         }}
-                                                        className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm rounded-md !rounded-tr-none !rounded-br-none"
-                                                    />
-                                                    <input
-                                                        type="hidden"
-                                                        value={formData.base_bank_charges}
-                                                        readOnly
-                                                        onChange={(e) => {
-                                                            const value = e.target.value;
-                                                            setFormData((prev) => ({ ...prev, base_bank_charges: value }));
-                                                        }}
-                                                        className="flex-1 px-3 py-2 border border-[#ffffff1a] border-r-0 bg-transparent text-[#ffffffcc] text-custom-sm rounded-tl-md rounded-bl-md !rounded-tr-none !rounded-br-none"
+                                                        className="w-full px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm rounded-md"
                                                     />
                                                 </div>
                                             </div>
-                                            <div className={`flex items-center gap-4 mb-2 ${!showInputs.isDepositToPay ? "" : "hidden"}`}>
-                                                <label className="w-32 text-gray-400 text-sm">{translations["Deposit To Pay"]}</label>
-                                                <div className="flex flex-1">
+
+                                            {/* Deposit To Pay - Made responsive */}
+                                            <div className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 ${!showInputs.isDepositToPay ? "" : "hidden"}`}>
+                                                <label className="text-gray-400 text-sm sm:w-32 shrink-0">{translations["Deposit To Pay"]}</label>
+                                                <div className="flex-1 min-w-0">
                                                     <NumericFormat
                                                         value={String(formData.balance_to_pay) === "0.00" ? "" : formData.balance_to_pay}
                                                         decimalSeparator="."
@@ -1862,13 +1819,15 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
                                                                 balance_to_pay: String(floatValue) ?? "0.00",
                                                             }));
                                                         }}
-                                                        className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm rounded-md !rounded-tr-none !rounded-br-none"
+                                                        className="w-full px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm rounded-md"
                                                     />
                                                 </div>
                                             </div>
-                                            <div className={`flex items-center gap-4 mb-2 ${!showInputs.isBank ? "" : "hidden"}`}>
-                                                <label className="w-32 text-gray-400 text-sm">{translations["Bank"]}</label>
-                                                <div className="flex flex-1">
+
+                                            {/* Bank - Made responsive */}
+                                            <div className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 ${!showInputs.isBank ? "" : "hidden"}`}>
+                                                <label className="text-gray-400 text-sm sm:w-32 shrink-0">{translations["Bank"]}</label>
+                                                <div className="flex-1 min-w-0">
                                                     <Select
                                                         classNamePrefix="react-select"
                                                         value={formData.banks}
@@ -1880,7 +1839,7 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
                                                             ...selectStyles,
                                                             menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                                                         }}
-                                                        className="w-[100%]"
+                                                        className="w-full"
                                                         isClearable
                                                         placeholder={translations["Select"]}
                                                         menuPlacement="auto"
@@ -1890,13 +1849,10 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
                                                 </div>
                                             </div>
                                         </div>
-                                    </fieldset>
+                                    </div>
                                 </div>
                                 <div className={`col-span-12 ${!showInputs.isAll ? "md:col-span-8" : "md:col-span-12"}`}>
-                                    <fieldset className="border border-[#ffffff1a] rounded-lg p-4 mb-2">
-                                        <legend className="text-white text-left px-3 py-1 border border-[#ffffff1a] rounded-md bg-[#19191c]">
-                                            {translations["Payment Information"] || "Payment Information"} :
-                                        </legend>
+                                    <div className="flex-1 overflow-auto p-2 border border-[#ffffff1a] rounded-lg mb-2">
                                         <table className="w-full border">
                                             <thead className="sticky top-0 z-[1]" style={{ backgroundColor: "#1f2132" }}>
                                                 <tr className="border-b" style={{ borderColor: "#2d2d30" }}>
@@ -1931,7 +1887,7 @@ const PreorderList: React.FC<PreorderListProps> = ({ tabId, onPreordertSelect, o
                                                 )}
                                             </tbody>
                                         </table>
-                                    </fieldset>
+                                    </div>
                                 </div>
                             </div>
                         </div>

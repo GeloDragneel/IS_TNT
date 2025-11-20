@@ -273,7 +273,7 @@ const ServiceList: React.FC<ServiceListProps> = ({ tabId }) => {
                             {translations["Close"]}
                         </button>
                         <button onClick={() => handleSave()} className={`px-2 py-2 bg-cyan-600 hover:bg-cyan-500 rounded text-white transition`}>
-                            {translations["Save"]}
+                            {formData.id === 0 ? translations["Save"] : translations['Update']}
                         </button>
                     </div>
                 </div>

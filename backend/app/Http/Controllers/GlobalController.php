@@ -44,10 +44,11 @@ use Hash;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
+use OpenAI\Laravel\Facades\OpenAI;
+use Illuminate\Support\Facades\Http;
 class GlobalController extends Controller
 {
-    public static function getCurrentDateExRate(string $currency, string $baseCurrency): float
-    {
+    public static function getCurrentDateExRate(string $currency, string $baseCurrency): float{
         if ($currency === $baseCurrency || empty($currency)) {
             return 1;
         }
@@ -61,8 +62,7 @@ class GlobalController extends Controller
 
         return $rate ?? 0;
     }
-    public static function getOperator(string $conversionKey): string
-    {
+    public static function getOperator(string $conversionKey): string{
         return Operator::where('convertion', $conversionKey)->value('operator') ?? '';
     }
     public function getAllProductTypes() {
@@ -125,7 +125,6 @@ class GlobalController extends Controller
             'list' => $mappedTypes,
         ]);
     }
-
     public function getAllSalesPerson() {
         $types = Employee_Info::select('id', 'firstname','middlename', 'lastname')
         ->get();
@@ -185,8 +184,6 @@ class GlobalController extends Controller
             'list' => $mappedTypes,
         ]);
     }
-
-    
     public function getAllCourier() {
         $types = Courier::select('id', 'courier_en','courier_cn')
         ->where('is_deleted', 0)
@@ -207,7 +204,6 @@ class GlobalController extends Controller
             'list' => $mappedTypes,
         ]);
     }
-
     public function getAllTaxGroup() {
         $types = Tax_group::select('id', 'tax_value','tax')
         ->get();
@@ -227,7 +223,6 @@ class GlobalController extends Controller
             'list' => $mappedTypes,
         ]);
     }
-
     public function getAllShippingTerms() {
         $types = Shipping_terms::select('id', 'shipping_terms_en','shipping_terms_cn')
         ->where('is_deleted', 0)
@@ -248,7 +243,6 @@ class GlobalController extends Controller
             'list' => $mappedTypes,
         ]);
     }
-
     public function getAllInvoiceType() {
         $types = Invoice_type::select('id', 'invoice_type_en','invoice_type_cn')->get();
 
@@ -343,7 +337,6 @@ class GlobalController extends Controller
             'list' => $mappedTypes,
         ]);
     }
-
     public function getAllCustomer() {
         $types = Customer::select('id','customer_code')
         ->get();
@@ -363,7 +356,6 @@ class GlobalController extends Controller
             'list' => $mappedTypes,
         ]);
     }
-
     public function getAllProduct() {
         $types = Products::select('id','product_code')
         ->get();
@@ -383,7 +375,6 @@ class GlobalController extends Controller
             'list' => $mappedTypes,
         ]);
     }
-
     public function getAllCountries() {
         $types = Countries::select('id', 'country_en','country_cn')
         ->get();
@@ -403,7 +394,6 @@ class GlobalController extends Controller
             'list' => $mappedTypes,
         ]);
     }
-
     public function getAllStates() {
         $types = States::select('id', 'statename_en','statename_cn')
         ->get();
@@ -441,7 +431,6 @@ class GlobalController extends Controller
             'list' => $mappedTypes,
         ]);
     }
-
     public function getInvoiceStatus() {
         $types = Invoice_status::select('id', 'status_value_en','status_value_cn')->get();
         $mappedTypes = $types->map(function ($type) {
@@ -459,7 +448,6 @@ class GlobalController extends Controller
             'list' => $mappedTypes,
         ]);
     }
-
     public function getAllSuppliers(Request $request){
         $types = Supplier::select('id', 'suppliername_en','suppliername_cn','supplier_code')
         ->where('is_deleted', 0)
@@ -499,7 +487,6 @@ class GlobalController extends Controller
             'list' => $mappedTypes,
         ]);
     }
-
     public function getAllCustomerType(Request $request){
         $types = Customer_type::select('id', 'description_en','description_cn','code')
         ->get();
@@ -519,8 +506,6 @@ class GlobalController extends Controller
             'list' => $mappedTypes,
         ]);
     }
-
-
     public function getAllCurrencies(Request $request){
         $types = Currencies::select('id', 'currency_title','code')
             ->where('is_deleted', 0)
@@ -541,7 +526,6 @@ class GlobalController extends Controller
             'list' => $mappedTypes,
         ]);
     }
-
     public function getAllPOStatus(Request $request){
         $types = POStatus::select('id', 'postatus_en','postatus_cn')->get();
 
@@ -578,7 +562,6 @@ class GlobalController extends Controller
             'list' => $mappedTypes,
         ]);
     }
-
     public function getAllBanks() {
         $types = Charts_of_account::select('account_code', 'account_name_en','account_name_cn')
         ->where('root_name', 12100)
@@ -600,7 +583,6 @@ class GlobalController extends Controller
             'list' => $mappedTypes,
         ]);
     }
-
     public function getAllStoreLocation() {
         $types = Store_location::select('id', 'store_name_en','store_name_cn')
         ->orderBy('store_name_en', 'asc')
@@ -621,10 +603,7 @@ class GlobalController extends Controller
             'list' => $mappedTypes,
         ]);
     }
-
-    
-    public function getExchangeRate($from, $to, $date)
-    {
+    public function getExchangeRate($from, $to, $date){
         $formattedDate = date('Y-m-d', strtotime($date));
 
         $rate = Forex::where('from_currency', $from)
@@ -717,8 +696,7 @@ class GlobalController extends Controller
         // Insert log into the t_logs table
         Logs::create($logData);
     }
-    public function getAllDropdownData($tableName, $id)
-    {
+    public function getAllDropdownData($tableName, $id){
         // Define your model mappings
         $modelMapping = [
             'courier' => Courier::class,
@@ -860,8 +838,7 @@ class GlobalController extends Controller
             'list' => $mappedTypes,
         ]);
     }
-    public function getAllDropdownDataList()
-    {
+    public function getAllDropdownDataList(){
         // Define your model mappings
         $modelMapping = [
             'courier' => Courier::class,
@@ -990,7 +967,6 @@ class GlobalController extends Controller
 
         return response()->json(['ex_rate' => $rate ?? 0]);
     }
-
     public function getLogs(Request $request){
         $perPage = (int) $request->input('per_page', 15);
         $search = $request->input('search', '');
@@ -1119,101 +1095,232 @@ class GlobalController extends Controller
         return round($bytes, 2) . ' ' . $units[$i];
     }
     public function restoreDatabase(Request $request){
-        $database = $request->input('database');
-        $username = $request->input('username');
-        $password = $request->input('password');
+        $dbENV = env('APP_ENV');
 
-        $user = Login::where('username', $username)->first();
+        if($dbENV === 'local'){
+            $database = $request->input('database');
+            $username = $request->input('username');
+            $password = $request->input('password');
 
-        if (!$user || !Hash::check($password, $user->password)) {
-            return response()->json([
-                'token'   => 'Error',
-                'message' => 'Invalid Username or Password',
-                'action'  => 'select'
-            ]);
+            $user = Login::where('username', $username)->first();
+
+            if (!$user || !Hash::check($password, $user->password)) {
+                return response()->json([
+                    'token'   => 'Error',
+                    'message' => 'Invalid Username or Password',
+                    'action'  => 'select'
+                ]);
+            }
+
+            $dbName = env('DB_DATABASE');
+            $dbUser = env('DB_USERNAME');
+            $dbPass = env('DB_PASSWORD');
+            $dbHost = env('DB_HOST');
+
+            $sqlFile = base_path('dbBackup/' . $database);
+
+            if (!file_exists($sqlFile)) {
+                return response()->json([
+                    'token'   => 'Error',
+                    'message' => 'Backup file not found',
+                    'action'  => 'select'
+                ]);
+            }
+
+            $command = "mysql --skip-ssl -h {$dbHost} -u {$dbUser} -p{$dbPass} {$dbName} < {$sqlFile}";
+
+            $process = Process::fromShellCommandline($command);
+            $process->setTimeout(1000);
+
+            try {
+                $process->mustRun();
+                return response()->json([
+                    'token'   => 'Success',
+                    'message' => 'Database Successfully Restored',
+                    'action'  => 'reload'
+                ]);
+            } catch (ProcessFailedException $e) {
+                return response()->json([
+                    'token'   => 'Error',
+                    'message' => 'Database restore failed: ' . $e->getMessage(),
+                    'action'  => 'select'
+                ]);
+            }
         }
+        else{
+            $database = $request->input('database');
+            $username = $request->input('username');
+            $password = $request->input('password');
 
-        $dbName = env('DB_DATABASE');
-        $dbUser = env('DB_USERNAME');
-        $dbPass = env('DB_PASSWORD');
-        $dbHost = env('DB_HOST');
+            $user = Login::where('username', $username)->first();
 
-        $sqlFile = base_path('dbBackup/' . $database);
+            if (!$user || !Hash::check($password, $user->password)) {
+                return response()->json([
+                    'token'   => 'Error',
+                    'message' => 'Invalid Username or Password',
+                    'action'  => 'select'
+                ]);
+            }
 
-        if (!file_exists($sqlFile)) {
+            // Security validations
+            if (strpos($database, '..') !== false || strpos($database, '/') !== false || strpos($database, '\\') !== false) {
+                return response()->json([
+                    'token'   => 'Error',
+                    'message' => 'Invalid backup file name',
+                    'action'  => 'select'
+                ]);
+            }
+
+            if (!str_ends_with($database, '.sql')) {
+                return response()->json([
+                    'token'   => 'Error',
+                    'message' => 'Invalid file type. Only .sql files allowed',
+                    'action'  => 'select'
+                ]);
+            }
+
+            $dbName = env('DB_DATABASE');
+            $dbUser = env('DB_USERNAME');
+            $dbPass = env('DB_PASSWORD');
+            $dbPort = env('DB_PORT', 3306);
+
+            $sqlFile = base_path('dbBackup/' . $database);
+
+            if (!file_exists($sqlFile)) {
+                return response()->json([
+                    'token'   => 'Error',
+                    'message' => 'Backup file not found',
+                    'action'  => 'select'
+                ]);
+            }
+
+            $mysql = 'C:\\xampp\\mysql\\bin\\mysql.exe';
+            
+            // ✅ Use exec() instead of Symfony Process
+            $command = sprintf(
+                '"%s" -u%s -p%s -h127.0.0.1 -P%d %s < "%s" 2>&1',
+                $mysql,
+                $dbUser,
+                $dbPass,
+                $dbPort,
+                $dbName,
+                $sqlFile
+            );
+
+            exec($command, $output, $returnCode);
+
+            if ($returnCode === 0) {
+                return response()->json([
+                    'token'   => 'Success',
+                    'message' => 'Database Successfully Restored',
+                    'action'  => 'reload'
+                ]);
+            }
+
             return response()->json([
                 'token'   => 'Error',
-                'message' => 'Backup file not found',
+                'message' => 'Database restore failed',
+                'details' => implode("\n", $output),
+                'exit_code' => $returnCode,
                 'action'  => 'select'
-            ]);
-        }
-
-        $command = "mysql --skip-ssl -h {$dbHost} -u {$dbUser} -p{$dbPass} {$dbName} < {$sqlFile}";
-
-        $process = Process::fromShellCommandline($command);
-        $process->setTimeout(1000);
-
-        try {
-            $process->mustRun();
-            return response()->json([
-                'token'   => 'Success',
-                'message' => 'Database Successfully Restored',
-                'action'  => 'reload'
-            ]);
-        } catch (ProcessFailedException $e) {
-            return response()->json([
-                'token'   => 'Error',
-                'message' => 'Database restore failed: ' . $e->getMessage(),
-                'action'  => 'select'
-            ]);
+            ], 500);
         }
     }
     public function backupDatabase() {
-        $dbHost = env('DB_HOST');
-        $dbUser = env('DB_USERNAME');
-        $dbPass = env('DB_PASSWORD');
-        $dbName = env('DB_DATABASE');
+        $dbENV = env('APP_ENV');
 
-        $backupFolder = env('DB_BACKUP_PATH', base_path('dbBackup'));
-        if (!file_exists($backupFolder)) {
-            mkdir($backupFolder, 0755, true); // Create backup folder if not exists
+        if($dbENV === 'local'){
+            $dbHost = env('DB_HOST');
+            $dbUser = env('DB_USERNAME');
+            $dbPass = env('DB_PASSWORD');
+            $dbName = env('DB_DATABASE');
+
+            $backupFolder = env('DB_BACKUP_PATH', base_path('dbBackup'));
+            if (!file_exists($backupFolder)) {
+                mkdir($backupFolder, 0755, true); // Create backup folder if not exists
+            }
+
+            $filename = 'backup_' . date('Y_m_d_His') . '.sql';
+            $backupFile = $backupFolder . DIRECTORY_SEPARATOR . $filename;
+
+            $mysqldump = app()->environment('local') ? 'mysqldump' : 'C:\\xampp\\mysql\\bin\\mysqldump.exe';
+
+            $command = [
+                $mysqldump,
+                '--quick',
+                '--skip-ssl',
+                '-h', $dbHost,
+                '-u', $dbUser,
+                '-p' . $dbPass,
+                $dbName,
+                '--result-file=' . $backupFile,
+            ];
+            // ✅ Use Process constructor instead of fromShellCommandline
+            $process = new Process($command);
+
+            // ✅ Increase timeout to, say, 5 minutes (300 seconds)
+            $process->setTimeout(300); // 5 minutes
+
+            try {
+                $process->mustRun();
+
+                return response()->json([
+                    'token' => 'Success',
+                    'APP_ENV' => env('APP_ENV'),
+                    'message' => 'Backup created: ' . $filename,
+                ]);
+            } catch (ProcessFailedException $e) {
+                return response()->json([
+                    'token' => 'Error',
+                    'message' => 'Backup failed: ' . $e->getMessage(),
+                    'command' => $command,
+                    'APP_ENV' => env('APP_ENV'),
+                ]);
+            }
         }
+        else{
+            $dbUser = env('DB_USERNAME');
+            $dbPass = env('DB_PASSWORD');
+            $dbName = env('DB_DATABASE');
+            $dbPort = env('DB_PORT', 3306);
 
-        $filename = 'backup_' . date('Y_m_d_His') . '.sql';
-        $backupFile = $backupFolder . DIRECTORY_SEPARATOR . $filename;
+            $backupFolder = env('DB_BACKUP_PATH', base_path('dbBackup'));
+            if (!file_exists($backupFolder)) {
+                mkdir($backupFolder, 0755, true);
+            }
 
-        $mysqldump = app()->environment('local') ? 'mysqldump' : 'C:\\xampp\\mysql\\bin\\mysqldump.exe';
+            $filename = 'backup_' . date('Y_m_d_His') . '.sql';
+            $backupFile = $backupFolder . DIRECTORY_SEPARATOR . $filename;
 
-        $command = [
-            $mysqldump,
-            '--quick',
-            '--skip-ssl',
-            '-h', $dbHost,
-            '-u', $dbUser,
-            '-p' . $dbPass,
-            $dbName,
-            '--result-file=' . $backupFile,
-        ];
-        // ✅ Use Process constructor instead of fromShellCommandline
-        $process = new Process($command);
+            $mysqldump = 'C:\\xampp\\mysql\\bin\\mysqldump.exe';
 
-        // ✅ Increase timeout to, say, 5 minutes (300 seconds)
-        $process->setTimeout(300); // 5 minutes
+            // ✅ Use shell command with output redirection
+            $command = sprintf(
+                '"%s" -u %s -p%s -h 127.0.0.1 -P %d --single-transaction --routines --triggers %s > "%s" 2>&1',
+                $mysqldump,
+                $dbUser,
+                $dbPass,
+                $dbPort,
+                $dbName,
+                $backupFile
+            );
 
-        try {
-            $process->mustRun();
+            exec($command, $output, $returnCode);
 
-            return response()->json([
-                'token' => 'Success',
-                'message' => 'Backup created: ' . $filename,
-            ]);
-        } catch (ProcessFailedException $e) {
+            if ($returnCode === 0 && file_exists($backupFile) && filesize($backupFile) > 0) {
+                return response()->json([
+                    'token' => 'Success',
+                    'message' => 'Backup created: ' . $filename,
+                    'size' => number_format(filesize($backupFile) / 1024, 2) . ' KB',
+                ]);
+            }
+
             return response()->json([
                 'token' => 'Error',
-                'message' => 'Backup failed: ' . $e->getMessage(),
-                'command' => $command,
-                'APP_ENV' => env('APP_ENV'),
-            ]);
+                'message' => 'Backup failed',
+                'details' => implode("\n", $output),
+                'exit_code' => $returnCode,
+            ], 500);
         }
     }
     public function deleteDatabase(Request $request){
@@ -1253,9 +1360,7 @@ class GlobalController extends Controller
             'deleted_files' => $deletedFiles,
         ]);
     }
-
     public function getSerialNo(Request $request){
-
         $perPage = (int) $request->input('per_page', 15);
         $search = $request->input('search', '');
 
@@ -1305,5 +1410,202 @@ class GlobalController extends Controller
             'list' => $response,
         ]);
     }
+    public function downloadBackup(Request $request) {
+        $filename = $request->input('filename');
+        
+        // Security validations
+        if (strpos($filename, '..') !== false || strpos($filename, '/') !== false || strpos($filename, '\\') !== false) {
+            return response()->json([
+                'token' => 'Error',
+                'message' => 'Invalid filename'
+            ], 400);
+        }
+        
+        if (!str_ends_with($filename, '.sql')) {
+            return response()->json([
+                'token' => 'Error',
+                'message' => 'Invalid file type'
+            ], 400);
+        }
+        
+        $backupFolder = env('DB_BACKUP_PATH', base_path('dbBackup'));
+        $file = $backupFolder . DIRECTORY_SEPARATOR . $filename;
+        
+        if (!file_exists($file)) {
+            return response()->json([
+                'token' => 'Error',
+                'message' => 'Backup file not found'
+            ], 404);
+        }
+        
+        return response()->download($file);
+    }
+    public function aiReportQuery(Request $request){
+        $userQuery = $request->input('query');
+        
+        if (empty($userQuery)) {
+            return response()->json([
+                'token' => 'Error',
+                'message' => 'Query is required'
+            ], 400);
+        }
+        
+        $schema = $this->getSchemaDescription();
+        
+        $systemPrompt = "You are a READ-ONLY SQL query generator for generating reports.
 
+            {$schema}
+
+            CRITICAL RULES:
+            1. ONLY generate SELECT queries - NEVER DELETE, INSERT, UPDATE, DROP, ALTER, CREATE, TRUNCATE
+            2. Always use JOINs when querying across related tables
+            3. Use proper table aliases
+            4. Parse dates intelligently
+            5. Always add LIMIT clause (max 1000 rows)
+            6. Return ONLY the SQL query, no markdown, no explanations";
+        
+        try {
+            // ✅ Use Laravel HTTP client directly
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . env('OPENAI_API_KEY'),
+                'Content-Type' => 'application/json',
+            ])->timeout(30)->post('https://api.openai.com/v1/chat/completions', [
+                'model' => ' ',
+                'messages' => [
+                    ['role' => 'system', 'content' => $systemPrompt],
+                    ['role' => 'user', 'content' => $userQuery]
+                ],
+                'temperature' => 0,
+                'max_tokens' => 500,
+            ]);
+            
+            if (!$response->successful()) {
+                throw new \Exception('OpenAI API failed: ' . $response->body());
+            }
+            
+            $data = $response->json();
+            $sqlQuery = $data['choices'][0]['message']['content'];
+            
+            $sqlQuery = $this->cleanSqlQuery($sqlQuery);
+            $this->validateSqlQuery($sqlQuery);
+            
+            DB::beginTransaction();
+            
+            try {
+                DB::statement('SET SESSION TRANSACTION READ ONLY');
+                $results = DB::select($sqlQuery);
+                DB::rollBack();
+                
+                return response()->json([
+                    'token' => 'Success',
+                    'query' => $sqlQuery,
+                    'data' => $results,
+                    'count' => count($results)
+                ]);
+                
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'token' => 'Error',
+                'message' => 'Query execution failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    private function cleanSqlQuery(string $sql): string{
+        $sql = preg_replace('/```sql\s*/i', '', $sql);
+        $sql = preg_replace('/```\s*/', '', $sql);
+        $sql = trim($sql);
+        $sql = rtrim($sql, ';');
+        return $sql;
+    }
+    private function validateSqlQuery(string $sql): void{
+        $sqlUpper = strtoupper($sql);
+        
+        if (!preg_match('/^\s*SELECT/i', $sql)) {
+            throw new \Exception('❌ Only SELECT queries are allowed');
+        }
+        
+        $forbiddenKeywords = [
+            'INSERT', 'UPDATE', 'DELETE', 'DROP', 'TRUNCATE', 
+            'ALTER', 'CREATE', 'REPLACE', 'RENAME', 'GRANT', 
+            'REVOKE', 'EXEC', 'EXECUTE', 'CALL', 'LOAD_FILE',
+            'INTO OUTFILE', 'INTO DUMPFILE', 'LOAD DATA'
+        ];
+        
+        foreach ($forbiddenKeywords as $keyword) {
+            if (strpos($sqlUpper, $keyword) !== false) {
+                throw new \Exception("❌ Forbidden keyword: {$keyword}");
+            }
+        }
+        
+        if (substr_count($sql, ';') > 0) {
+            throw new \Exception('❌ Multiple statements not allowed');
+        }
+        
+        if (!preg_match('/LIMIT\s+\d+/i', $sql)) {
+            throw new \Exception('❌ LIMIT required (max 1000)');
+        }
+        
+        if (preg_match('/LIMIT\s+(\d+)/i', $sql, $matches)) {
+            $limit = (int)$matches[1];
+            if ($limit > 1000) {
+                throw new \Exception('❌ LIMIT cannot exceed 1000');
+            }
+        }
+    }
+    private function getSchemaDescription(): string{
+        // 1. Get all tables in the current database
+        $database = env('DB_DATABASE');
+
+        $tables = DB::select("
+            SELECT TABLE_NAME
+            FROM INFORMATION_SCHEMA.TABLES
+            WHERE TABLE_SCHEMA = ?
+        ", [$database]);
+
+        $schemaText = "DATABASE SCHEMA:\n\n";
+
+        // 2. Loop through each table and get its columns
+        foreach ($tables as $table) {
+            $tableName = $table->TABLE_NAME;
+
+            $columns = DB::select("
+                SELECT COLUMN_NAME
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = ?
+                AND TABLE_NAME = ?
+                ORDER BY ORDINAL_POSITION
+            ", [$database, $tableName]);
+
+            $columnNames = array_map(fn($c) => $c->COLUMN_NAME, $columns);
+            $columnList = implode(', ', $columnNames);
+
+            $schemaText .= "Table: {$tableName}\n";
+            $schemaText .= "Columns: {$columnList}\n\n";
+        }
+
+        // 3. Detect foreign keys (relationships)
+        $fks = DB::select("
+            SELECT
+                TABLE_NAME,
+                COLUMN_NAME,
+                REFERENCED_TABLE_NAME,
+                REFERENCED_COLUMN_NAME
+            FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+            WHERE TABLE_SCHEMA = ?
+            AND REFERENCED_TABLE_NAME IS NOT NULL
+        ", [$database]);
+
+        if (!empty($fks)) {
+            $schemaText .= "RELATIONSHIPS:\n";
+            foreach ($fks as $fk) {
+                $schemaText .= "- {$fk->TABLE_NAME}.{$fk->COLUMN_NAME} → {$fk->REFERENCED_TABLE_NAME}.{$fk->REFERENCED_COLUMN_NAME}\n";
+            }
+        }
+        return $schemaText;
+    }
 }

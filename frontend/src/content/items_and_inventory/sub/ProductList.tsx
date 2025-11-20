@@ -978,7 +978,7 @@ const ProductList: React.FC<ProductListProps> = ({ tabId, onProductSelect, onCha
                             {translations["Close"]}
                         </button>
                         <button onClick={() => handleCopyProduct()} className="px-2 py-2 bg-cyan-600 hover:bg-cyan-500 rounded text-white transition">
-                            {translations["Save"]}
+                            {translations["Copy"]}
                         </button>
                     </div>
                 </div>

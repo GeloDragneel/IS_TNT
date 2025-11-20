@@ -3587,7 +3587,7 @@ const CustomerInvoiceDetails: React.FC<CustomerInvoiceDetailsProps> = ({ custome
                                     <span>{translations["Save and Paid"]}</span>
                                 )
                             ) : (
-                                <span>{translations["Save"]}</span>
+                                <span>{customerInvoiceId === 0 ? translations["Save"] : translations['Update']}</span>
                             )}
                         </button>
                         <button

@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Grn_details;
 use App\Models\Inventory_allocation;
 use App\Models\Products;
+use App\Models\Shipout_items;
+use App\Models\Shipping_stat;
 
 use App\Events\ProductEvent;
 use App\Events\AllocationEvent;
@@ -77,7 +79,7 @@ class AllocationController extends Controller{
     }
     public function AllocationDetails($grn_id, $product_id, $warehouse) {
         // Fetch the relevant data with relationships
-        $query = Inventory_allocation::with(['chartOfAccount', 'customer','shippingStat'])
+        $query = Inventory_allocation::with(['chartOfAccount', 'customer','shippingStat','salesOrder'])
             ->where('product_id', $product_id)
             ->where('grn_detail_id', $grn_id)
             ->where('warehouse', $warehouse) // Add this if needed
@@ -86,6 +88,7 @@ class AllocationController extends Controller{
 
         // Transform the data
         $transform = function ($list) {
+
 
             $customer_name_en = $list->customer->account_name_en ?? '';
             $customer_name_cn = $list->customer->account_name_cn ?? '';
@@ -97,7 +100,6 @@ class AllocationController extends Controller{
             $account_name_en = $list->chartOfAccount->account_name_en ?? '';
             $account_name_cn = $list->chartOfAccount->account_name_cn ?? '';
             $account_name_cn = ($account_name_cn === '' ? $account_name_en : $account_name_cn);
-
 
             $is_account = 0;
 
@@ -112,13 +114,29 @@ class AllocationController extends Controller{
                 $is_account = 1;
             }
 
+            $invoice_no = 'N.A.';
+            $shipping_stat_en = 'N.A.';
+            $shipping_stat_cn = 'N.A.';
+
+            if ($list->salesOrder) {
+                $invoice_no = $list->salesOrder->invoice_no ?? 'N.A.';
+
+                if ($invoice_no !== 'N.A.') {
+                    $shipOutItem = Shipout_items::where('invoice_no', $invoice_no)->value('status') ?? 0;
+                    $shipStatus = Shipping_stat::find($shipOutItem);
+
+                    $shipping_stat_en = $shipStatus->shipping_stat_en ?? '';
+                    $shipping_stat_cn = $shipStatus->shipping_stat_cn ?? '';
+                }
+            }
+
             return [
                 'id' => $list->id ?? 0,
                 'qty' => $list->qty,
                 'warehouse' => $list->warehouse,
                 'account_no' => $list->account_no,
                 'so_number' => $list->so_number ?? '',
-                'invoice_no' => $list->invoice_no ?? '',
+                'invoice_no' => $invoice_no,
                 'customer_code' => $customer_code,
                 'account_name_en' => $account_name_en,
                 'account_name_cn' => $account_name_cn,

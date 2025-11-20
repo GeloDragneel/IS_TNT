@@ -19,7 +19,7 @@ interface CanvasProps {
 
 const Canvas: React.FC<CanvasProps> = ({ blocks, selectedBlock, setSelectedBlock, updateBlock, deleteBlock, duplicateBlock, previewMode, onBlockSelect, onImageClick, darkMode = false }) => {
     const canvasWidth = previewMode === "desktop" ? "600px" : "375px";
-    const { translations, lang } = useLanguage();
+    const { translations } = useLanguage();
     const { setNodeRef, isOver } = useDroppable({
         id: "canvas",
     });

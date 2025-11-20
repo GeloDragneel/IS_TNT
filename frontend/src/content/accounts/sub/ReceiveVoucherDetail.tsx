@@ -2365,7 +2365,7 @@ const ReceiveVoucherDetails: React.FC<ReceiveVoucherDetailsProps> = ({ receiveVo
                             text-[#ffffffcc] flex justify-center items-center`}
                             disabled={loadingSave || masterList?.rv_status_id === 5}
                         >
-                            <span>{translations["Save"]}</span>
+                            <span>{receiveVoucherId === 0 ? translations["Save"] : translations['Update']}</span>
                         </button>
                         <button
                             onClick={() => {

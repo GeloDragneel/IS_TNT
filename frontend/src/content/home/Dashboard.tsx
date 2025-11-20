@@ -98,6 +98,7 @@ const Dashboard: React.FC = () => {
         const channelShipments = PusherEcho.channel("shipment-channel");
         channelPreorder.listen(".preorder-event", () => {
             fetchNewOrders();
+            fetchPreorderClosing();
         });
         channelShipments.listen(".shipment-event", () => {
             fetchShipments();
@@ -106,7 +107,6 @@ const Dashboard: React.FC = () => {
             fetchNewOrders();
             fetchShipments();
             fetchPreorderClosing();
-            console.log("hey");
         });
         return () => {
             PusherEcho.leave("products-channel");
@@ -114,6 +114,7 @@ const Dashboard: React.FC = () => {
             PusherEcho.leave("shipment-channel");
         };
     }, []);
+    
     const fetchExchangeRates = async () => {
         const paginatedData = await dashboardService.getDashboardExRates();
         setExchangeRates(paginatedData);

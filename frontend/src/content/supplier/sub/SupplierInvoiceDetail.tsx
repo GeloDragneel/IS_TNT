@@ -2848,7 +2848,7 @@ const SupplierInvoiceDetails: React.FC<SupplierInvoiceDetailsProps> = ({ supplie
                                     <span>{translations["Processing2"]}...</span>
                                 </>
                             ) : (
-                                <span>{translations["Save"]}</span>
+                                <span>{supplierInvoiceId === 0 ? translations["Save"] : translations['Update']}</span>
                             )}
                         </button>
                         <button

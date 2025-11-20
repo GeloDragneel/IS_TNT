@@ -11,7 +11,7 @@ class PODetailObserver
     /**
      * Handle the POrder_detail "created" event.
     */
-    public function created(POrder_detail $pOrder_detail): void{
+    public function created(POrder_detail $newPODetail): void{
         // Ensure data exists
         $poDate = POrder_master::where('po_number', $newPODetail->po_number)->value('po_date');
         $arMasterID = $newPODetail->id;
@@ -124,7 +124,7 @@ class PODetailObserver
     /**
      * Handle the POrder_detail "deleted" event.
      */
-    public function deleted(POrder_detail $pOrder_detail): void
+    public function deleted(POrder_detail $newPODetail): void
     {
         //
     }
@@ -132,7 +132,7 @@ class PODetailObserver
     /**
      * Handle the POrder_detail "restored" event.
      */
-    public function restored(POrder_detail $pOrder_detail): void
+    public function restored(POrder_detail $newPODetail): void
     {
         //
     }
@@ -140,7 +140,7 @@ class PODetailObserver
     /**
      * Handle the POrder_detail "force deleted" event.
      */
-    public function forceDeleted(POrder_detail $pOrder_detail): void
+    public function forceDeleted(POrder_detail $newPODetail): void
     {
         //
     }

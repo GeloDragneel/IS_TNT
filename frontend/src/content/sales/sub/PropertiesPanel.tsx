@@ -1,5 +1,5 @@
 import React from "react";
-import { X, Type, Palette, LayoutGrid as Layout, Link, Image as ImageIcon, Minus, Share2, Columns2, Video, Building, FileText } from "lucide-react";
+import { X, Palette, LayoutGrid as Layout, Image as ImageIcon, Minus, Share2, Video, Building, FileText } from "lucide-react";
 import { EmailBlock } from "../types/email";
 
 interface PropertiesPanelProps {

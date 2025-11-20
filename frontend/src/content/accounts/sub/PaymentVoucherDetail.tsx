@@ -2432,7 +2432,7 @@ const PaymentVoucherDetails: React.FC<PaymentVoucherDetailsProps> = ({ paymentVo
                             text-[#ffffffcc] flex justify-center items-center`}
                             disabled={loadingSave || masterList?.pv_status_id === 5}
                         >
-                            <span>{translations["Save"]}</span>
+                            <span>{paymentVoucherId === 0 ? translations["Save"] : translations['Update']}</span>
                         </button>
                         <button
                             onClick={() => {

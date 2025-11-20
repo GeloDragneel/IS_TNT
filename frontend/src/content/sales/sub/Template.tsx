@@ -2,12 +2,9 @@ import React, { useState, useEffect, useMemo, useRef } from "react";
 import { massMailerService, ApiMassMailer } from "@/services/massMailerService";
 import { useLanguage } from "@/context/LanguageContext";
 import CustomCheckbox from "@/components/CustomCheckbox";
-import { showConfirm } from "@/utils/alert";
-import { showSuccessToast, showErrorToast } from "@/utils/toast";
 import Pagination from "@/components/Pagination";
 import ItemsPerPageSelector from "@/components/ItemsPerPageSelector";
 import PusherEcho from "@/utils/echo";
-import { X, Search, Minus, Plus } from "lucide-react";
 // localStorage.clear();
 interface LoadingSpinnerTbodyProps {
     rowsCount: number;
@@ -48,7 +45,7 @@ interface TemplateListProps {
     fromView: string; // <-- Add this
 }
 const TemplateList: React.FC<TemplateListProps> = ({ tabId, onPreordertSelect, onChangeView, selectedPreorder, onSelectedMassMailerChange, fromView }) => {
-    const { translations, lang } = useLanguage();
+    const { translations } = useLanguage();
     const [products, setProducts] = useState<ApiMassMailer[]>([]);
     const [totalPages, setTotalPages] = useState(1);
     const pageSizeOptions = useMemo(() => [15, 20, 50, -1], []);
@@ -109,7 +106,7 @@ const TemplateList: React.FC<TemplateListProps> = ({ tabId, onPreordertSelect, o
 
     useEffect(() => {
         const channel = PusherEcho.channel("mass-mailer-channel");
-        channel.listen(".mass-mailer-event", (data: any) => {
+        channel.listen(".mass-mailer-event", () => {
             fetchTemplates();
         });
         return () => {
@@ -189,7 +186,7 @@ const TemplateList: React.FC<TemplateListProps> = ({ tabId, onPreordertSelect, o
         }
     };
     // Handle individual select
-    const handleSelectPreorder = (preorderId: number, checked: boolean) => {
+    const handleSelectMassMailer = (preorderId: number, checked: boolean) => {
         if (checked) {
             onSelectedMassMailerChange([...selectedPreorder, preorderId]);
         } else {
@@ -308,7 +305,7 @@ const TemplateList: React.FC<TemplateListProps> = ({ tabId, onPreordertSelect, o
                                                     <td className="py-2 px-2" onClick={(e) => e.stopPropagation()}>
                                                         <CustomCheckbox
                                                             checked={selectedPreorder.includes(list.id as number)}
-                                                            onChange={(checked) => handleSelectPreorder(list.id as number, checked)}
+                                                            onChange={(checked) => handleSelectMassMailer(list.id as number, checked)}
                                                         />
                                                     </td>
                                                     <td className="py-2 px-2 text-gray-400 text-left text-custom-sm">{list.template_name}</td>

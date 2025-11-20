@@ -1,5 +1,5 @@
 import React from "react";
-import { Type, Image, MousePointer, Minus, Share2, Columns2, Mail, Palette, FileText, Grid3x3 as Grid3X3, CreditCard, Image as ImageIcon, Play, Building } from "lucide-react";
+import { Image, Minus, Share2, Mail, Palette, FileText, Grid3x3 as Grid3X3, CreditCard, Image as ImageIcon, Play, Building } from "lucide-react";
 import { BlockType } from "../types/email";
 
 const blocks = [

@@ -1,5 +1,5 @@
 import React from "react";
-import { Monitor, Smartphone, Download, Eye, Settings, Undo2, Redo2, Save, FileText, Moon, Sun, Image as ImageIcon } from "lucide-react";
+import { Monitor, Smartphone, FileText } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 interface ToolbarProps {
     previewMode: "desktop" | "mobile";
@@ -22,30 +22,14 @@ interface ToolbarProps {
 const Toolbar: React.FC<ToolbarProps> = ({
     previewMode,
     setPreviewMode,
-    onTemplateId,
-    onExport,
     isOpen,
     onExportJSON,
     onPopupType,
-    showPropertiesPanel,
-    setShowPropertiesPanel,
     blocksCount,
     title,
     darkMode,
-    showImageLibrary,
-    setShowImageLibrary,
 }) => {
-    const { translations, lang } = useLanguage();
-    const handlePreview = () => {
-        // In a real app, this would open a preview modal or new window
-        alert("Preview functionality would open your email in a new window");
-    };
-
-    const handleSave = () => {
-        // In a real app, this would save to a backend
-        alert("Template saved successfully!");
-    };
-
+    const { translations } = useLanguage();
     return (
         <div className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm" style={{ backgroundColor: darkMode ? "#1f1f23" : undefined, borderColor: darkMode ? "#35353b" : undefined }}>
             <div className="flex items-center justify-between">

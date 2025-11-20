@@ -308,7 +308,7 @@ class ReportsController extends Controller{
         $dateTo = $request->input('date_to');
         $categoryDates = $request->input('category_dates');
 
-        // Build subquery 1
+        // Build subquery 1 - FIXED GROUP BY
         $sub1 = DB::table('t_rv_detail as a')
             ->select([
                 DB::raw('MAX(a.id) as id'),
@@ -335,9 +335,9 @@ class ReportsController extends Controller{
                         ->orWhere('b.account_name_en', 'like', "%{$search}%");
                 });
             })
-            ->groupBy('a.customer_id', 'a.currency');
+            ->groupBy('a.customer_id', 'b.customer_code', 'b.account_name_en', 'a.currency'); // ADDED customer_code and account_name_en
 
-        // Build subquery 2
+        // Build subquery 2 - FIXED GROUP BY
         $sub2 = DB::table('t_account_customer_cn as a')
             ->select([
                 DB::raw('MAX(a.id) as id'),
@@ -364,44 +364,40 @@ class ReportsController extends Controller{
                         ->orWhere('b.account_name_en', 'like', "%{$search}%");
                 });
             })
-            ->groupBy('a.customer_id', 'a.currency');
+            ->groupBy('a.customer_id', 'b.customer_code', 'b.account_name_en', 'a.currency'); // ADDED customer_code and account_name_en
 
         // Union them
         $union = $sub1->unionAll($sub2);
 
-        // Wrap union as a sub‑subquery to do final aggregation
+        // Wrap union - NOW you can use MAX since data is already grouped properly
         $wrapper = DB::table(DB::raw("({$union->toSql()}) as sub"))
             ->mergeBindings($union)
             ->select([
                 DB::raw('MAX(sub.id) as id'),
                 'sub.customer_id',
-                DB::raw('MAX(sub.customer_code) as customer_code'),
-                DB::raw('MAX(sub.account_name_en) as account_name_en'),
+                'sub.customer_code', // Changed from MAX to direct reference
+                'sub.account_name_en', // Changed from MAX to direct reference
                 'sub.currency',
                 DB::raw('SUM(sub.amount) as amount'),
                 DB::raw('SUM(sub.base_amount) as base_amount'),
                 DB::raw('MAX(sub.date_number) as date_number')
             ])
-            ->groupBy('sub.customer_id', 'sub.currency')
+            ->groupBy('sub.customer_id', 'sub.customer_code', 'sub.account_name_en', 'sub.currency') // ADDED all non-aggregated columns
             ->orderBy(DB::raw('MAX(sub.date_number)'), 'DESC');
 
         // Clone query to get all data for footer totals
         $allData = (clone $wrapper)->get();
 
-        // Ensure transformOrderData returns 'total' and 'base_total' as float values
+        // Rest of your code remains the same...
         $allDataTransformed = $allData->map(function ($order) {
             $transformed = $this->transformOrderData($order);
-
-            // Ensure these fields exist and are numeric for summing
             $transformed['total'] = isset($transformed['total']) ? (float) $transformed['total'] : 0;
             $transformed['base_total'] = isset($transformed['base_total']) ? (float) $transformed['base_total'] : 0;
-
             return $transformed;
         });
 
         $currencyOrder = ['RMB', 'SG$', 'BASE_RMB', 'US$'];
 
-        // Group and sum totals by currency
         $groupedTotals = $allDataTransformed->groupBy('currency')->map(function ($items, $currency) {
             return [
                 'currency' => $currency,
@@ -409,7 +405,6 @@ class ReportsController extends Controller{
             ];
         });
 
-        // Footer2: total amounts by currency in fixed order
         $footer2 = collect($currencyOrder)->map(function ($currency) use ($groupedTotals, $allDataTransformed) {
             return [
                 'currency' => $currency,
@@ -419,16 +414,13 @@ class ReportsController extends Controller{
             ];
         })->values();
 
-        // Now you can paginate
         if ($perPage === -1) {
             $rows = $wrapper->get();
         } else {
             $rows = $wrapper->paginate($perPage);
         }
 
-        // Define transform for output with details
         $transform = function ($row) {
-            // Get deposit details for this customer
             return [
                 'id' => $row->id,
                 'customer_id' => $row->customer_id,
@@ -439,7 +431,7 @@ class ReportsController extends Controller{
                 'base_amount' => $row->base_amount,
             ];
         };
-        // Prepare response
+
         if ($perPage === -1) {
             $data = $rows->map($transform);
             $response = [

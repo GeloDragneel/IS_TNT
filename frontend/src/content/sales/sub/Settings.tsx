@@ -116,7 +116,7 @@ const SettingList: React.FC<SettingListProps> = ({ tabId, onChangeView, fromView
 
     useEffect(() => {
         const channel = PusherEcho.channel("mass-mailer-channel");
-        channel.listen(".mass-mailer-event", (data: any) => {
+        channel.listen(".mass-mailer-event", () => {
             fetchSettings();
         });
         return () => {
@@ -429,7 +429,7 @@ const SettingList: React.FC<SettingListProps> = ({ tabId, onChangeView, fromView
                         </div>
                         <div className="flex items-center space-x-4">
                             <div className="flex items-center space-x-1">
-                                <button onClick={(e) => handlePopup(0)} className="px-2 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm">
+                                <button onClick={() => handlePopup(0)} className="px-2 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm">
                                     <span>{translations["Add New"]}</span>
                                 </button>
                                 <button onClick={handleDeleteSelected} className="px-2 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm">

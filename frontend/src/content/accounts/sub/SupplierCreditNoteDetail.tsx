@@ -1470,7 +1470,7 @@ const ReceiveVoucherDetails: React.FC<ReceiveVoucherDetailsProps> = ({ creditNot
                             text-[#ffffffcc] flex justify-center items-center`}
                             disabled={loadingSave || masterList?.cr_status_id === 5}
                         >
-                            <span>{translations["Save"]}</span>
+                            <span>{creditNoteId === 0 ? translations["Save"] : translations['Update']}</span>
                         </button>
                         <button disabled={creditNoteId === 0} className="px-2 py-2 bg-cyan-600 hover:bg-cyan-700 text-[#ffffffcc] text-custom-sm rounded-lg text-sm font-medium transition-colors">
                             {translations["Print"]}

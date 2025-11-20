@@ -489,102 +489,106 @@ const AllocationList: React.FC<AllocationListProps> = ({ tabId }) => {
                         </div>
                     </div>
                     {/* Content */}
-                    <div className="grid grid-cols-12 gap-4 p-4">
-                        <div className="col-span-12 flex flex-col">
-                            <label className="text-gray-400 text-sm mb-1">{translations["Root Name"] || "Root Name"}</label>
-                            <input
-                                type="text"
-                                readOnly
-                                value={formData.root_name}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    setFormData((prev) => ({ ...prev, root_name: value }));
-                                }}
-                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                            />
-                        </div>
-                        <div className="col-span-12 flex flex-col">
-                            <label className="text-gray-400 text-sm mb-1">{translations["Account Type"]}</label>
-                            <input
-                                type="text"
-                                hidden={lang === "cn"}
-                                readOnly
-                                value={formData.account_type_en}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    setFormData((prev) => ({ ...prev, account_type_en: value }));
-                                }}
-                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                            />
-                            <input
-                                type="text"
-                                hidden={lang === "en"}
-                                readOnly
-                                value={formData.account_type_cn}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    setFormData((prev) => ({ ...prev, account_type_cn: value }));
-                                }}
-                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                            />
-                        </div>
-                        <div className="col-span-12 flex flex-col">
-                            <label className="text-gray-400 text-sm mb-1">{translations["Account Code"]}</label>
-                            <input
-                                type="text"
-                                value={formData.account_code}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    setFormData((prev) => ({ ...prev, account_code: value }));
-                                }}
-                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                            />
-                        </div>
-                        <div className="col-span-12 flex flex-col">
-                            <label className="text-gray-400 text-sm mb-1">{translations["Account Name"]}</label>
-                            <input
-                                type="text"
-                                hidden={lang === "cn"}
-                                value={formData.account_name_en}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    setFormData((prev) => ({ ...prev, account_name_en: value }));
-                                }}
-                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                            />
-                            <input
-                                type="text"
-                                hidden={lang === "en"}
-                                value={formData.account_name_cn}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    setFormData((prev) => ({ ...prev, account_name_cn: value }));
-                                }}
-                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                            />
-                        </div>
-                        <div className="col-span-12 flex flex-col">
-                            <label className="text-gray-400 text-sm mb-1">{translations["Description"]}</label>
-                            <input
-                                type="text"
-                                hidden={lang === "cn"}
-                                value={formData.description_en}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    setFormData((prev) => ({ ...prev, description_en: value }));
-                                }}
-                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                            />
-                            <input
-                                type="text"
-                                hidden={lang === "en"}
-                                value={formData.description_cn}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    setFormData((prev) => ({ ...prev, description_cn: value }));
-                                }}
-                                className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
-                            />
+                    <div className="p-2 flex-1 overflow-auto">
+                        <div className="max-h-[calc(100vh-435px)] overflow-y-auto">
+                            <div className="grid grid-cols-12 gap-4 p-4">
+                                <div className="col-span-12 flex flex-col">
+                                    <label className="text-gray-400 text-sm mb-1">{translations["Root Name"] || "Root Name"}</label>
+                                    <input
+                                        type="text"
+                                        readOnly
+                                        value={formData.root_name}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            setFormData((prev) => ({ ...prev, root_name: value }));
+                                        }}
+                                        className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                    />
+                                </div>
+                                <div className="col-span-12 flex flex-col">
+                                    <label className="text-gray-400 text-sm mb-1">{translations["Account Type"]}</label>
+                                    <input
+                                        type="text"
+                                        hidden={lang === "cn"}
+                                        readOnly
+                                        value={formData.account_type_en}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            setFormData((prev) => ({ ...prev, account_type_en: value }));
+                                        }}
+                                        className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                    />
+                                    <input
+                                        type="text"
+                                        hidden={lang === "en"}
+                                        readOnly
+                                        value={formData.account_type_cn}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            setFormData((prev) => ({ ...prev, account_type_cn: value }));
+                                        }}
+                                        className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                    />
+                                </div>
+                                <div className="col-span-12 flex flex-col">
+                                    <label className="text-gray-400 text-sm mb-1">{translations["Account Code"]}</label>
+                                    <input
+                                        type="text"
+                                        value={formData.account_code}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            setFormData((prev) => ({ ...prev, account_code: value }));
+                                        }}
+                                        className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                    />
+                                </div>
+                                <div className="col-span-12 flex flex-col">
+                                    <label className="text-gray-400 text-sm mb-1">{translations["Account Name"]}</label>
+                                    <input
+                                        type="text"
+                                        hidden={lang === "cn"}
+                                        value={formData.account_name_en}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            setFormData((prev) => ({ ...prev, account_name_en: value }));
+                                        }}
+                                        className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                    />
+                                    <input
+                                        type="text"
+                                        hidden={lang === "en"}
+                                        value={formData.account_name_cn}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            setFormData((prev) => ({ ...prev, account_name_cn: value }));
+                                        }}
+                                        className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                    />
+                                </div>
+                                <div className="col-span-12 flex flex-col">
+                                    <label className="text-gray-400 text-sm mb-1">{translations["Description"]}</label>
+                                    <input
+                                        type="text"
+                                        hidden={lang === "cn"}
+                                        value={formData.description_en}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            setFormData((prev) => ({ ...prev, description_en: value }));
+                                        }}
+                                        className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                    />
+                                    <input
+                                        type="text"
+                                        hidden={lang === "en"}
+                                        value={formData.description_cn}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            setFormData((prev) => ({ ...prev, description_cn: value }));
+                                        }}
+                                        className="flex-1 px-3 py-2 border border-[#ffffff1a] bg-transparent text-[#ffffffcc] text-custom-sm"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
                     {/* Footer */}
@@ -593,7 +597,7 @@ const AllocationList: React.FC<AllocationListProps> = ({ tabId }) => {
                             {translations["Close"]}
                         </button>
                         <button onClick={handleSaveCOA} disabled={loadingSave} className={`px-2 py-2 bg-cyan-600 hover:bg-cyan-500 rounded text-white transition`}>
-                            {translations["Save"]}
+                            {formData.id === 0 ? translations["Save"] : translations['Update']}
                         </button>
                     </div>
                 </div>
